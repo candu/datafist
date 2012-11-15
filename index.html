@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700,300italic,400italic,500italic,700italic' rel='stylesheet' type='text/css'>
     <link rel="stylesheet/less" type="text/css" href="less/main.less">
     <script src="js/third-party/less.js"></script>
     <script src="js/third-party/mootools.js"></script>
@@ -14,20 +15,26 @@
       <table id="table">
         <tr id="header">
           <td colspan="2" id="banner">
-            <div>banner</div>
+            <div>
+              <div id="title">datafist</div>
+              <div id="subtitle">MAKE FIST OF DATA</div>
+            </div>
           </td>
         </tr>
         <tr id="content">
-          <td id="palette">
-            <div>palette</div>
+          <td id="toolbox">
+            <div id="palette"></div>
           </td>
           <td id="viewer">
-            <div>viewer</div>
+            <div id="svg_wrapper"></div>
           </td>
         </tr>
         <tr id="footer">
           <td colspan="2" id="interpreter">
-            <div>interpreter</div>
+            <div>
+              <div id="repl" contenteditable="true">
+              </div>
+            </div>
           </td>
         </tr>
       </table>

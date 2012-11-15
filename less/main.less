@@ -1,37 +1,29 @@
 // http://colorschemedesigner.com/#01420ZRw0lXot
 
-// primary
-@red: #FF0700;
-@red-med-dark: #D32924;
-@red-dark: #C20500;
-@red-med-light: #FF3631;
-@red-light: #FF5C58;
+@source-text: #36f;
+@source-border: #9af;
+@source-bg: #ace;
 
-// secondary A
-@yellow: #FF8700;
-@yellow-med-dark: #D38124;
-@yellow-dark: #C26600;
-@yellow-med-light: #FF9E31;
-@yellow-light: #FFB058;
+@source-text-hover: #00f;
+@source-border-hover: #68f;
+@source-bg-hover: #79e;
 
-// secondary B
-@blue: #0070A1;
-@blue-med-dark: #176485;
-@blue-dark: #00557A;
-@blue-med-light: #2695C5;
-@blue-light: #449EC5;
+@filter-text: #963;
+@filter-border: #dc4;
+@filter-bg: #fe7;
 
-// complementary
-@green: #00C90D;
-@green-med-dark: #1DA626;
-@green-dark: #00990A;
-@green-med-light: #2ADD36;
-@green-light: #4CDD56;
+@filter-text-hover: #c90;
+@filter-border-hover: #ed2;
+@filter-bg-hover: #ff2;
 
 html, body {
+  font-family: 'Ubuntu', sans-serif;
+  color: #222;
   padding: 0;
   margin: 0;
   height: 100%;
+  min-height: 480px;
+  min-width: 720px;
 }
 
 #container {
@@ -50,29 +42,75 @@ html, body {
 
 tr, td {
   vertical-align: top;
+  padding: 0;
+  margin: 0;
 }
 
 #header {
-  height: 50px;
+  height: 45px;
 }
 
 #banner {
-  background-color: @red;
+  background-color: #ccc;
+  padding: 4px;
+}
+
+#title {
+  font-size: 32px;
+  color: #333;
+  display: inline-block;
+}
+
+#subtitle {
+  font-size: 16px;
+  color: #999;
+  display: inline-block;
+}
+
+@toolbox-width: 200px;
+@palette-border: 1px;
+@palette-margin: 8px;
+
+#toolbox {
+  width: @toolbox-width;
+  background-color: #999;
 }
 
 #palette {
-  width: 200px;
-  background-color: @blue;
+  border: @palette-border solid #777;
+  margin: @palette-margin;
+  background-color: #f7f7f7;
+  width: (@toolbox-width - 2 * (@palette-border + @palette-margin));
 }
 
 #viewer {
-  background-color: @yellow;
+  background-color: #bbb;
 }
 
+#svg_wrapper {
+  margin: 8px;
+  border: 1px solid #aaa;
+  background-color: #f7f7f7;
+}
+
+@footer-height: 240px;
+@repl-border: 1px;
+@repl-margin: 8px;
+@repl-padding: 4px;
+
 #footer {
-  height: 200px;
+  height: @footer-height;
 }
 
 #interpreter {
-  background-color: @green;
+  background-color: #ccc;
+}
+
+#repl {
+  font-family: "Menlo", monospace;
+  background-color: #f7f7f7;
+  border: @repl-border solid #999;
+  margin: @repl-margin;
+  padding: @repl-padding;
+  height: (@footer-height - 2 * (@repl-border + @repl-margin + @repl-padding));
 }
