@@ -4,7 +4,7 @@ var SExp = {
     var i = 0;
     function helper() {
       while (true) {
-        if (i >= s.length) return null;
+        if (i >= s.length) throw new Error("parse failed");
         if (s[i] !== ' ') break;
         i++;
       }
@@ -13,11 +13,9 @@ var SExp = {
         sexp = [];
         i++;
         while (true) {
-          if (i >= s.length) return null;
+          if (i >= s.length) throw new Error("parse failed");
           if (s[i] === ')') break;
-          var subexp = helper();
-          if (subexp === null) return null;
-          sexp.push(subexp);
+          sexp.push(helper());
         }
         i++;
       } else {
@@ -29,7 +27,7 @@ var SExp = {
       return sexp;
     }
     var sexp = helper();
-    if (i !== s.length) return null;
+    if (i !== s.length) throw new Error("parse failed");
     return sexp;
   },
   isAtom: function(sexp) {

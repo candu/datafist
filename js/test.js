@@ -3,28 +3,32 @@ test("SExp", function() {
     equal(JSON.stringify(a), JSON.stringify(b));
   }
 
+  function parseThrows(s, e) {
+    throws(function() { return SExp.parse(s); }, e);
+  }
+
   // empty strings
-  jsonEqual(SExp.parse(''), null);
-  jsonEqual(SExp.parse('    '), null);
+  parseThrows('', /parse failed/);
+  parseThrows('    ', /parse failed/);
 
   // parens
-  jsonEqual(SExp.parse('('), null);
-  jsonEqual(SExp.parse(')'), null);
+  parseThrows('(', /parse failed/);
+  parseThrows(')', /parse failed/);
   jsonEqual(SExp.parse('()'), []);
   jsonEqual(SExp.parse('((()))'), [[[]]]);
-  jsonEqual(SExp.parse('((())'), null);
-  jsonEqual(SExp.parse('((())))'), null);
+  parseThrows('((())', /parse failed/);
+  parseThrows('((())))', /parse failed/);
 
   // atom
   jsonEqual(SExp.parse('a'), 'a');
   jsonEqual(SExp.parse('abcd'), 'abcd');
-  jsonEqual(SExp.parse('a b'), null);
+  parseThrows('a b', /parse failed/);
 
   // list
   jsonEqual(SExp.parse('(a)'), ['a']);
   jsonEqual(SExp.parse('(a b)'), ['a', 'b']);
-  jsonEqual(SExp.parse('a b)'), null);
-  jsonEqual(SExp.parse('(a b'), null);
+  parseThrows('a b)', /parse failed/);
+  parseThrows('(a b', /parse failed/);
 
   // mix
   jsonEqual(SExp.parse('(a (b c) d)'), ['a', ['b', 'c'], 'd']);
