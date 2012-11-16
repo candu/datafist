@@ -1,9 +1,13 @@
 var SExp = {
   parse: function(s) {
+    s = s.trim();
     var i = 0;
     function helper() {
-      if (i >= s.length) return null;
-      while (s[i] === ' ') i++;
+      while (true) {
+        if (i >= s.length) return null;
+        if (s[i] !== ' ') break;
+        i++;
+      }
       var sexp;
       if (s[i] === '(') {
         sexp = [];
