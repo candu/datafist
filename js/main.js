@@ -7,8 +7,7 @@ function dynamicResize() {
 var resizeTimer;
 $(window).addEvent('domready', function() {
   dynamicResize();
-  var repl = new REPLHandler($('repl'));
-  repl.start();
+  LibFist.import(Fist);
 }).addEvent('resize', function() {
   window.clearTimeout(resizeTimer);
   resizeTimer = (function() {

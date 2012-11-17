@@ -30,10 +30,10 @@ var SExp = {
     if (i !== s.length) throw new Error("parse failed");
     return sexp;
   },
-  isAtom: function(sexp) {
-    return sexp.length === undefined;
-  },
   isList: function(sexp) {
-    return sexp.length !== undefined;
+    return sexp instanceof Array;
   },
+  isAtom: function(sexp) {
+    return !this.isList(sexp);
+  }
 };
