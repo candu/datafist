@@ -2,7 +2,6 @@ function Heap(xs, cmp) {
   cmp = cmp || function(a, b) { return a - b; };
   var _size = xs.length;
   function _swap(i, j) {
-    console.log(i, j);
     var tmp = xs[i];
     xs[i] = xs[j];
     xs[j] = tmp;
@@ -17,7 +16,7 @@ function Heap(xs, cmp) {
     return Math.floor((i - 1) / 2);
   }
   function _leaf(i) {
-    return i >= Math.floor((_size - 1) / 2);
+    return i >= Math.ceil((_size - 1) / 2);
   }
   function _sift(i) {
     while (!_leaf(i)) {

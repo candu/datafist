@@ -21,12 +21,31 @@ QUnit.test("Iterator", function() {
 });
 
 QUnit.test("Heap", function() {
+  // empty
+  var q = Heap([]);
+  equal(q.empty(), true);
+
   // heapsort
   var xs = [3, 5, 6, 1, 4, 7, 2],
       q = Heap(xs),
       i = 0;
   while (!q.empty()) {
     equal(q.pop(), ++i);
+  }
+  equal(i, xs.length);
+
+  // random heapsort
+  var xs = [],
+      N = 10;
+  for (var i = 0; i < N; i++) {
+    xs.push(Math.random());
+  }
+  var q = Heap(xs),
+      last = -Infinity;
+  for (var i = 0; i < N; i++) {
+    var cur = q.pop();
+    ok(cur >= last);
+    last = cur;
   }
 });
 
