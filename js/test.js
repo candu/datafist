@@ -1,3 +1,35 @@
+QUnit.test("Iterator", function() {
+  var it;
+
+  // empty
+  it = Iterator([]);
+  throws(function() { return it.next(); }, StopIteration);
+
+  // next
+  it = Iterator([3, 2, 1]);
+  equal(it.next(), 3);
+  equal(it.next(), 2);
+  equal(it.next(), 1);
+  throws(function() { return it.next(); }, StopIteration);
+
+  // peek
+  it = Iterator([3, 2, 1]);
+  it.next();
+  equal(it.peek(), 2);
+  it.next();
+  equal(it.peek(), 1);
+});
+
+QUnit.test("Heap", function() {
+  // heapsort
+  var xs = [3, 5, 6, 1, 4, 7, 2],
+      q = Heap(xs),
+      i = 0;
+  while (!q.empty()) {
+    equal(q.pop(), ++i);
+  }
+});
+
 QUnit.test("SExp", function() {
   function jsonEqual(a, b) {
     equal(JSON.stringify(a), JSON.stringify(b));
@@ -39,6 +71,28 @@ QUnit.test("SExp", function() {
   jsonEqual(SExp.parse('(   a   )'), ['a']);
   jsonEqual(SExp.parse('(a)      '), ['a']);
   jsonEqual(SExp.parse('   (a)   '), ['a']);
+});
+
+QUnit.test("evaluateAtom", function() {
+  // empty
+  throws(function() { Fist.evaluateAtom(''); }, /empty atom not allowed/);
+
+  // number
+  equal(Fist.evaluateAtom('1'), 1);
+  equal(Fist.evaluateAtom('-1'), -1);
+  equal(Fist.evaluateAtom('3.25'), 3.25);
+
+  // boolean
+  equal(Fist.evaluateAtom('true'), true);
+  equal(Fist.evaluateAtom('false'), false);
+
+  // string
+  equal(Fist.evaluateAtom('"foo"'), "foo");
+  equal(Fist.evaluateAtom('"foo: \\"bar\\""'), "foo: \"bar\"");
+  throws(function() { Fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
+
+  // ops
+  equal(Fist.evaluateAtom('+'), OpsArith.plus);
 });
 
 QUnit.test("OpsArith", function() {

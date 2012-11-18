@@ -1,12 +1,28 @@
-var Channel = new Class({
-  initialize: function() {
-    // TODO: implement this
-  }
-});
-
 var Fist = {
   _symbolTable: {},
-  _evaluateAtom: function(atom) {
+  makeDataChannel: function(data) {
+    data.sort(function(a, b) { return a.t - b.t; });
+    index = {};
+    for (var i = 0; i < data.length; i++) {
+      index[data[i].t] = data[i].x;
+    }
+    return {
+      at: function(t) {
+        if (!index.hasOwnProperty(t)) {
+          // TODO: deal with non-numeric values
+          return 0;
+        }
+        return index[t];
+      },
+      iter: function() {
+        return Iterator(data);
+      }
+    };
+  },
+  evaluateAtom: function(atom) {
+    if (!atom) {
+      throw new Error('empty atom not allowed');
+    }
     var symbolValue = this._symbolTable[atom];
     if (symbolValue !== undefined) {
       return symbolValue;
@@ -28,7 +44,7 @@ var Fist = {
   },
   evaluate: function(sexp) {
     if (SExp.isAtom(sexp)) {
-      return this._evaluateAtom(sexp);
+      return this.evaluateAtom(sexp);
     }
     if (sexp.length === 0) {
       throw new Error('expected operation');
@@ -46,12 +62,8 @@ var Fist = {
     console.log('importing symbol ' + name);
     this._symbolTable[name] = value;
   },
-  importChannel: function(name, channel) {
-    if (!(channel instanceof Channel)) {
-      throw new Error('expected channel');
-    }
-    // TODO: separate namespace for channels?
-    this.registerSymbol(name, channel);
+  importData: function(name, data) {
+    this.registerSymbol(name, this.makeDataChannel(data));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...

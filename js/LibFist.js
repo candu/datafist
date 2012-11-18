@@ -3,23 +3,35 @@ var OpsArith = {
     ['plus', '+']
   ],
   plus: function(args) {
-    var hasChannel = false,
+    var channels = [],
         numberSum = 0;
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
-      if (typeof(arg) === 'number') {
+      var argType = Object.toType(arg);
+      if (argType == 'number') {
         numberSum += arg;
-      } else if (arg instanceof Channel) {
-        hasChannel = true;
+      } else if (argType == 'object') {
+        channels.push(arg);
       } else {
         throw new Error(
           'plus: expected [(Number|Channel)*], got ' + typeof(arg));
       }
     }
-    if (!hasChannel) {
+    if (channels.length === 0) {
       return numberSum;
     }
-    // TODO: handle channel case
+    return {
+      at: function(t) {
+        var total = 0;
+        for (var i = 0; i < channels.length; i++) {
+          total += channels[i].at(t);
+        }
+        return total;
+      },
+      iter: function(t) {
+        var iters = channels.map(function(c) { return c.iter(); });
+      }
+    };
   },
 };
 var OpsMath = {};
