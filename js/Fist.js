@@ -19,8 +19,23 @@ var DataChannel = new Class({
   }
 });
 
-var Fist = {
-  _symbolTable: {},
+var Fist = new Class({
+  initialize: function() {
+    this._symbolTable = {};
+    this._dummyElem = new Element('div');
+  },
+  _symbolImported: function(name, value) {
+    this._dummyElem.fireEvent('symbolimport', [name, value]);
+  },
+  listen: function(type, callback) {
+    switch (type) {
+      case 'symbolimport':
+        this._dummyElem.addEvent(type, callback);
+        break;
+      default:
+        throw new Error('unrecognized event type: ' + type);
+    }
+  },
   evaluateAtom: function(atom) {
     if (!atom) {
       throw new Error('empty atom not allowed');
@@ -67,6 +82,7 @@ var Fist = {
   registerSymbol: function(name, value) {
     console.log('importing symbol ' + name);
     this._symbolTable[name] = value;
+    this._symbolImported(name, value);
   },
   importData: function(name, data) {
     this.registerSymbol(name, new DataChannel(data));
@@ -97,4 +113,4 @@ var Fist = {
       }
     }
   }
-};
+});

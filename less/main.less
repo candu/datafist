@@ -114,3 +114,22 @@ tr, td {
   padding: @repl-padding;
   height: (@footer-height - 2 * (@repl-border + @repl-margin + @repl-padding));
 }
+
+#palette {
+  overflow-y: auto;
+  div.block {
+    display: inline-block;
+    padding: 2px;
+    margin: 2px;
+    &.function {
+      background-color: @filter-bg;
+      border: 1px solid @filter-border;
+      color: @filter-text;
+    }
+    &.object {
+      background-color: @source-bg;
+      border: 1px solid @source-border;
+      color: @source-text;
+    }
+  }
+}
