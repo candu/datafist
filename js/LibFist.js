@@ -5,18 +5,14 @@ var OpsArith = {
   plus: function(args) {
     var channels = [],
         numberSum = 0;
-    argCheck('plus', args, '(* (| number object))');
+    argCheck('plus', args, '(* (| number channel))');
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
       var argType = Object.toType(arg);
       if (argType === 'number') {
         numberSum += arg;
-      } else if (argType === 'object') {
-        channels.push(arg);
       } else {
-        throw new Error(
-          'plus: expected [(Number|Channel)*], but arg ' + i + ' is ' +
-          typeof(arg));
+        channels.push(arg);
       }
     }
     if (channels.length === 0) {
@@ -31,7 +27,7 @@ var OpsArith = {
         return total;
       },
       iter: function(t) {
-        var iters = channels.map(function(c) { return c.iter(); });
+        return MergeIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
   },
@@ -134,13 +130,13 @@ var GensChannel = {
   }
 };
 
-var ViewBubbles = {};
-var ViewChannel = {};
-var ViewCrossfilter = {};
-var ViewHistogram = {};
-var ViewLinearRegression = {};
-var ViewMap = {};
-var ViewTrendalyzer = {};
+var View = {
+  view: function(args) {
+    console.log('view!');
+    argCheck('view', args, '(+ string (* channel))');
+    this._viewInvoked(args[0], args.slice(1));
+  }
+};
 
 var Display = {};
 
@@ -161,14 +157,6 @@ var LibFist = {
     fist.importModule(null, GensData);
     fist.importModule(null, GensChannel);
 
-    fist.importModule(null, ViewBubbles);
-    fist.importModule(null, ViewChannel);
-    fist.importModule(null, ViewCrossfilter);
-    fist.importModule(null, ViewHistogram);
-    fist.importModule(null, ViewLinearRegression);
-    fist.importModule(null, ViewMap);
-    fist.importModule(null, ViewTrendalyzer);
-
-    fist.importModule(null, Display);
+    fist.importModule(null, View);
   }
 };

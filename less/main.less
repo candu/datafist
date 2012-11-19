@@ -26,6 +26,16 @@ html, body {
   min-width: 720px;
 }
 
+.text-unselectable {
+  // see http://stackoverflow.com/questions/826782/css-rule-to-disable-text-selection-highlighting
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 #container {
   position: relative;
   width: 100%;
@@ -118,7 +128,9 @@ tr, td {
 #palette {
   overflow-y: auto;
   div.block {
+    .text-unselectable;
     display: inline-block;
+    cursor: pointer;
     padding: 2px;
     margin: 2px;
     &.function {

@@ -15,7 +15,7 @@ var DataChannel = new Class({
     return this._index[t];
   },
   iter: function() {
-    return Iterator(this._data);
+    return Iterator(this._data.map(function(a) { return a.t; }));
   }
 });
 
@@ -27,9 +27,13 @@ var Fist = new Class({
   _symbolImported: function(name, value) {
     this._dummyElem.fireEvent('symbolimport', [name, value]);
   },
+  _viewInvoked: function(name, channels) {
+    this._dummyElem.fireEvent('viewinvoked', [name, channels]);
+  },
   listen: function(type, callback) {
     switch (type) {
       case 'symbolimport':
+      case 'viewinvoked':
         this._dummyElem.addEvent(type, callback);
         break;
       default:
