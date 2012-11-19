@@ -158,10 +158,10 @@ QUnit.test("OpsArith", function() {
   equal(Fist.execute('(+ 1 2 3)'), 6);
 
   var c = Fist.execute(
-    '(+ (gen-regular (constant 3) 0 3 3) (gen-regular (constant 4) 0 3 3))'
+    '(+ (gen-regular (constant 2) 0 3 3) (gen-regular (constant 1) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
-    equal(c.at(i), 7);
+    equal(c.at(i), 3);
   }
 });
 

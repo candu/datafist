@@ -27,7 +27,6 @@ var OpsArith = {
         var total = numberSum;
         for (var i = 0; i < channels.length; i++) {
           total += channels[i].at(t);
-          console.log(total);
         }
         return total;
       },
@@ -92,7 +91,7 @@ var GensChannel = {
       _data.push({t: _t, x: _gen(_t)});
       _t += _dt;
     }
-    return Fist.makeDataChannel(_data);
+    return new DataChannel(_data);
   },
   genUniform: function(args) {
     argCheck('gen-uniform', args, '(+ function number number number)');

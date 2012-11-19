@@ -1,24 +1,26 @@
+var DataChannel = new Class({
+  initialize: function(data) {
+    this._data = Array.clone(data);
+    this._data.sort(function(a, b) { return a.t - b.t; });
+    this._index = {};
+    for (var i = 0; i < this._data.length; i++) {
+      this._index[this._data[i].t] = this._data[i].x;
+    }
+  },
+  at: function(t) {
+    if (!this._index.hasOwnProperty(t)) {
+      // TODO: deal with non-numeric values
+      return 0;
+    }
+    return this._index[t];
+  },
+  iter: function() {
+    return Iterator(this._data);
+  }
+});
+
 var Fist = {
   _symbolTable: {},
-  makeDataChannel: function(data) {
-    data.sort(function(a, b) { return a.t - b.t; });
-    index = {};
-    for (var i = 0; i < data.length; i++) {
-      index[data[i].t] = data[i].x;
-    }
-    return {
-      at: function(t) {
-        if (!index.hasOwnProperty(t)) {
-          // TODO: deal with non-numeric values
-          return 0;
-        }
-        return index[t];
-      },
-      iter: function() {
-        return Iterator(data);
-      }
-    };
-  },
   evaluateAtom: function(atom) {
     if (!atom) {
       throw new Error('empty atom not allowed');
@@ -53,7 +55,11 @@ var Fist = {
     if (!(op instanceof Function)) {
       throw new Error('expected operation, got ' + typeof(op));
     }
-    return op.apply(this, [sexp.slice(1).map(this.evaluate.bind(this))]);
+    var args = [];
+    for (var i = 1; i < sexp.length; i++) {
+      args.push(this.evaluate(sexp[i]));
+    }
+    return op.call(this, args);
   },
   execute: function(command) {
     return this.evaluate(SExp.parse(command));
@@ -63,7 +69,7 @@ var Fist = {
     this._symbolTable[name] = value;
   },
   importData: function(name, data) {
-    this.registerSymbol(name, this.makeDataChannel(data));
+    this.registerSymbol(name, new DataChannel(data));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...
