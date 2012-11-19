@@ -1,4 +1,4 @@
-QUnit.test("Iterator", function() {
+QUnit.test('Iterator', function() {
   var it;
 
   // empty
@@ -20,7 +20,7 @@ QUnit.test("Iterator", function() {
   equal(it.peek(), 1);
 });
 
-QUnit.test("MergeIterator", function() {
+QUnit.test('MergeIterator', function() {
   var it;
 
   // empty
@@ -50,7 +50,7 @@ QUnit.test("MergeIterator", function() {
   throws(function() { return it.next(); }, StopIteration);
 });
 
-QUnit.test("Heap", function() {
+QUnit.test('Heap', function() {
   // empty
   var q = Heap([]);
   equal(q.empty(), true);
@@ -88,7 +88,7 @@ QUnit.test("Heap", function() {
   }
 });
 
-QUnit.test("SExp", function() {
+QUnit.test('SExp', function() {
   function jsonEqual(a, b) {
     equal(JSON.stringify(a), JSON.stringify(b));
   }
@@ -131,7 +131,7 @@ QUnit.test("SExp", function() {
   jsonEqual(SExp.parse('   (a)   '), ['a']);
 });
 
-QUnit.test("evaluateAtom", function() {
+QUnit.test('evaluateAtom', function() {
   // empty
   throws(function() { Fist.evaluateAtom(''); }, /empty atom not allowed/);
 
@@ -145,15 +145,15 @@ QUnit.test("evaluateAtom", function() {
   equal(Fist.evaluateAtom('false'), false);
 
   // string
-  equal(Fist.evaluateAtom('"foo"'), "foo");
-  equal(Fist.evaluateAtom('"foo: \\"bar\\""'), "foo: \"bar\"");
+  equal(Fist.evaluateAtom('"foo"'), 'foo');
+  equal(Fist.evaluateAtom('"foo: \\"bar\\""'), 'foo: "bar"');
   throws(function() { Fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
 
   // ops
   equal(Fist.evaluateAtom('+'), OpsArith.plus);
 });
 
-QUnit.test("OpsArith", function() {
+QUnit.test('OpsArith', function() {
   // number
   equal(Fist.execute('(+ 1 2)'), 3);
   equal(Fist.execute('(+ 1 2 3)'), 6);
@@ -175,7 +175,7 @@ QUnit.test("OpsArith", function() {
   }
 });
 
-QUnit.test("GensData", function() {
+QUnit.test('GensData', function() {
   var FOUR_NINES_SIG = 3.89;
 
   var constant = Fist.execute('(constant 42)');
@@ -214,6 +214,7 @@ QUnit.test("GensData", function() {
   ok(error < limit);
 
   var gaussian = Fist.execute('(gaussian 4 1)');
+  ok(gaussian instanceof Function);
   var total = 0,
       N = 1000;
   for (var i = 0; i < N; i++) {
@@ -221,5 +222,46 @@ QUnit.test("GensData", function() {
   }
   var error = Math.abs(4 - total / N);
   var limit = FOUR_NINES_SIG * Math.sqrt(1 / N);
+  ok(error < limit);
+});
+
+// TODO: test iteration
+QUnit.test('GensChannel', function() {
+  var FOUR_NINES_SIG = 3.89;
+  var constant = Fist.execute('(constant 42)');
+
+  var regular = Fist.execute('(gen-regular 0 60 10)');
+  ok(regular instanceof Function);
+  var c = regular.call(Fist, [constant]);
+  for (var t = 0; t < 60; t += 6) {
+    equal(c.at(t), 42);
+  }
+
+  var uniform = Fist.execute('(gen-uniform 0 60 10)');
+  ok(uniform instanceof Function);
+  var c = uniform.call(Fist, [constant]);
+  var pointsFound = 0;
+  for (var t = 0; t < 60; t++) {
+    if (c.at(t) === 42) {
+      pointsFound++;
+    }
+  }
+  equal(pointsFound, 10);
+
+  var poisson = Fist.execute('(gen-poisson 0 10000 10)');
+  ok(poisson instanceof Function);
+  var c = poisson.call(Fist, [constant]);
+  var N = 10000,
+      rate = 10,
+      pointsFound = 0;
+  for (var t = 0; t < N; t++) {
+    if (c.at(t) === 42) {
+      pointsFound++;
+    }
+  }
+  var error = Math.abs(N / rate - pointsFound);
+  // let's be extra-permissive, since the gen-poisson implementation uses
+  // a couple of heuristics to prevent Math.log(0) and duplicate timestamps
+  var limit = 2 * FOUR_NINES_SIG * rate;
   ok(error < limit);
 });
