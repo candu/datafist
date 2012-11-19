@@ -15,7 +15,9 @@ var DataChannel = new Class({
     return this._index[t];
   },
   iter: function() {
-    return Iterator(this._data.map(function(a) { return a.t; }));
+    return Iterator(this._data.map(function(a) {
+      return a.t;
+    }));
   }
 });
 

@@ -18,7 +18,9 @@ var ChannelView = {
       var it = channels[i].iter();
       while (true) {
         try {
-          cds[i].push(channels[i].at(it.next()));
+          var t = it.next(),
+              x = channels[i].at(t);
+          cds[i].push({t: t, x: x});
         } catch (e) {
           if (!(e instanceof StopIteration)) {
             throw e;

@@ -26,7 +26,8 @@ function Iterator(xs) {
 
 /**
  * Given N sorted iterators, MergeIterator produces a single
- * sorted iterator that returns the elements of all N iterators in order.
+ * sorted iterator that returns unique sorted values from all N
+ * iterators.
  */
 function MergeIterator(iters) {
   iters = iters.filter(function(a) {
@@ -43,33 +44,43 @@ function MergeIterator(iters) {
   var _q = Heap(iters, function(a, b) {
     return a.peek() - b.peek();
   });
-  var _cur = null;
+  var _curIter = null;
+  var _lastValue = null;
+  function _next() {
+    if (_q.empty() && _curIter === null) {
+      throw new StopIteration();
+    }
+    var ret = _curIter.peek();
+    try {
+      _curIter.next();
+      _curIter.peek();
+      _q.push(_curIter);
+    } catch (e) {
+      if (!(e instanceof StopIteration)) {
+        throw e;
+      }
+    }
+    _curIter = null;
+    if (!_q.empty()) {
+      _curIter = _q.pop();
+    }
+    return ret;
+  };
   if (!_q.empty()) {
-    _cur = _q.pop();
+    _curIter = _q.pop();
   }
   return {
     next: function() {
-      if (_q.empty() && _cur === null) {
-        throw new StopIteration();
-      }
-      var ret = _cur.peek();
-      try {
-        _cur.next();
-        _cur.peek();
-        _q.push(_cur);
-      } catch (e) {
-        if (!(e instanceof StopIteration)) {
-          throw e;
+      while (true) {
+        var curValue = _next();
+        if (curValue !== _lastValue) {
+          _lastValue = curValue;
+          return curValue;
         }
       }
-      _cur = null;
-      if (!_q.empty()) {
-        _cur = _q.pop();
-      }
-      return ret;
     },
     peek: function() {
-      return _cur.peek();
+      return _curIter.peek();
     }
   };
 }
