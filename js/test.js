@@ -156,10 +156,29 @@ QUnit.test("evaluateAtom", function() {
 QUnit.test("OpsArith", function() {
   equal(Fist.execute('(+ 1 2)'), 3);
   equal(Fist.execute('(+ 1 2 3)'), 6);
+
+  var c = Fist.execute(
+    '(+ (gen-regular (constant 3) 0 3 3) (gen-regular (constant 4) 0 3 3))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 7);
+  }
 });
 
 QUnit.test("GensData", function() {
   var FOUR_NINES_SIG = 3.89;
+
+  var constant = Fist.execute('(constant 42)');
+  ok(constant instanceof Function);
+  var N = 1000,
+      foundMismatch = false;
+  for (var i = 0; i < N; i++) {
+    if (constant(i) !== 42) {
+      foundMismatch = true;
+      break;
+    }
+  }
+  ok(!foundMismatch);
 
   var uniform = Fist.execute('(uniform 1 3)');
   ok(uniform instanceof Function);

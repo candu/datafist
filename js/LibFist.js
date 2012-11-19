@@ -24,9 +24,10 @@ var OpsArith = {
     }
     return {
       at: function(t) {
-        var total = 0;
+        var total = numberSum;
         for (var i = 0; i < channels.length; i++) {
           total += channels[i].at(t);
+          console.log(total);
         }
         return total;
       },
@@ -48,6 +49,12 @@ var OpsFilterRegion = {};
 var OpsReduce = {};
 
 var GensData = {
+  constant: function(args) {
+    argCheck('constant', args, 'any');
+    return function(t) {
+      return args[0];
+    };
+  },
   choice: function(args) {
     return function(t) {
       return Random.choice(args);
