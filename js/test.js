@@ -154,14 +154,43 @@ QUnit.test("evaluateAtom", function() {
 });
 
 QUnit.test("OpsArith", function() {
-  // plus, number
   equal(Fist.execute('(+ 1 2)'), 3);
   equal(Fist.execute('(+ 1 2 3)'), 6);
-  equal(Fist.execute('(- 1)'), -1);
-  equal(Fist.execute('(- 73 42)'), 31);
-  equal(Fist.execute('(* 2 3)'), 6);
-  equal(Fist.execute('(* 2 3 5 7)'), 210);
-  equal(Fist.execute('(/ 17 5)'), 3.4);
-  equal(Fist.execute('(// 17 5)'), 3);
-  equal(Fist.execute('(% 17 5)'), 2);
+});
+
+QUnit.test("GensData", function() {
+  var FOUR_NINES_SIG = 3.89;
+
+  var uniform = Fist.execute('(uniform 1 3)');
+  ok(uniform instanceof Function);
+  var total = 0,
+      N = 1000;
+  for (var i = 0; i < N; i++) {
+    total += uniform(i);
+  }
+  var error = Math.abs(2 - total / N);
+  var limit = FOUR_NINES_SIG * Math.sqrt(1 / (3 * N));
+  ok(error < limit);
+
+  var choice = Fist.execute('(choice "foo" "foo" "foo" "baz" "baz")');
+  ok(choice instanceof Function);
+  var N = 1000,
+      p = 0.6,
+      bins = { foo: 0, baz: 0};
+  for (var i = 0; i < N; i++) {
+    bins[choice(i)]++;
+  }
+  var error = Math.abs(p * N - bins.foo);
+  var limit = FOUR_NINES_SIG * Math.sqrt(N * p * (1 - p));
+  ok(error < limit);
+
+  var gaussian = Fist.execute('(gaussian 4 1)');
+  var total = 0,
+      N = 1000;
+  for (var i = 0; i < N; i++) {
+    total += gaussian(i);
+  }
+  var error = Math.abs(4 - total / N);
+  var limit = FOUR_NINES_SIG * Math.sqrt(1 / N);
+  ok(error < limit);
 });
