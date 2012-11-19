@@ -20,7 +20,7 @@ function Iterator(xs) {
     peek: function() {
       _test();
       return xs[_pos];
-    }
+    },
   };
 }
 
@@ -55,6 +55,7 @@ function MergeIterator(iters) {
       var ret = _cur.peek();
       try {
         _cur.next();
+        _cur.peek();
         _q.push(_cur);
       } catch (e) {
         if (!(e instanceof StopIteration)) {

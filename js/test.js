@@ -43,11 +43,8 @@ QUnit.test("MergeIterator", function() {
   var a = [1, 5, 8];
   var b = [2, 3, 9];
   var c = [4, 6, 7];
-  //it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
-  var ita = Iterator(a), itb = Iterator(b), itc = Iterator(c);
-  it = MergeIterator([ita, itb, itc]);
+  it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
   for (var i = 1; i <= 9; i++) {
-    console.log(it.peek());
     equal(it.next(), i);
   }
   throws(function() { return it.next(); }, StopIteration);
