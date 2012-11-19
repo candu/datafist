@@ -154,6 +154,7 @@ QUnit.test("evaluateAtom", function() {
 });
 
 QUnit.test("OpsArith", function() {
+  // plus, number
   equal(Fist.execute('(+ 1 2)'), 3);
   equal(Fist.execute('(+ 1 2 3)'), 6);
   equal(Fist.execute('(- 1)'), -1);
