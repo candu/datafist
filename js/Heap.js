@@ -45,7 +45,7 @@ function Heap(xs, cmp) {
     xs[i] = x;
     while (i > 0) {
       P = _parent(i);
-      if (cmp(xs[i], xs[P]) < 0) {
+      if (cmp(xs[P], xs[i]) < 0) {
         break;
       }
       _swap(i, P);
@@ -58,6 +58,20 @@ function Heap(xs, cmp) {
   return {
     pop: pop,
     push: push,
-    empty: function() { return _size == 0; }
+    empty: function() { return _size == 0; },
+    // check heap property - for testing
+    check: function() {
+      for (var i = 0; !_leaf(i); i++) {
+        var L = _left(i),
+            R = _right(i);
+        if (cmp(xs[i], xs[L]) >= 0) {
+          return false;
+        }
+        if (R < _size && cmp(xs[i], xs[R]) >= 0) {
+          return false;
+        }
+      }
+      return true;
+    }
   };
 }

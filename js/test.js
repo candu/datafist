@@ -20,6 +20,39 @@ QUnit.test("Iterator", function() {
   equal(it.peek(), 1);
 });
 
+QUnit.test("MergeIterator", function() {
+  var it;
+
+  // empty
+  it = MergeIterator([]);
+  throws(function() { return it.next(); }, StopIteration);
+  it = MergeIterator([Iterator([])]);
+  throws(function() { return it.next(); }, StopIteration);
+  it = MergeIterator([Iterator([]), Iterator([]), Iterator([])]);
+  throws(function() { return it.next(); }, StopIteration);
+
+  // 1-way merge
+  var a = [6, 17, 73];
+  it = MergeIterator([Iterator(a)]);
+  for (var i = 0; i < a.length; i++) {
+    equal(it.next(), a[i]);
+  }
+  throws(function() { return it.next(); }, StopIteration);
+
+  // 3-way merge
+  var a = [1, 5, 8];
+  var b = [2, 3, 9];
+  var c = [4, 6, 7];
+  //it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
+  var ita = Iterator(a), itb = Iterator(b), itc = Iterator(c);
+  it = MergeIterator([ita, itb, itc]);
+  for (var i = 1; i <= 9; i++) {
+    console.log(it.peek());
+    equal(it.next(), i);
+  }
+  throws(function() { return it.next(); }, StopIteration);
+});
+
 QUnit.test("Heap", function() {
   // empty
   var q = Heap([]);
@@ -46,6 +79,15 @@ QUnit.test("Heap", function() {
     var cur = q.pop();
     ok(cur >= last);
     last = cur;
+  }
+
+  // push
+  var xs = [],
+      q = Heap(xs),
+      N = 10;
+  for (var i = 0; i < N; i++) {
+    q.push(Math.random());
+    ok(q.check());
   }
 });
 
