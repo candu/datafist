@@ -79,19 +79,22 @@ var GensChannel = {
     ['genPoisson', 'gen-poisson']
   ],
   genRegular: function(args) {
-    argCheck('gen-regular', args, '(+ function number number number)');
-    var _gen = args[0];
-    var _since = args[1];
-    var _until = args[2];
-    var _n = args[3];
-    var _dt = (_until - _since) / _n;
-    var _data = [];
-    var _t = _since;
-    for (var i = 0; i < _n; i++) {
-      _data.push({t: _t, x: _gen(_t)});
-      _t += _dt;
+    argCheck('gen-regular', args, '(+ number number number)');
+    return function(subargs) {
+      argCheck('gen-regular-fn', subargs, 'function');
+      var _gen = subargs[0],
+          _since = args[0],
+          _until = args[1],
+          _n = args[2],
+          _dt = (_until - _since) / _n,
+          _t = _since,
+          _data = [];
+      for (var i = 0; i < _n; i++) {
+        _data.push({t: _t, x: _gen(_t)});
+        _t += _dt;
+      }
+      return new DataChannel(_data);
     }
-    return new DataChannel(_data);
   },
   genUniform: function(args) {
     argCheck('gen-uniform', args, '(+ function number number number)');
@@ -104,7 +107,7 @@ var GensChannel = {
       var _t = Random.uniform(_since, _until);
       _data.push({t: _t, x: _gen(_t)});
     }
-    return Fist.makeDataChannel(_data);
+    return new DataChannel(_data);
   },
   genPoisson: function(args) {
     argCheck('gen-poisson', args, '(+ function number number number)');
@@ -120,7 +123,7 @@ var GensChannel = {
       var _dt = 1000 * _rate * -Math.log(_x);
       _t += _dt;
     }
-    return Fist.makeDataChannel(_data);
+    return new DataChannel(_data);
   }
 };
 

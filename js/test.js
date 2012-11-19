@@ -154,14 +154,24 @@ QUnit.test("evaluateAtom", function() {
 });
 
 QUnit.test("OpsArith", function() {
+  // number
   equal(Fist.execute('(+ 1 2)'), 3);
   equal(Fist.execute('(+ 1 2 3)'), 6);
 
+  // channel
   var c = Fist.execute(
-    '(+ (gen-regular (constant 2) 0 3 3) (gen-regular (constant 1) 0 3 3))'
+    '(+ ((gen-regular 0 3 3) (constant 2)) ((gen-regular 0 3 3) (constant 1)))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
+  }
+
+  // mixed
+  var c = Fist.execute(
+    '(+ 35 ((gen-regular 0 3 3) (constant 2)) 4 ((gen-regular 0 3 3) (constant 1)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 42);
   }
 });
 
