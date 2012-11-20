@@ -59,6 +59,20 @@ var ChannelView = {
         .nice()
         .range([h * i / n, h * (i + 1) / n]);
     });
+
+    // color scale!
+    var cc = d3.scale.category10();
+
+    // now, actually graph these things
+    for (var i = 0; i < n; i++) {
+      var line = d3.svg.line()
+        .x(function(d) { return ct(d.t); })
+        .y(function(d) { return cxs[i](d.x); });
+      view.append('svg:path')
+        .attr('d', line(cds[i]))
+        .attr('class', 'channel')
+        .attr('stroke', cc(i));
+    }
   }
   // TODO: update height automatically on window resize?
 };

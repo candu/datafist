@@ -1,13 +1,13 @@
 function setupDemo(fist) {
-  var a = fist.execute('((gen-regular 0 86400000 1440) (constant 1))'),
-      b = fist.execute('((gen-regular 0 86400000 1440) (constant 2))');
+  var a = fist.execute('((gen-regular 0 86400000 96) (constant 1))'),
+      b = fist.execute('((gen-regular 0 86400000 96) (constant 2))');
   fist.registerSymbol('c1', OpsArith.plus([
     a,
-    fist.execute('((gen-regular 0 86400000 1440) (gaussian 0 0.1))')
+    fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.1))')
   ]));
   fist.registerSymbol('c2', OpsArith.plus([
     b,
-    fist.execute('((gen-regular 0 86400000 1440) (gaussian 0 0.2))')
+    fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.2))')
   ]));
   fist.execute('(view "channel" c1 c2)');
 }
