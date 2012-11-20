@@ -120,8 +120,13 @@ tr, td {
     background-color: #f96;
     color: #c30;
   }
-  div.block {
-    position: absolute;
+  // TODO: typing for SVG .block elements
+  rect.block {
+    fill: @source-bg;
+    stroke: @source-border;
+  }
+  text.block {
+    fill: @source-text;
   }
 }
 

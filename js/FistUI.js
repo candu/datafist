@@ -1,42 +1,78 @@
 var ViewNode = new Class({
-  initialize: function(name, x, y) {
-    this._name = name;
-    this._x = x;
-    this._y = y;
+  initialize: function(svg, node) {
+    this._rect = svg.append('svg:rect')
+      .data([node])
+      .attr('class', 'block')
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .attr('width', function(d) { return d.w; })
+      .attr('height', function(d) { return d.h; });
+    this._text = svg.append('svg:text')
+      .data([node])
+      .attr('class', 'block')
+      .attr('x', function(d) { return d.x + d.w / 2; })
+      .attr('y', function(d) { return d.y + d.h / 2; })
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .text(function(d) { return d.name; });
   },
+  update: function() {
+    this._rect
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; });
+    this._text
+      .attr('x', function(d) { return d.x + d.w / 2; })
+      .attr('y', function(d) { return d.y + d.h / 2; });
+  },
+  cleanup: function() {
+    this._rect.remove();
+    this._text.remove();
+  }
 });
-ViewNode.fromElement = function(elem) {
-  return new ViewNode(
-    elem.get('text'),
-    parseInt(elem.style.left),
-    parseInt(elem.style.top)
-  );
-};
+
+var ViewEdge = new Class({
+  initialize: function(g, i, j) {
+    this._g = g;
+    this._i = i;
+    this._j = j;
+    this._line = this._g._svg.append('svg:line')
+      .attr('class', 'edge');
+    // TODO: add arrowhead
+    update();
+  },
+  update: function() {
+    var node1 = this._g._nodes[this._i];
+    var node2 = this._g._nodes[this._j];
+    this._line
+      .attr('x1', node1.x)
+      .attr('y1', node1.y)
+      .attr('x2', node2.x)
+      .attr('y2', node2.y);
+  },
+  cleanup: function() {
+    this._line.remove();
+  }
+});
 
 var ViewGraph = new Class({
-  initialize: function() {
+  initialize: function(svg) {
+    this._svg = svg;
     this._nextNodeId = 0;
     this._nodes = {};
-    // mapping from nodes to all outgoing edges
     this._edgesOut = {};
-    // mapping from nodes to all incoming edges
     this._edgesIn = {};
   },
-  addNode: function(node) {
+  addNode: function(name, x, y, w, h) {
     var i = this._nextNodeId++;
-    this._nodes[i] = node;
+    this._nodes[i] = {name: name, x: x, y: y, w: w, h: h};
     this._edgesOut[i] = {};
     this._edgesIn[i] = {};
+    new ViewNode(this._svg, this._nodes[i]);
     return i;
   },
   deleteNode: function(i) {
-    delete this._edgesOut[i];
     for (var j in this._edgesOut) {
-      delete this._edgesOut[j][i];
-    }
-    delete this._edgesIn[i];
-    for (var j in this._edgesIn) {
-      delete this._edgesIn[j][i];
+      this.deleteEdge(j);
     }
     delete this._nodes[i];
   },
@@ -45,12 +81,17 @@ var ViewGraph = new Class({
     this._edgesOut[i][j] = true;
     this._edgesIn[j][i] = true;
   },
+  deleteEdge: function(i, j) {
+    // remove directed edge from j to i
+    delete this._edgesOut[i][j];
+    delete this._edgesIn[j][i];
+  },
   toJSON: function() {
     var nodes = {};
     for (var i in this._nodes) {
       nodes[i] = {
         name: this._nodes[i]._name,
-        x: this._nodes[i]._x,
+        x: this._nodes[i].x,
         y: this._nodes[i]._y
       }
     }
@@ -104,7 +145,6 @@ var FistUI = new Class({
     this._viewTable = {};
     this._fist = fist;
     this._root = root;
-    this._viewGraph = new ViewGraph();
 
     this._dragBlock = null;
 
@@ -114,6 +154,13 @@ var FistUI = new Class({
     // set up viewer
     this._viewer = this._root.getElement('#viewer');
     this._svgWrapper = this._root.getElement('#svg_wrapper');
+    var w = this._svgWrapper.getWidth() - 2,
+        h = this._svgWrapper.getHeight() - 2;
+    this._svg = d3.select(this._svgWrapper)
+      .append('svg:svg')
+      .attr('width', w)
+      .attr('height', h);
+    this._viewGraph = new ViewGraph(this._svg);
     this._svgWrapper.addEventListener('dragenter', function(evt) {
       this.addClass('droptarget');
     }, false);
@@ -128,15 +175,13 @@ var FistUI = new Class({
     this._svgWrapper.addEventListener('drop', function(evt) {
       evt.stopPropagation();
       var name = evt.dataTransfer.getData('text/plain');
-      var block = this._createBlock(name);
-      var svgPosition = this._svgWrapper.getPosition();
-      var blockSize = this._dragBlock.getSize();
-      block.setPosition({
-        x: evt.pageX - svgPosition.x - blockSize.x / 2,
-        y: evt.pageY - svgPosition.y - blockSize.y / 2
-      });
-      block.inject(this._svgWrapper);
-      this._viewGraph.addNode(ViewNode.fromElement(block));
+      var svgPosition = this._svgWrapper.getPosition(),
+          blockSize = this._dragBlock.getSize(),
+          blockX = Math.floor(evt.pageX - svgPosition.x - blockSize.x / 2) + 0.5,
+          blockY = Math.floor(evt.pageY - svgPosition.y - blockSize.y / 2) + 0.5,
+          blockW = blockSize.x,
+          blockH = blockSize.y;
+      this._viewGraph.addNode(name, blockX, blockY, blockW, blockH);
       this._repl.set('text', this._viewGraph.toFist().join(' '));
     }.bind(this), false);
     this._viewToggle = this._root.getElement('#view_toggle');
