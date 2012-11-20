@@ -88,7 +88,7 @@ var Fist = new Class({
   registerSymbol: function(name, value) {
     console.log('importing symbol ' + name);
     this._symbolTable[name] = value;
-    this._symbolImported(name, value);
+    this._symbolImported(name);
   },
   importData: function(name, data) {
     this.registerSymbol(name, new DataChannel(data));

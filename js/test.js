@@ -1,3 +1,8 @@
+QUnit.test('Object', function() {
+  equal(Object.isEmpty({}), true);
+  equal(Object.isEmpty({a:{}}), false);
+});
+
 QUnit.test('Iterator', function() {
   var it;
 
@@ -274,4 +279,23 @@ QUnit.test('GensChannel', function() {
   // a couple of heuristics to prevent Math.log(0) and duplicate timestamps
   var limit = 2 * FOUR_NINES_SIG * rate;
   ok(error < limit);
+});
+
+QUnit.test('ViewGraph', function() {
+  var g = new ViewGraph();
+  g.addNode(new ViewNode('c1', 0, 0));
+  g.addNode(new ViewNode('c2', 40, 0));
+  g.addNode(new ViewNode('+', 30, 10));
+  g.addNode(new ViewNode('v1', 10, 20));
+  g.addNode(new ViewNode('c3', 60, 0));
+  g.addNode(new ViewNode('v2', 50, 20));
+  g.addNode(new ViewNode('c4', 20, 0));
+  g.addEdge(0, 2);
+  g.addEdge(0, 5);
+  g.addEdge(1, 2);
+  g.addEdge(1, 5);
+  g.addEdge(2, 3);
+  g.addEdge(6, 3);
+
+  console.log(g.toFist());
 });

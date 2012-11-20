@@ -8,7 +8,7 @@ var OpsArith = {
     argCheck('plus', args, '(* (| number channel))');
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
-      var argType = Object.toType(arg);
+      var argType = typeOf(arg);
       if (argType === 'number') {
         numberSum += arg;
       } else {
