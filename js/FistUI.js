@@ -1,53 +1,55 @@
 var ViewNode = new Class({
   initialize: function(svg, node) {
-    this._rect = svg.append('svg:rect')
+    this._g = svg.append('svg:g')
       .data([node])
+      .attr('transform', function(d) {
+        return 'translate(' + d.x + ', ' + d.y + ')';
+      })
+      .on('click', function(evt) {
+        console.log(evt);
+      }, false);
+    this._g.append('svg:rect')
       .attr('class', 'block')
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; })
-      .attr('width', function(d) { return d.w; })
-      .attr('height', function(d) { return d.h; });
-    this._text = svg.append('svg:text')
-      .data([node])
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', node.w)
+      .attr('height', node.h);
+    this._text = this._g.append('svg:text')
       .attr('class', 'block')
-      .attr('x', function(d) { return d.x + d.w / 2; })
-      .attr('y', function(d) { return d.y + d.h / 2; })
+      .attr('x', node.w / 2)
+      .attr('y', node.h / 2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .text(function(d) { return d.name; });
+      .text(node.name);
   },
   update: function() {
-    this._rect
-      .attr('x', function(d) { return d.x; })
-      .attr('y', function(d) { return d.y; });
-    this._text
-      .attr('x', function(d) { return d.x + d.w / 2; })
-      .attr('y', function(d) { return d.y + d.h / 2; });
+    this._g.attr('transform', function(d) {
+      return 'translate(' + d.x + ', ' + d.y + ')';
+    });
   },
   cleanup: function() {
-    this._rect.remove();
-    this._text.remove();
+    this._g.remove();
   }
 });
 
 var ViewEdge = new Class({
-  initialize: function(g, i, j) {
-    this._g = g;
-    this._i = i;
-    this._j = j;
-    this._line = this._g._svg.append('svg:line')
-      .attr('class', 'edge');
+  initialize: function(svg, node1, node2) {
+    this._line = svg.append('svg:line')
+      .data([{from: node1, to: node2}])
+      .attr('class', 'edge')
+      .attr('x1', function(d) { return d.from.x; })
+      .attr('y1', function(d) { return d.from.y; })
+      .attr('x2', function(d) { return d.to.x; })
+      .attr('y2', function(d) { return d.to.y; });
     // TODO: add arrowhead
     update();
   },
   update: function() {
-    var node1 = this._g._nodes[this._i];
-    var node2 = this._g._nodes[this._j];
     this._line
-      .attr('x1', node1.x)
-      .attr('y1', node1.y)
-      .attr('x2', node2.x)
-      .attr('y2', node2.y);
+      .attr('x1', function(d) { return d.from.x; })
+      .attr('y1', function(d) { return d.from.y; })
+      .attr('x2', function(d) { return d.to.x; })
+      .attr('y2', function(d) { return d.to.y; });
   },
   cleanup: function() {
     this._line.remove();
@@ -80,6 +82,7 @@ var ViewGraph = new Class({
     // add directed edge from i to j
     this._edgesOut[i][j] = true;
     this._edgesIn[j][i] = true;
+    new ViewEdge(this._svg, this._nodes[i], this._nodes[j]);
   },
   deleteEdge: function(i, j) {
     // remove directed edge from j to i
