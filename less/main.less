@@ -146,25 +146,27 @@ tr, td {
 
 #palette {
   overflow-y: auto;
-  div.block {
-    .text-unselectable;
-    display: inline-block;
-    cursor: move;
-    padding: 2px;
-    margin: 2px;
-    // TODO: better typing for blocks
-    &.function {
-      background-color: @filter-bg;
-      border: 1px solid @filter-border;
-      color: @filter-text;
-    }
-    &.object {
-      background-color: @source-bg;
-      border: 1px solid @source-border;
-      color: @source-text;
-    }
-    &.dragtarget {
-      opacity: 0.4;
-    }
+}
+
+div.block {
+  .text-unselectable;
+  display: inline-block;
+  cursor: move;
+  padding: 2px;
+  margin: 2px;
+  // TODO: better typing for blocks
+  &.function {
+    background-color: @filter-bg;
+    border: 1px solid @filter-border;
+    color: @filter-text;
+  }
+  &.object {
+    background-color: @source-bg;
+    border: 1px solid @source-border;
+    color: @source-text;
+  }
+  &.dragtarget {
+    opacity: 0.4;
   }
 }
+

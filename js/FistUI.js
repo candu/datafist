@@ -2,6 +2,7 @@ var FistUI = new Class({
   initialize: function(fist, root) {
     this._viewTable = {};
     this._state = '';
+    this._fist = fist;
     this._root = root;
 
     // set up palette
@@ -23,7 +24,13 @@ var FistUI = new Class({
     }, false);
     this._svgWrapper.addEventListener('drop', function(evt) {
       evt.stopPropagation();
-      console.log(evt.dataTransfer.getData('text/html'));
+      var name = evt.dataTransfer.getData('text/plain');
+      var value = this._fist.execute(name);
+      var block = new Element('div.block.' + typeOf(value), {
+        text: name,
+        draggable: true
+      });
+      block.inject(this._svgWrapper);
     }.bind(this), false);
     this._viewToggle = this._root.getElement('#view_toggle');
     this._viewToggle.addEvent('click', function(evt) {
@@ -55,7 +62,7 @@ var FistUI = new Class({
     block.addEventListener('dragstart', function(evt) {
       $(this).addClass('dragtarget');
       evt.dataTransfer.effectAllowed = 'move';
-      evt.dataTransfer.setData('text/html', this.innerHTML);
+      evt.dataTransfer.setData('text/plain', $(this).get('text'));
     }, false);
     block.addEventListener('dragend', function(evt) {
       block.removeClass('dragtarget');
