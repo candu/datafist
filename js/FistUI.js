@@ -137,8 +137,7 @@ var FistUI = new Class({
       });
       block.inject(this._svgWrapper);
       this._viewGraph.addNode(ViewNode.fromElement(block));
-      console.log(this._viewGraph.toJSON());
-      console.log(this._viewGraph.toFist());
+      this._repl.set('text', this._viewGraph.toFist().join(' '));
     }.bind(this), false);
     this._viewToggle = this._root.getElement('#view_toggle');
     this._viewToggle.addEvent('click', function(evt) {
