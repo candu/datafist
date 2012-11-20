@@ -63,34 +63,35 @@ var ViewGraph = new Class({
    * Produce a representation of this ViewGraph in the fist language.
    */
   toFist: function() {
-    var edgesOut = Object.clone(this._edgesOut),
-        edgesIn = Object.clone(this._edgesIn);
     var spatialSort = function(indices) {
       indices.sort(function(i, j) {
-        return this._nodes[i]._x - this._nodes[j]._x;
+        var dx = this._nodes[i]._x - this._nodes[j]._x;
+        if (dx !== 0) {
+          return dx;
+        }
+        return this._nodes[i]._y - this._nodes[j]._y;
       }.bind(this));
     }.bind(this);
-    var L = [];
-    var depthSearch = function(i) {
-      L.push(i);
-      var S = Object.keys(edgesIn[i]);
-      spatialSort(S);
-      for (var j = 0; j < S.length; j++) {
-        depthSearch(S[j]);
+    var depthWalk = function(i) {
+      var S = Object.keys(this._edgesIn[i]);
+      if (S.length === 0) {
+        return this._nodes[i]._name;
       }
-    };
+      spatialSort(S);
+      var sexp = S.map(depthWalk);
+      sexp.unshift(this._nodes[i]._name);
+      return '(' + sexp.join(' ') + ')';
+    }.bind(this);
     var T = [];
-    for (var i in edgesOut) {
-      if (Object.isEmpty(edgesOut[i])) {
+    for (var i in this._edgesOut) {
+      if (Object.isEmpty(this._edgesOut[i])) {
         T.push(i);
       }
     }
     spatialSort(T);
-    console.log(T);
-    for (var i = 0; i < T.length; i++) {
-      depthSearch(T[i]);
-    }
-    return L;
+    return T.map(function(i) {
+      return depthWalk(i);
+    });
   }
 });
 ViewGraph.fromJSON = function(json) {

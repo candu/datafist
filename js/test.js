@@ -283,19 +283,34 @@ QUnit.test('GensChannel', function() {
 
 QUnit.test('ViewGraph', function() {
   var g = new ViewGraph();
+
+  // empty
+  var cmds = g.toFist();
+  equal(cmds.length, 0);
+
+  // partial
   g.addNode(new ViewNode('c1', 0, 0));
   g.addNode(new ViewNode('c2', 40, 0));
   g.addNode(new ViewNode('+', 30, 10));
+  g.addEdge(0, 2);
+  g.addEdge(1, 2);
+  var cmds = g.toFist();
+  equal(cmds.length, 1);
+  equal(cmds[0], '(+ c1 c2)');
+
+  // full
   g.addNode(new ViewNode('v1', 10, 20));
   g.addNode(new ViewNode('c3', 60, 0));
   g.addNode(new ViewNode('v2', 50, 20));
   g.addNode(new ViewNode('c4', 20, 0));
-  g.addEdge(0, 2);
   g.addEdge(0, 5);
-  g.addEdge(1, 2);
   g.addEdge(1, 5);
   g.addEdge(2, 3);
   g.addEdge(6, 3);
 
-  console.log(g.toFist());
+  var cmds = g.toFist();
+  equal(cmds.length, 3);
+  equal(cmds[0], '(v1 c4 (+ c1 c2))');
+  equal(cmds[1], '(v2 c1 c2)');
+  equal(cmds[2], 'c3');
 });
