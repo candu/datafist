@@ -29,7 +29,6 @@ var ChannelView = {
         }
       }
     }
-    console.log(cds);
 
     // get bounds
     var ctMin = d3.min(cds.map(function(cd) {

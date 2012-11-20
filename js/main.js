@@ -9,7 +9,7 @@ function setupDemo(fist) {
     b,
     fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.2))')
   ]));
-  fist.execute('(view "channel" c1 c2)');
+  //fist.execute('(view-channel c1 c2)');
 }
 
 function dynamicResize() {
@@ -23,8 +23,8 @@ var fist;
 $(window).addEvent('domready', function() {
   dynamicResize();
   fist = new Fist();
-  LibFist.import(fist);
   var UI = new FistUI(fist, $('container'));
+  LibFist.import(fist);
   LibFistUI.import(UI);
   setupDemo(fist);
 }).addEvent('resize', function() {

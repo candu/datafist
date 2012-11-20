@@ -131,10 +131,12 @@ var GensChannel = {
 };
 
 var View = {
-  view: function(args) {
-    console.log('view!');
-    argCheck('view', args, '(+ string (* channel))');
-    this._viewInvoked(args[0], args.slice(1));
+  __exports: [
+    ['viewChannel', 'view-channel'],
+  ],
+  viewChannel: function(args) {
+    argCheck('view-channel', args, '(* channel)');
+    this._viewInvoked('channel', args);
   }
 };
 

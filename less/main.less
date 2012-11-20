@@ -101,6 +101,25 @@ tr, td {
   margin: 4px;
   border: 1px solid #aaa;
   background-color: #f7f7f7;
+  position: relative;
+  &.droptarget {
+    border: 1px solid #6f3;
+    background-color: #dfc;
+  }
+  #view_toggle {
+    .text-unselectable;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    outline: none;
+    cursor: pointer;
+    padding: 4px 8px 4px;
+    margin: 4px;
+    font-size: 90%;
+    background-color: #f96;
+    color: #c30;
+  }
 }
 
 @footer-height: 240px;
@@ -130,9 +149,10 @@ tr, td {
   div.block {
     .text-unselectable;
     display: inline-block;
-    cursor: pointer;
+    cursor: move;
     padding: 2px;
     margin: 2px;
+    // TODO: better typing for blocks
     &.function {
       background-color: @filter-bg;
       border: 1px solid @filter-border;
@@ -142,6 +162,9 @@ tr, td {
       background-color: @source-bg;
       border: 1px solid @source-border;
       color: @source-text;
+    }
+    &.dragtarget {
+      opacity: 0.4;
     }
   }
 }
