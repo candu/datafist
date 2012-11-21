@@ -203,11 +203,14 @@ var ViewGraph = new Class({
   initialize: function(svg, state, repl) {
     this._svg = svg;
     this._edgeGroup = svg.append('svg:g');
+    this._tempGroup = svg.append('svg:g')
+      .attr('transform', 'translate(-1000, -1000)');
     this._nodeGroup = svg.append('svg:g');
     this._state = state;
     this._repl = repl;
     this._nodes = {};
-    this._edges = {};
+    this._edgesOut = {};
+    this._edgesIn = {};
 
     this._nodeDragBehavior = d3.behavior.drag()
       .origin(Object)
@@ -227,8 +230,6 @@ var ViewGraph = new Class({
         this._onNodeMoved(d);
       }.bind(this));
 
-    this._tempGroup = svg.append('svg:g')
-      .attr('transform', 'translate(-1000, -1000)');
     this._tempEdgeEnd = {};
     this._tempEdge = this._tempGroup.append('svg:line')
       .attr('class', 'edge temp')
@@ -238,6 +239,7 @@ var ViewGraph = new Class({
       .on('dragstart', function(d) {
         d3.event.sourceEvent.stopPropagation();
         this._nodes[d.index]._controlling = true;
+        // TODO: fix this horrible positioning hack
         var nodeX = this._nodes[d.index]._g[0][0].__data__.x,
             nodeY = this._nodes[d.index]._g[0][0].__data__.y;
         this._tempGroup
@@ -272,12 +274,14 @@ var ViewGraph = new Class({
 
     this._state.listen('nodeadded', function(node) {
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
-      this._edges[node.index] = {};
+      this._edgesOut[node.index] = {};
+      this._edgesIn[node.index] = {};
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
     this._state.listen('edgeadded', function(node1, node2) {
-      this._edges[node1.index][node2.index] =
-        new ViewEdge(this, this._edgeGroup, node1, node2);
+      var edge = new ViewEdge(this, this._edgeGroup, node1, node2);
+      this._edgesOut[node1.index][node2.index] = edge;
+      this._edgesIn[node2.index][node1.index] = edge;
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
   },
@@ -299,8 +303,11 @@ var ViewGraph = new Class({
   },
   _onNodeMoved: function(d) {
     this._nodes[d.index].update();
-    for (var i in this._edges[d.index]) {
-      this._edges[d.index][i].update();
+    for (var i in this._edgesOut[d.index]) {
+      this._edgesOut[d.index][i].update();
+    }
+    for (var i in this._edgesIn[d.index]) {
+      this._edgesIn[d.index][i].update();
     }
   }
 });
