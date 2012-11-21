@@ -111,6 +111,7 @@ var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
     this._g = nodeGroup.append('svg:g')
       .data([node])
+      .attr('class', 'block')
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
       })
@@ -316,6 +317,7 @@ var FistUI = new Class({
   },
   onViewInvoked: function(name, channels) {
     console.log('rendering view ' + name);
+    $(this._viewExecuteSVG[0][0]).empty();
     var view = this._viewTable[name];
     if (view === undefined) {
       throw new Error('unrecognized view: ' + name);
