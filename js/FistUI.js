@@ -115,9 +115,13 @@ var ViewNode = new Class({
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
       })
-      .on('click', function(d) {
-        this._onNodeClicked(d);
-      }.bind(graph));
+      .call(graph.nodeDragBehavior())
+      .on('mouseover', function(d) {
+        d3.select(this).attr('class', 'block foo');
+      })
+      .on('mouseout', function(d) {
+        d3.select(this).attr('class', 'block');
+      });
     this._g.append('svg:rect')
       .attr('class', 'block ' + node.type)
       .attr('x', 0)
@@ -176,7 +180,15 @@ var ViewGraph = new Class({
     this._nodes = {};
     this._edges = {};
 
+    this._nodeDragBehavior = d3.behavior.drag()
+      .on('drag', function(d) {
+        d.x += d3.event.dx;
+        d.y += d3.event.dy;
+        this._onNodeMoved(d);
+      }.bind(this));
+
     this._nodeClicked = null;
+
     this._state.listen('nodeadded', function(node) {
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
       this._edges[node.index] = {};
@@ -187,6 +199,15 @@ var ViewGraph = new Class({
         new ViewEdge(this, this._edgeGroup, node1, node2);
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
+  },
+  nodeDragBehavior: function() {
+    return this._nodeDragBehavior;
+  },
+  _onNodeMoved: function(d) {
+    this._nodes[d.index].update();
+    for (var i in this._edges[d.index]) {
+      this._edges[d.index][i].update();
+    }
   },
   _onNodeClicked: function(d) {
     if (this._nodeClicked === null) {
@@ -199,7 +220,6 @@ var ViewGraph = new Class({
     }
   }
 });
-
 
 var FistUI = new Class({
   initialize: function(fist, root) {
@@ -317,7 +337,7 @@ var FistUI = new Class({
   },
   onViewInvoked: function(name, channels) {
     console.log('rendering view ' + name);
-    $(this._viewExecuteSVG[0][0]).empty();
+    $d3(this._viewExecuteSVG).empty();
     var view = this._viewTable[name];
     if (view === undefined) {
       throw new Error('unrecognized view: ' + name);

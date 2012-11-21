@@ -5,6 +5,14 @@ Object.isEmpty = function(obj) {
   return true;
 }
 
+/**
+ * Converts the result of a call to d3.select() into a mootools $() object.
+ * (d3 plays nicely with mootools, jQuery, etc. objects already.)
+ */
+function $d3(selection) {
+  return $(selection[0][0]);
+}
+
 function argCheck(name, args, pattern) {
   // TODO: implement this
 }

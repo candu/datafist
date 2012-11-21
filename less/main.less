@@ -62,6 +62,7 @@ tr, td {
 
 #header {
   height: 45px;
+  border-bottom: 1px solid #999;
 }
 
 #banner {
@@ -87,14 +88,14 @@ tr, td {
 
 #toolbox {
   width: @toolbox-width;
-  background-color: #999;
+  background-color: #bbb;
 }
 
 #palette {
-  border: @palette-border solid #777;
-  margin: @palette-margin;
+  border: @palette-border solid #999;
+  margin: @palette-margin (@palette-margin / 2) (@palette-margin / 2) @palette-margin;
   background-color: #f7f7f7;
-  width: (@toolbox-width - 2 * (@palette-border + @palette-margin));
+  width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
 }
 
 #viewer {
@@ -102,8 +103,8 @@ tr, td {
 }
 
 #svg_wrapper {
-  margin: 4px;
-  border: 1px solid #aaa;
+  margin: 4px 4px 2px 2px;
+  border: 1px solid #999;
   background-color: #f7f7f7;
   position: relative;
   &.droptarget {
@@ -127,6 +128,9 @@ tr, td {
   g.block {
     .text-unselectable;
     cursor: pointer;
+    &.foo rect.block {
+      fill: #f00;
+    }
   }
   rect.block {
     &.function {
@@ -152,7 +156,7 @@ tr, td {
   }
 }
 
-@footer-height: 240px;
+@footer-height: 120px;
 @repl-border: 1px;
 @repl-margin: 4px;
 @repl-padding: 4px;
@@ -162,16 +166,16 @@ tr, td {
 }
 
 #interpreter {
-  background-color: #ccc;
+  background-color: #bbb;
 }
 
 #repl {
   font-family: "Menlo", monospace;
   background-color: #f7f7f7;
   border: @repl-border solid #999;
-  margin: @repl-margin;
+  margin: (@repl-margin / 2) @repl-margin @repl-margin @repl-margin;
   padding: @repl-padding;
-  height: (@footer-height - 2 * (@repl-border + @repl-margin + @repl-padding));
+  height: (@footer-height - (2 * (@repl-border + @repl-padding) + 1.5 * @repl-margin));
 }
 
 #palette {
