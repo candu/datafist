@@ -145,11 +145,13 @@ var ViewNode = new Class({
 
     this._controls = this._g.append('svg:g')
       .attr('class', 'hidden');
+    var wMid = Math.floor(node.w / 2),
+        hMid = Math.floor(node.h / 2);
     var controlPoints = [
-      {x: node.w / 2, y: 0},        // top
-      {x: node.w, y: node.h / 2},   // right
-      {x: node.w / 2, y: node.h},   // bottom
-      {x: 0, y: node.h / 2}         // left
+      {x: wMid, y: 0},        // top
+      {x: node.w, y: hMid},   // right
+      {x: wMid, y: node.h},   // bottom
+      {x: 0, y: hMid}         // left
     ];
     var size = 6;
     this._controls.selectAll('rect')
