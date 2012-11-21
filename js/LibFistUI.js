@@ -1,14 +1,9 @@
 var ChannelView = {
-  render: function(channels, viewer) {
+  render: function(channels, view) {
     // TODO: verify that there's at least one channel
 
-    // create view, compensating for border thickness
-    var w = viewer.getWidth() - 2,
-        h = viewer.getHeight() - 2;
-    var view = d3.select(viewer)
-      .append('svg:svg')
-      .attr('width', w)
-      .attr('height', h);
+    var w = view.attr('width'),
+        h = view.attr('height');
 
     // extract data from channels
     var n = channels.length;

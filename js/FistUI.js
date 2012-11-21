@@ -208,10 +208,17 @@ var FistUI = new Class({
     this._svgWrapper = this._root.getElement('#svg_wrapper');
     var w = this._svgWrapper.getWidth() - 2,
         h = this._svgWrapper.getHeight() - 2;
-    this._svg = d3.select(this._svgWrapper)
+    this._viewGraphSVG = d3.select(this._svgWrapper)
       .append('svg:svg')
+      .attr('id', 'view_graph')
       .attr('width', w)
       .attr('height', h);
+    this._viewExecuteSVG = d3.select(this._svgWrapper)
+      .append('svg:svg')
+      .attr('class', 'hidden')
+      .attr('id', 'view_execute')
+      .attr('width', w)
+      .attr('height', h)
     this._svgWrapper.addEventListener('dragenter', function(evt) {
       this.addClass('droptarget');
     }, false);
@@ -239,14 +246,25 @@ var FistUI = new Class({
       this._viewToggle.toggleClass('on');
       if (this._viewToggle.hasClass('on')) {
         // TODO: render view!
+        this._viewGraphSVG.attr('class', 'hidden');
+        this._viewExecuteSVG.attr('class', '');
+        this._fist.execute(this._repl.get('text'));
+        this._viewToggle.set('text', 'hide');
       } else {
         // TODO: render patchboard!
+        this._viewGraphSVG.attr('class', '');
+        this._viewExecuteSVG.attr('class', 'hidden');
+        this._viewToggle.set('text', 'show');
       }
     }.bind(this));
 
     // set up interpreter
     this._repl = this._root.getElement('#repl');
-    this._viewGraph = new ViewGraph(this._svg, this._viewGraphState, this._repl);
+    this._viewGraph = new ViewGraph(
+      this._viewGraphSVG,
+      this._viewGraphState,
+      this._repl
+    );
     // TODO: something here
 
     // register event listeners for Fist events
@@ -289,7 +307,7 @@ var FistUI = new Class({
     if (view === undefined) {
       throw new Error('unrecognized view: ' + name);
     }
-    view.render(channels, this._viewer);
+    view.render(channels, this._viewExecuteSVG);
   },
   importView: function(name, view) {
     console.log('importing view ' + name);
