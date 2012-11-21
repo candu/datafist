@@ -100,8 +100,8 @@ ViewGraphState.fromJSON = function(json) {
 };
 
 var ViewNode = new Class({
-  initialize: function(graph, svg, node) {
-    this._g = svg.append('svg:g')
+  initialize: function(graph, nodeGroup, node) {
+    this._g = nodeGroup.append('svg:g')
       .data([node])
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
@@ -134,8 +134,8 @@ var ViewNode = new Class({
 });
 
 var ViewEdge = new Class({
-  initialize: function(graph, svg, node1, node2) {
-    this._line = svg.append('svg:line')
+  initialize: function(graph, edgeGroup, node1, node2) {
+    this._line = edgeGroup.append('svg:line')
       .data([{from: node1, to: node2}])
       .attr('class', 'edge')
       .attr('x1', function(d) { return d.from.x + d.from.w / 2; })
@@ -160,6 +160,8 @@ var ViewEdge = new Class({
 var ViewGraph = new Class({
   initialize: function(svg, state, repl) {
     this._svg = svg;
+    this._edgeGroup = svg.append('svg:g');
+    this._nodeGroup = svg.append('svg:g');
     this._state = state;
     this._repl = repl;
     this._nodes = {};
@@ -167,13 +169,13 @@ var ViewGraph = new Class({
 
     this._nodeClicked = null;
     this._state.listen('nodeadded', function(node) {
-      this._nodes[node.index] = new ViewNode(this, this._svg, node);
+      this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
       this._edges[node.index] = {};
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
     this._state.listen('edgeadded', function(node1, node2) {
       this._edges[node1.index][node2.index] =
-        new ViewEdge(this, this._svg, node1, node2);
+        new ViewEdge(this, this._edgeGroup, node1, node2);
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
   },
