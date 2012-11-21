@@ -109,19 +109,26 @@ ViewGraphState.fromJSON = function(json) {
 
 var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
+    this._dragging = false;
+
     this._g = nodeGroup.append('svg:g')
       .data([node])
       .attr('class', 'block')
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
       })
-      .call(graph.nodeDragBehavior())
       .on('mouseover', function(d) {
-        d3.select(this).attr('class', 'block foo');
-      })
+        if (!this._dragging) {
+          this._controls.attr('class', '');
+        }
+      }.bind(this))
       .on('mouseout', function(d) {
-        d3.select(this).attr('class', 'block');
-      });
+        if (!this._dragging) {
+          this._controls.attr('class', 'hidden');
+        }
+      }.bind(this))
+      .call(graph.nodeDragBehavior());
+
     this._g.append('svg:rect')
       .attr('class', 'block ' + node.type)
       .attr('x', 0)
@@ -135,6 +142,25 @@ var ViewNode = new Class({
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
       .text(node.name);
+
+    this._controls = this._g.append('svg:g')
+      .attr('class', 'hidden');
+    var controlPoints = [
+      {x: node.w / 2, y: 0},        // top
+      {x: node.w, y: node.h / 2},   // right
+      {x: node.w / 2, y: node.h},   // bottom
+      {x: 0, y: node.h / 2}         // left
+    ];
+    var size = 6;
+    this._controls.selectAll('rect')
+      .data(controlPoints)
+      .enter().append('svg:rect')
+        .attr('class', 'control-point')
+        .attr('x', function(d) { return d.x - size / 2; })
+        .attr('y', function(d) { return d.y - size / 2; })
+        .attr('width', size)
+        .attr('height', size);
+
   },
   update: function() {
     this._g.attr('transform', function(d) {
@@ -181,6 +207,17 @@ var ViewGraph = new Class({
     this._edges = {};
 
     this._nodeDragBehavior = d3.behavior.drag()
+      .origin(Object)
+      .on('dragstart', function(d) {
+        var viewNode = this._nodes[d.index];
+        viewNode._dragging = true;
+        viewNode._controls.attr('class', 'hidden');
+      }.bind(this))
+      .on('dragend', function(d) {
+        var viewNode = this._nodes[d.index];
+        viewNode._controls.attr('class', '');
+        viewNode._dragging = false;
+      }.bind(this))
       .on('drag', function(d) {
         d.x += d3.event.dx;
         d.y += d3.event.dy;
