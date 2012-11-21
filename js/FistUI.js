@@ -176,22 +176,55 @@ var ViewNode = new Class({
 });
 
 var ViewEdge = new Class({
+  _snapToClosestSides: function(selection, d) {
+    var cFrom = {x: d.from.x + d.from.w / 2, y: d.from.y + d.from.h / 2},
+        cTo = {x: d.to.x + d.to.w / 2, y: d.to.y + d.to.h / 2},
+        dx = cFrom.x - cTo.x,
+        dy = cFrom.y - cTo.y;
+    selection
+      .attr('x1', cFrom.x)
+      .attr('y1', cFrom.y);
+    if (dy > dx) {
+      if (dy > -dx) {
+        // -> bottom
+        var f = (dx + dy) / (2 * dy);
+        selection
+          .attr('x2', d.to.x + f * d.to.w)
+          .attr('y2', d.to.y + d.to.h);
+      } else {
+        // -> left
+        var f = (dx - dy) / (2 * dx);
+        selection
+          .attr('x2', d.to.x)
+          .attr('y2', d.to.y + f * d.to.h);
+      }
+    } else {
+      if (dy > -dx) {
+        // -> right
+        var f = (dy + dx) / (2 * dx);
+        selection
+          .attr('x2', d.to.x + d.to.w)
+          .attr('y2', d.to.y + f * d.to.h);
+      } else {
+        // -> top
+        var f = (dy - dx) / (2 * dy);
+        selection
+          .attr('x2', d.to.x + f * d.to.w)
+          .attr('y2', d.to.y);
+      }
+    }
+  },
   initialize: function(graph, edgeGroup, node1, node2) {
+    this._data = {from: node1, to: node2};
     this._line = edgeGroup.append('svg:line')
-      .data([{from: node1, to: node2}])
       .attr('class', 'edge')
-      .attr('x1', function(d) { return d.from.x + d.from.w / 2; })
-      .attr('y1', function(d) { return d.from.y + d.from.h / 2; })
-      .attr('x2', function(d) { return d.to.x + d.to.w / 2; })
-      .attr('y2', function(d) { return d.to.y + d.to.h / 2; });
+      .attr('marker-end', 'url(#edge_end)')
+      .call(this._snapToClosestSides, this._data);
     // TODO: add arrowhead
   },
   update: function() {
     this._line
-      .attr('x1', function(d) { return d.from.x + d.from.w / 2; })
-      .attr('y1', function(d) { return d.from.y + d.from.h / 2; })
-      .attr('x2', function(d) { return d.to.x + d.to.w / 2; })
-      .attr('y2', function(d) { return d.to.y + d.to.h / 2; });
+      .call(this._snapToClosestSides, this._data);
   },
   cleanup: function() {
     this._line.remove();
@@ -211,6 +244,20 @@ var ViewGraph = new Class({
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
+
+    // see http://www.w3.org/TR/SVG/painting.html#Markers for inspiration
+    var defs = this._svg.append('defs');
+    var edgeEndMarker = defs.append('svg:marker')
+      .attr('id', 'edge_end')
+      .attr('viewBox', '0 0 10 10')
+      .attr('refX', 10)
+      .attr('refY', 5)
+      .attr('markerUnits', 'strokeWidth')
+      .attr('markerWidth', 4)
+      .attr('markerHeight', 3)
+      .attr('orient', 'auto')
+      .append('svg:path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z');
 
     this._nodeDragBehavior = d3.behavior.drag()
       .origin(Object)
@@ -233,6 +280,7 @@ var ViewGraph = new Class({
     this._tempEdgeEnd = {};
     this._tempEdge = this._tempGroup.append('svg:line')
       .attr('class', 'edge temp')
+      .attr('marker-end', 'url(#edge_end)')
       .attr('x1', 0)
       .attr('y1', 0);
     this._edgeCreateBehavior = d3.behavior.drag()
@@ -255,7 +303,6 @@ var ViewGraph = new Class({
         this._tempGroup
           .attr('transform', 'translate(-1000, -1000)');
         var targetNode = this._parentNode(d3.event.sourceEvent.target);
-        console.log(targetNode);
         if (targetNode === null) {
           this._nodes[d.index]._controls.attr('class', 'hidden');
         } else if (d.index !== targetNode.index) {
