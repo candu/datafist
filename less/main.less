@@ -124,13 +124,23 @@ tr, td {
     background-color: #f96;
     color: #c30;
   }
-  // TODO: typing for SVG .block elements
   rect.block {
-    fill: @source-bg;
-    stroke: @source-border;
+    &.function {
+      fill: @filter-bg;
+      stroke: @filter-border;
+    }
+    &.object {
+      fill: @source-bg;
+      stroke: @source-border;
+    }
   }
   text.block {
-    fill: @source-text;
+    &.function {
+      fill: @filter-text;
+    }
+    &.object {
+      fill: @source-text;
+    }
   }
   line.edge {
     stroke: #aaa;

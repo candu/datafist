@@ -14,9 +14,17 @@ var ViewGraphState = new Class({
   listen: function(type, callback) {
     this._dummyElem.addEvent(type, callback);
   },
-  addNode: function(name, x, y, w, h) {
+  addNode: function(name, type, x, y, w, h) {
     var i = this._nextNodeId++;
-    this._nodes[i] = {name: name, x: x, y: y, w: w, h: h, index: i};
+    this._nodes[i] = {
+      name: name,
+      type: type,
+      x: x,
+      y: y,
+      w: w,
+      h: h,
+      index: i
+    };
     this._edgesOut[i] = {};
     this._edgesIn[i] = {};
     this._fire('nodeadded', [this._nodes[i]]);
@@ -110,13 +118,13 @@ var ViewNode = new Class({
         this._onNodeClicked(d);
       }.bind(graph));
     this._g.append('svg:rect')
-      .attr('class', 'block')
+      .attr('class', 'block ' + node.type)
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', node.w)
       .attr('height', node.h);
     this._g.append('svg:text')
-      .attr('class', 'block')
+      .attr('class', 'block ' + node.type)
       .attr('x', node.w / 2)
       .attr('y', node.h / 2)
       .attr('dy', '.35em')
@@ -234,14 +242,21 @@ var FistUI = new Class({
     }, false);
     this._svgWrapper.addEventListener('drop', function(evt) {
       evt.stopPropagation();
-      var name = evt.dataTransfer.getData('text/plain');
+      var json = JSON.parse(evt.dataTransfer.getData('application/json'));
       var svgPosition = this._svgWrapper.getPosition(),
           blockSize = this._dragBlock.getSize(),
           blockX = Math.floor(evt.pageX - svgPosition.x - blockSize.x / 2) + 0.5,
           blockY = Math.floor(evt.pageY - svgPosition.y - blockSize.y / 2) + 0.5,
           blockW = blockSize.x,
           blockH = blockSize.y;
-      this._viewGraphState.addNode(name, blockX, blockY, blockW, blockH);
+      this._viewGraphState.addNode(
+        json.name,
+        json.type,
+        blockX,
+        blockY,
+        blockW,
+        blockH
+      );
     }.bind(this), false);
     this._viewToggle = this._root.getElement('#view_toggle');
     this._viewToggle.addEvent('click', function(evt) {
@@ -277,23 +292,19 @@ var FistUI = new Class({
       this.onViewInvoked(name, channels);
     }.bind(this));
   },
-  _createBlock: function(name) {
-    try {
-      var value = this._fist.execute(name);
-      return new Element('div.block.' + typeOf(value), {
-        text: name,
-      });
-    } catch (e) {
-      return null;
-    }
-  },
   onSymbolImport: function(name) {
-    var block = this._createBlock(name);
-    block.set('draggable', true);
+    var type = typeOf(this._fist.execute(name));
+    var block = Element('div.block.' + type, {
+      text: name,
+      draggable: true
+    });
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
       evt.dataTransfer.effectAllowed = 'move';
-      evt.dataTransfer.setData('text/plain', block.get('text'));
+      evt.dataTransfer.setData('application/json', JSON.stringify({
+        name: name,
+        type: type
+      }));
       this._dragBlock = block;
     }.bind(this), false);
     block.addEventListener('dragend', function(evt) {
