@@ -149,37 +149,12 @@ var ViewNode = new Class({
     var wMid = Math.floor(node.w / 2),
         hMid = Math.floor(node.h / 2);
     var controlPoints = [
-      {x: wMid, y: 0},        // top
-      {x: node.w, y: hMid},   // right
-      {x: wMid, y: node.h},   // bottom
-      {x: 0, y: hMid}         // left
+      {x: wMid, y: 0, index: node.index},        // top
+      {x: node.w, y: hMid, index: node.index},   // right
+      {x: wMid, y: node.h, index: node.index},   // bottom
+      {x: 0, y: hMid, index: node.index}         // left
     ];
     var size = 6;
-    var b = d3.behavior.drag()
-      .on('dragstart', function(d) {
-        d3.event.sourceEvent.stopPropagation();
-        this._controlling = true;
-        console.log('drag start: ' + node.index);
-      }.bind(this))
-      .on('dragend', function(d) {
-        d3.event.sourceEvent.stopPropagation();
-        var elem = d3.event.sourceEvent.target,
-            targetNode = null;
-        while (!elem.match('svg#view_graph')) {
-          elem = elem.getParent();
-          if (elem.match('g.block')) {
-            targetNode = elem.__data__;
-          }
-        }
-        console.log('drag end: ' + node.index);
-        if (targetNode === null) {
-          this._controls.attr('class', 'hidden');
-        } else if (node.index !== targetNode.index) {
-          console.log('creating edge (' + node.index + ', ' + targetNode.index + ')');
-          this._controls.attr('class', 'hidden');
-        }
-        this._controlling = false;
-      }.bind(this));
     this._controls.selectAll('rect')
       .data(controlPoints)
       .enter().append('svg:rect')
@@ -188,7 +163,7 @@ var ViewNode = new Class({
         .attr('y', function(d) { return d.y - size / 2; })
         .attr('width', size)
         .attr('height', size)
-        .call(b);
+        .call(graph.edgeCreateBehavior());
   },
   update: function() {
     this._g.attr('transform', function(d) {
@@ -252,7 +227,48 @@ var ViewGraph = new Class({
         this._onNodeMoved(d);
       }.bind(this));
 
-    this._nodeClicked = null;
+    this._tempGroup = svg.append('svg:g')
+      .attr('transform', 'translate(-1000, -1000)');
+    this._tempEdgeEnd = {};
+    this._tempEdge = this._tempGroup.append('svg:line')
+      .attr('class', 'edge temp')
+      .attr('x1', 0)
+      .attr('y1', 0);
+    this._edgeCreateBehavior = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        d3.event.sourceEvent.stopPropagation();
+        this._nodes[d.index]._controlling = true;
+        var nodeX = this._nodes[d.index]._g[0][0].__data__.x,
+            nodeY = this._nodes[d.index]._g[0][0].__data__.y;
+        this._tempGroup
+          .attr('transform', 'translate(' + (nodeX + d.x) + ', ' + (nodeY + d.y) + ')');
+        this._tempEdgeEnd.x = 0;
+        this._tempEdgeEnd.y = 0;
+        this._tempEdge
+          .attr('x2', this._tempEdgeEnd.x)
+          .attr('y2', this._tempEdgeEnd.y);
+      }.bind(this))
+      .on('dragend', function(d) {
+        d3.event.sourceEvent.stopPropagation();
+        this._tempGroup
+          .attr('transform', 'translate(-1000, -1000)');
+        var targetNode = this._parentNode(d3.event.sourceEvent.target);
+        console.log(targetNode);
+        if (targetNode === null) {
+          this._nodes[d.index]._controls.attr('class', 'hidden');
+        } else if (d.index !== targetNode.index) {
+          this._state.addEdge(d.index, targetNode.index);
+          this._nodes[d.index]._controls.attr('class', 'hidden');
+        }
+        this._nodes[d.index]._controlling = false;
+      }.bind(this))
+      .on('drag', function(d) {
+        this._tempEdgeEnd.x += d3.event.dx;
+        this._tempEdgeEnd.y += d3.event.dy;
+        this._tempEdge
+          .attr('x2', this._tempEdgeEnd.x)
+          .attr('y2', this._tempEdgeEnd.y);
+      }.bind(this));
 
     this._state.listen('nodeadded', function(node) {
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
@@ -268,20 +284,23 @@ var ViewGraph = new Class({
   nodeDragBehavior: function() {
     return this._nodeDragBehavior;
   },
+  edgeCreateBehavior: function() {
+    return this._edgeCreateBehavior;
+  },
+  _parentNode: function(elem) {
+    var svgRoot = $d3(this._svg);
+    while (!elem.match(svgRoot)) {
+      if (elem.match('g.block')) {
+        return elem.__data__;
+      }
+      elem = elem.getParent();
+    }
+    return null;
+  },
   _onNodeMoved: function(d) {
     this._nodes[d.index].update();
     for (var i in this._edges[d.index]) {
       this._edges[d.index][i].update();
-    }
-  },
-  _onNodeClicked: function(d) {
-    if (this._nodeClicked === null) {
-      this._nodeClicked = d.index;
-    } else {
-      if (this._nodeClicked !== d.index) {
-        this._state.addEdge(this._nodeClicked, d.index);
-      }
-      this._nodeClicked = null;
     }
   }
 });
