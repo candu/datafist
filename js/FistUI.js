@@ -110,6 +110,7 @@ ViewGraphState.fromJSON = function(json) {
 var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
     this._dragging = false;
+    this._controlling = false;
 
     this._g = nodeGroup.append('svg:g')
       .data([node])
@@ -123,7 +124,7 @@ var ViewNode = new Class({
         }
       }.bind(this))
       .on('mouseout', function(d) {
-        if (!this._dragging) {
+        if (!this._dragging && !this._controlling) {
           this._controls.attr('class', 'hidden');
         }
       }.bind(this))
@@ -154,6 +155,31 @@ var ViewNode = new Class({
       {x: 0, y: hMid}         // left
     ];
     var size = 6;
+    var b = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        d3.event.sourceEvent.stopPropagation();
+        this._controlling = true;
+        console.log('drag start: ' + node.index);
+      }.bind(this))
+      .on('dragend', function(d) {
+        d3.event.sourceEvent.stopPropagation();
+        var elem = d3.event.sourceEvent.target,
+            targetNode = null;
+        while (!elem.match('svg#view_graph')) {
+          elem = elem.getParent();
+          if (elem.match('g.block')) {
+            targetNode = elem.__data__;
+          }
+        }
+        console.log('drag end: ' + node.index);
+        if (targetNode === null) {
+          this._controls.attr('class', 'hidden');
+        } else if (node.index !== targetNode.index) {
+          console.log('creating edge (' + node.index + ', ' + targetNode.index + ')');
+          this._controls.attr('class', 'hidden');
+        }
+        this._controlling = false;
+      }.bind(this));
     this._controls.selectAll('rect')
       .data(controlPoints)
       .enter().append('svg:rect')
@@ -161,8 +187,8 @@ var ViewNode = new Class({
         .attr('x', function(d) { return d.x - size / 2; })
         .attr('y', function(d) { return d.y - size / 2; })
         .attr('width', size)
-        .attr('height', size);
-
+        .attr('height', size)
+        .call(b);
   },
   update: function() {
     this._g.attr('transform', function(d) {
