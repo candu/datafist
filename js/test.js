@@ -281,17 +281,17 @@ QUnit.test('GensChannel', function() {
   ok(error < limit);
 });
 
-QUnit.test('ViewGraph', function() {
-  var g = new ViewGraph();
+QUnit.test('ViewGraphState', function() {
+  var g = new ViewGraphState();
 
   // empty
   var cmds = g.toFist();
   equal(cmds.length, 0);
 
   // partial
-  g.addNode(new ViewNode('c1', 0, 0));
-  g.addNode(new ViewNode('c2', 40, 0));
-  g.addNode(new ViewNode('+', 30, 10));
+  g.addNode('c1', 0, 0);
+  g.addNode('c2', 40, 0);
+  g.addNode('+', 30, 10);
   g.addEdge(0, 2);
   g.addEdge(1, 2);
   var cmds = g.toFist();
@@ -299,10 +299,10 @@ QUnit.test('ViewGraph', function() {
   equal(cmds[0], '(+ c1 c2)');
 
   // full
-  g.addNode(new ViewNode('v1', 10, 20));
-  g.addNode(new ViewNode('c3', 60, 0));
-  g.addNode(new ViewNode('v2', 50, 20));
-  g.addNode(new ViewNode('c4', 20, 0));
+  g.addNode('v1', 10, 20);
+  g.addNode('c3', 60, 0);
+  g.addNode('v2', 50, 20);
+  g.addNode('c4', 20, 0);
   g.addEdge(0, 5);
   g.addEdge(1, 5);
   g.addEdge(2, 3);
