@@ -9,7 +9,6 @@ function setupDemo(fist) {
     b,
     fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.2))')
   ]));
-  //fist.execute('(view-channel c1 c2)');
 }
 
 function dynamicResize() {

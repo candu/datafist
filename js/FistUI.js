@@ -30,7 +30,7 @@ var ViewGraphState = new Class({
     this._fire('nodeadded', [this._nodes[i]]);
   },
   deleteNode: function(i) {
-    for (var j in this._edgesOut) {
+    for (var j in this._edgesOut[i]) {
       this.deleteEdge(i, j);
     }
     delete this._nodes[i];
@@ -56,7 +56,6 @@ var ViewGraphState = new Class({
       console.log('skipping, will create cycle!');
       return;
     }
-    // add directed edge from i to j
     if (this._edgesOut[i][j] !== undefined) {
       console.log('skipping, already there!');
       return;
@@ -66,7 +65,7 @@ var ViewGraphState = new Class({
     this._fire('edgeadded', [this._nodes[i], this._nodes[j]]);
   },
   deleteEdge: function(i, j) {
-    // remove directed edge from j to i
+    // remove i -> j
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
     this._fire('edgedeleted', [i, j]);
@@ -237,8 +236,10 @@ var ViewEdge = new Class({
     this._line = edgeGroup.append('svg:line')
       .attr('class', 'edge')
       .attr('marker-end', 'url(#edge_end)')
+      .on('click', function(d) {
+        console.log('edge selected: ' + d);
+      })
       .call(this._snapToClosestSides, this._data);
-    // TODO: add arrowhead
   },
   update: function() {
     this._line
@@ -286,9 +287,14 @@ var ViewGraph = new Class({
         viewNode._controls.attr('class', 'hidden');
       }.bind(this))
       .on('dragend', function(d) {
-        var viewNode = this._nodes[d.index];
-        viewNode._controls.attr('class', '');
-        viewNode._dragging = false;
+        console.log('dragend: ' + d.index);
+        if (!this._isInViewer(d3.event.sourceEvent.target)) {
+          this._state.deleteNode(d.index);
+        } else {
+          var viewNode = this._nodes[d.index];
+          viewNode._controls.attr('class', '');
+          viewNode._dragging = false;
+        }
       }.bind(this))
       .on('drag', function(d) {
         d.x += d3.event.dx;
@@ -344,14 +350,18 @@ var ViewGraph = new Class({
       this._edgesIn[node.index] = {};
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
-    this._state.listen('nodedeleted', this._deleteNode);
+    this._state.listen('nodedeleted', function(i) {
+      this._deleteNode(i);
+    }.bind(this));
     this._state.listen('edgeadded', function(node1, node2) {
       var edge = new ViewEdge(this, this._edgeGroup, node1, node2);
       this._edgesOut[node1.index][node2.index] = edge;
       this._edgesIn[node2.index][node1.index] = edge;
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
-    this._state.listen('edgedeleted', this._deleteEdge);
+    this._state.listen('edgedeleted', function(i, j) {
+      this._deleteEdge(i, j);
+    }.bind(this));
   },
   nodeDragBehavior: function() {
     return this._nodeDragBehavior;
@@ -367,6 +377,16 @@ var ViewGraph = new Class({
       elem = elem.getParent();
     }
     return null;
+  },
+  _isInViewer: function(elem) {
+    var svgRoot = $d3(this._svg);
+    while (!elem.match('body')) {
+      if (elem.match(svgRoot)) {
+        return true;
+      }
+      elem = elem.getParent();
+    }
+    return false;
   },
   _onNodeMoved: function(d) {
     this._nodes[d.index].update();
