@@ -241,12 +241,11 @@ var ViewEdge = new Class({
   initialize: function(graph, edgeGroup, node1, node2) {
     this._data = {from: node1, to: node2};
     this._line = edgeGroup.append('svg:line')
+      .data([this._data])
       .attr('class', 'edge')
       .attr('marker-end', 'url(#edge_end)')
-      .on('click', function(d) {
-        console.log('edge selected: ' + d);
-      })
-      .call(this._snapToClosestSides, this._data);
+      .call(this._snapToClosestSides, this._data)
+      .call(graph.edgeDragBehavior());
   },
   update: function() {
     this._line
@@ -350,6 +349,35 @@ var ViewGraph = new Class({
           .attr('y2', this._tempEdgeEnd.y);
       }.bind(this));
 
+    this._edgeDragBehavior = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        var edge = this._edgesOut[d.from.index][d.to.index],
+            svgPos = $d3(this._svg).getPosition(),
+            x = d3.event.sourceEvent.pageX - svgPos.x,
+            y = d3.event.sourceEvent.pageY - svgPos.y;
+        edge._line
+          .attr('class', 'edge temp')
+          .attr('x2', x)
+          .attr('y2', y);
+      }.bind(this))
+      .on('dragend', function(d) {
+        var targetNode = this._parentNode(d3.event.sourceEvent.target);
+        this._state.deleteEdge(d.from.index, d.to.index);
+        if (targetNode !== null && d.from.index !== targetNode.index) {
+          this._state.addEdge(d.from.index, targetNode.index);
+        }
+      }.bind(this))
+      .on('drag', function(d) {
+        var edge = this._edgesOut[d.from.index][d.to.index],
+            svgPos = $d3(this._svg).getPosition(),
+            x = d3.event.sourceEvent.pageX - svgPos.x,
+            y = d3.event.sourceEvent.pageY - svgPos.y;
+        edge._line
+          .attr('class', 'edge temp')
+          .attr('x2', x)
+          .attr('y2', y);
+      }.bind(this));
+
     this._state.listen('nodeadded', function(node) {
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
       this._edgesOut[node.index] = {};
@@ -374,6 +402,9 @@ var ViewGraph = new Class({
   },
   edgeCreateBehavior: function() {
     return this._edgeCreateBehavior;
+  },
+  edgeDragBehavior: function() {
+    return this._edgeDragBehavior;
   },
   _parentNode: function(elem) {
     while (elem !== null) {
