@@ -33,6 +33,8 @@ var ViewGraphState = new Class({
     for (var j in this._edgesOut[i]) {
       this.deleteEdge(i, j);
     }
+    delete this._edgesOut[i];
+    delete this._edgesIn[i];
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
   },
@@ -400,6 +402,8 @@ var ViewGraph = new Class({
   },
   _deleteNode: function(i) {
     this._nodes[i].cleanup();
+    delete this._edgesOut[i];
+    delete this._edgesIn[i];
     delete this._nodes[i];
     this._repl.set('text', this._state.toFist().join(' '));
   },
