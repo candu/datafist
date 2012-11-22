@@ -46,7 +46,9 @@ var ViewGraphState = new Class({
       if (k === i) {
         return true;
       }
-      return Object.keys(this._edgesOut[k]).map(parseInt).filter(function(n) {
+      return Object.keys(this._edgesOut[k]).map(function(n) {
+        return parseInt(n);
+      }).filter(function(n) {
         return S[n] === undefined;
       }).some(depthSearch);
     }.bind(this);
@@ -271,6 +273,7 @@ var ViewGraph = new Class({
       .attr('markerUnits', 'strokeWidth')
       .attr('markerWidth', 4)
       .attr('markerHeight', 3)
+      .attr('fill', '#555')
       .attr('orient', 'auto')
       .append('svg:path')
         .attr('d', 'M 0 0 L 10 5 L 0 10 z');
