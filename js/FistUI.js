@@ -360,8 +360,7 @@ var ViewGraph = new Class({
     return this._edgeCreateBehavior;
   },
   _parentNode: function(elem) {
-    var svgRoot = $d3(this._svg);
-    while (!elem.match(svgRoot)) {
+    while (!elem.match('body')) {
       if (elem.match('g.block')) {
         return elem.__data__;
       }
