@@ -178,7 +178,7 @@ var ViewNode = new Class({
       {x: wMid, y: node.h, index: node.index},   // bottom
       {x: 0, y: hMid, index: node.index}         // left
     ];
-    var size = 6;
+    var size = 8;
     this._controls.selectAll('rect')
       .data(controlPoints)
       .enter().append('svg:rect')
@@ -376,7 +376,7 @@ var ViewGraph = new Class({
     return this._edgeCreateBehavior;
   },
   _parentNode: function(elem) {
-    while (!elem.match('body')) {
+    while (elem !== null) {
       if (elem.match('g.block')) {
         return elem.__data__;
       }
@@ -386,7 +386,7 @@ var ViewGraph = new Class({
   },
   _isInViewer: function(elem) {
     var svgRoot = $d3(this._svg);
-    while (!elem.match('body')) {
+    while (elem !== null) {
       if (elem.match(svgRoot)) {
         return true;
       }
