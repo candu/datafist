@@ -31,16 +31,32 @@ var ViewGraphState = new Class({
   },
   deleteNode: function(i) {
     for (var j in this._edgesOut) {
-      this.deleteEdge(j);
+      this.deleteEdge(i, j);
     }
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
   },
   addEdge: function(i, j) {
+    console.log('adding (' + i + ', ' + j + ')...');
+    // enforce DAG property: i -> j will complete a cycle iff there exists a
+    // path j -> ... -> i
+    var S = {};
+    var depthSearch = function(k) {
+      S[k] = true;
+      if (k === i) {
+        return true;
+      }
+      return Object.keys(this._edgesOut[k]).map(parseInt).filter(function(n) {
+        return S[n] === undefined;
+      }).some(depthSearch);
+    }.bind(this);
+    if (depthSearch(j)) {
+      console.log('skipping, will create cycle!');
+      return;
+    }
     // add directed edge from i to j
-    console.log('adding (' + i + ', ' + j + ')');
     if (this._edgesOut[i][j] !== undefined) {
-      console.log('skipping, already there: ' + this._edgesOut[i][j]);
+      console.log('skipping, already there!');
       return;
     }
     this._edgesOut[i][j] = true;
@@ -325,12 +341,14 @@ var ViewGraph = new Class({
       this._edgesIn[node.index] = {};
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
+    this._state.listen('nodedeleted', this._deleteNode);
     this._state.listen('edgeadded', function(node1, node2) {
       var edge = new ViewEdge(this, this._edgeGroup, node1, node2);
       this._edgesOut[node1.index][node2.index] = edge;
       this._edgesIn[node2.index][node1.index] = edge;
       this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
+    this._state.listen('edgedeleted', this._deleteEdge);
   },
   nodeDragBehavior: function() {
     return this._nodeDragBehavior;
@@ -356,6 +374,18 @@ var ViewGraph = new Class({
     for (var i in this._edgesIn[d.index]) {
       this._edgesIn[d.index][i].update();
     }
+    this._repl.set('text', this._state.toFist().join(' '));
+  },
+  _deleteNode: function(i) {
+    this._nodes[i].cleanup();
+    delete this._nodes[i];
+    this._repl.set('text', this._state.toFist().join(' '));
+  },
+  _deleteEdge: function(i, j) {
+    this._edgesOut[i][j].cleanup();
+    delete this._edgesOut[i][j];
+    delete this._edgesIn[j][i];
+    this._repl.set('text', this._state.toFist().join(' '));
   }
 });
 
