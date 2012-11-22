@@ -30,11 +30,16 @@ var ViewGraphState = new Class({
     this._fire('nodeadded', [this._nodes[i]]);
   },
   deleteNode: function(i) {
-    for (var j in this._edgesOut[i]) {
-      this.deleteEdge(i, j);
-    }
-    delete this._edgesOut[i];
+    var outEdges = Object.keys(this._edgesOut[i]);
+    var inEdges = Object.keys(this._edgesIn[i]);
+    outEdges.each(function(j) {
+      delete this._edgesIn[j][i];
+    }.bind(this));
     delete this._edgesIn[i];
+    inEdges.each(function(j) {
+      delete this._edgesOut[j][i];
+    }.bind(this));
+    delete this._edgesOut[i];
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
   },
@@ -289,7 +294,6 @@ var ViewGraph = new Class({
         viewNode._controls.attr('class', 'hidden');
       }.bind(this))
       .on('dragend', function(d) {
-        console.log('dragend: ' + d.index);
         if (!this._isInViewer(d3.event.sourceEvent.target)) {
           this._state.deleteNode(d.index);
         } else {
@@ -401,9 +405,19 @@ var ViewGraph = new Class({
     this._repl.set('text', this._state.toFist().join(' '));
   },
   _deleteNode: function(i) {
-    this._nodes[i].cleanup();
-    delete this._edgesOut[i];
+    var outEdges = Object.keys(this._edgesOut[i]);
+    var inEdges = Object.keys(this._edgesIn[i]);
+    outEdges.each(function(j) {
+      this._edgesIn[j][i].cleanup();
+      delete this._edgesIn[j][i];
+    }.bind(this));
     delete this._edgesIn[i];
+    inEdges.each(function(j) {
+      this._edgesOut[j][i].cleanup();
+      delete this._edgesOut[j][i];
+    }.bind(this));
+    delete this._edgesOut[i];
+    this._nodes[i].cleanup();
     delete this._nodes[i];
     this._repl.set('text', this._state.toFist().join(' '));
   },
