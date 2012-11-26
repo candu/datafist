@@ -144,6 +144,13 @@ QUnit.test('SExp', function() {
   jsonEqual(SExp.parse('(   a   )'), ['a']);
   jsonEqual(SExp.parse('(a)      '), ['a']);
   jsonEqual(SExp.parse('   (a)   '), ['a']);
+
+  // many
+  jsonEqual(SExp.parseMany('() () ()'), [[], [], []]);
+  jsonEqual(SExp.parseMany('  () () ()  '), [[], [], []]);
+  jsonEqual(SExp.parseMany('()()()'), [[], [], []]);
+  jsonEqual(SExp.parseMany('()(a)()'), [[], ['a'], []]);
+  jsonEqual(SExp.parseMany('() ( a ) ()'), [[], ['a'], []]);
 });
 
 QUnit.test('evaluateAtom', function() {
@@ -289,9 +296,9 @@ QUnit.test('ViewGraphState', function() {
   equal(cmds.length, 0);
 
   // partial
-  g.addNode('c1', 0, 0);
-  g.addNode('c2', 40, 0);
-  g.addNode('+', 30, 10);
+  g.addNode('c1', null, 0, 0);
+  g.addNode('c2', null, 40, 0);
+  g.addNode('+', null, 30, 10);
   g.addEdge(0, 2);
   g.addEdge(1, 2);
   var cmds = g.toFist();
@@ -299,10 +306,10 @@ QUnit.test('ViewGraphState', function() {
   equal(cmds[0], '(+ c1 c2)');
 
   // full
-  g.addNode('v1', 10, 20);
-  g.addNode('c3', 60, 0);
-  g.addNode('v2', 50, 20);
-  g.addNode('c4', 20, 0);
+  g.addNode('v1', null, 10, 20);
+  g.addNode('c3', null, 60, 0);
+  g.addNode('v2', null, 50, 20);
+  g.addNode('c4', null, 20, 0);
   g.addEdge(0, 5);
   g.addEdge(1, 5);
   g.addEdge(2, 3);

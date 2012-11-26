@@ -1,7 +1,5 @@
 var SExp = {
-  parse: function(s) {
-    s = s.trim();
-    var i = 0;
+  _parseImpl: function(s, i) {
     function helper() {
       while (true) {
         if (i >= s.length) throw new Error("parse failed");
@@ -15,7 +13,8 @@ var SExp = {
         while (true) {
           if (i >= s.length) throw new Error("parse failed");
           if (s[i] === ')') break;
-          sexp.push(helper());
+          var result = helper();
+          sexp.push(result.sexp);
         }
         i++;
       } else {
@@ -24,11 +23,31 @@ var SExp = {
         sexp = s.substring(old_i, i);
         while (i < s.length && s[i] === ' ') i++;
       }
-      return sexp;
+      return {sexp: sexp, pos: i};
     }
-    var sexp = helper();
-    if (i !== s.length) throw new Error("parse failed");
-    return sexp;
+    return helper();
+  },
+  parse: function(s) {
+    s = s.trim();
+    var result = this._parseImpl(s, 0);
+    if (result.pos !== s.length) throw new Error("parse failed");
+    return result.sexp;
+  },
+  /**
+   * Parse several s-expressions from a single string.
+   */
+  parseMany: function(s) {
+    s = s.trim();
+    var pos = 0,
+        sexps = [];
+    while (pos < s.length) {
+      var result = this._parseImpl(s, pos);
+      pos = result.pos;
+      while (s[pos] === ' ') pos++;
+      sexps.push(result.sexp);
+    }
+    if (pos !== s.length) throw new Error("parse failed");
+    return sexps;
   },
   isList: function(sexp) {
     return sexp instanceof Array;
