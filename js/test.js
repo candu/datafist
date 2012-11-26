@@ -175,6 +175,12 @@ QUnit.test('evaluateAtom', function() {
   equal(fist.evaluateAtom('+'), OpsArith.plus);
 });
 
+QUnit.test('Keywords', function() {
+  // define
+  equal(fist.execute('(define x 21)'), null);
+  equal(fist.execute('(+ x x)'), 42);
+});
+
 QUnit.test('OpsArith', function() {
   // number
   equal(fist.execute('(+ 1 2)'), 3);

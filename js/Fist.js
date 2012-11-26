@@ -23,6 +23,7 @@ var DataChannel = new Class({
 
 var Fist = new Class({
   initialize: function() {
+    // TODO: builtins
     this._symbolTable = {};
     this._dummyElem = new Element('div');
   },
@@ -72,8 +73,18 @@ var Fist = new Class({
     if (sexp.length === 0) {
       throw new Error('expected operation');
     }
+    switch (sexp[0]) {
+      case 'define':
+        if (sexp.length !== 3) {
+          throw new Error('expected (define <name> <value>)');
+        }
+        var name = sexp[1],
+            value = this.evaluate(sexp[2]);
+        this.registerSymbol(name, value);
+        return null;
+    }
     var op = this.evaluate(sexp[0]);
-    if (!(op instanceof Function)) {
+    if (typeOf(op) !== 'function') {
       throw new Error('expected operation, got ' + typeof(op));
     }
     var args = [];
@@ -99,11 +110,13 @@ var Fist = new Class({
       console.log('found __exports declaration');
       for (var i = 0; i < module.__exports.length; i++) {
         var def = module.__exports[i];
-        if (def instanceof String) {
+        var defType = typeOf(def);
+        if (defType === 'string') {
           this.registerSymbol(def, module[def]);
-        } else if (def instanceof Array) {
-          if (def.length !== 2)
+        } else if (defType === 'array') {
+          if (def.length !== 2) {
             throw new Error('expected internal/external name pair');
+          }
           this.registerSymbol(def[1], module[def[0]]);
         } else {
           throw new Error('invalid __exports declaration');
