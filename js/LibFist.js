@@ -127,13 +127,13 @@ var OpsArith = {
     });
   },
   mod: function(args) {
-    argCheck('%', args, '(+ (| number channel) (| number channel))');
+    argCheck('%', args, '(+ (| number channel) number)');
     return _binOp(args[0], args[1], function(a, b) {
       return a % b;
     });
   },
   bucket: function(args) {
-    argCheck('//*', args, '(+ (| number channel) (| number channel))');
+    argCheck('//*', args, '(+ (| number channel) number)');
     return _binOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b) * b;
     });

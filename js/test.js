@@ -212,6 +212,18 @@ QUnit.test('OpsArith', function() {
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 35);
   }
+  var c = fist.execute(
+    '(/ ((gen-regular 0 3 3) (constant 19)) ((gen-regular 0 3 3) (constant 8)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 2.375);
+  }
+  var c = fist.execute(
+    '(// ((gen-regular 0 3 3) (constant 19)) ((gen-regular 0 3 3) (constant 8)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 2);
+  }
 
   // mixed
   var c = fist.execute(
@@ -231,6 +243,30 @@ QUnit.test('OpsArith', function() {
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 146);
+  }
+  var c = fist.execute(
+    '(/ ((gen-regular 0 3 3) (constant 19)) 8)'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 2.375);
+  }
+  var c = fist.execute(
+    '(// ((gen-regular 0 3 3) (constant 19)) 8)'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 2);
+  }
+  var c = fist.execute(
+    '(% ((gen-regular 0 3 3) (constant 19)) 8)'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 3);
+  }
+  var c = fist.execute(
+    '(//* ((gen-regular 0 3 3) (constant 19)) 8)'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 16);
   }
 });
 
