@@ -13,7 +13,7 @@ function setupDemo(fist) {
 
 function dynamicResize() {
   var contentSize = $('content').getSize();
-  $('svg_wrapper').setStyle('height', contentSize.y - 10);
+  $('svg_execute_wrapper').setStyle('height', contentSize.y - 10);
 }
 
 var resizeTimer;
@@ -26,8 +26,11 @@ $(window).addEvent('domready', function() {
   LibFistUI.import(UI);
   setupDemo(fist);
 }).addEvent('resize', function() {
+  // TODO: re-enable this once viewExecuteSVG can be dynamically resized
+  /*
   window.clearTimeout(resizeTimer);
   resizeTimer = (function() {
     dynamicResize();
   }).delay(50);
+  */
 });

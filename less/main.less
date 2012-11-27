@@ -87,28 +87,53 @@ tr, td {
   background-color: #bbb;
 }
 
-#svg_wrapper {
+#svg_execute_wrapper {
   margin: 4px 4px 2px 4px;
   border: 1px solid #999;
   background-color: #f7f7f7;
   position: relative;
+}
+
+@footer-height: 240px;
+@repl-border: 1px;
+@repl-margin: 4px;
+@repl-padding: 4px;
+
+@toolbox-width: 200px;
+@palette-border: 1px;
+@palette-margin: 4px;
+
+#footer {
+  height: @footer-height;
+}
+
+#toolbox {
+  width: @toolbox-width;
+  background-color: #bbb;
+}
+
+#palette {
+  border: @palette-border solid #999;
+  margin: (@palette-margin / 2) (@palette-margin / 2) @palette-margin @palette-margin;
+  background-color: #f7f7f7;
+  width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
+  height: (@footer-height - (2 * @palette-border + 1.5 * @palette-margin));
+  overflow-y: auto;
+}
+
+#interpreter {
+  background-color: #bbb;
+}
+
+#svg_graph_wrapper {
+  margin: 2px 4px 4px 2px;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  position: relative;
+  height: (@footer-height - (2 * @repl-border + 1.5 * @repl-margin));
   &.droptarget {
     border: 1px solid #6f3;
     background-color: #dfc;
-  }
-  #view_toggle {
-    .text-unselectable;
-    display: inline-block;
-    position: absolute;
-    right: 0;
-    top: 0;
-    outline: none;
-    cursor: pointer;
-    padding: 4px 8px 4px;
-    margin: 4px;
-    font-size: 90%;
-    background-color: #f96;
-    color: #c30;
   }
   g.block {
     .text-unselectable;
@@ -143,37 +168,6 @@ tr, td {
       stroke-opacity: 0.4;
     }
   }
-}
-
-@footer-height: 240px;
-@repl-border: 1px;
-@repl-margin: 4px;
-@repl-padding: 4px;
-
-@toolbox-width: 200px;
-@palette-border: 1px;
-@palette-margin: 4px;
-
-#footer {
-  height: @footer-height;
-}
-
-#toolbox {
-  width: @toolbox-width;
-  background-color: #bbb;
-}
-
-#palette {
-  border: @palette-border solid #999;
-  margin: (@palette-margin / 2) (@palette-margin / 2) @palette-margin @palette-margin;
-  background-color: #f7f7f7;
-  width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
-  height: (@footer-height - (2 * @repl-border + 1.5 * @repl-margin));
-  overflow-y: auto;
-}
-
-#interpreter {
-  background-color: #bbb;
 }
 
 #repl {

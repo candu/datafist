@@ -28,6 +28,7 @@ var ViewGraphState = new Class({
     this._edgesOut[i] = {};
     this._edgesIn[i] = {};
     this._fire('nodeadded', [this._nodes[i]]);
+    this._fire('modified');
   },
   deleteNode: function(i) {
     var outEdges = Object.keys(this._edgesOut[i]);
@@ -42,6 +43,7 @@ var ViewGraphState = new Class({
     delete this._edgesOut[i];
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
+    this._fire('modified');
   },
   addEdge: function(i, j) {
     console.log('adding (' + i + ', ' + j + ')...');
@@ -70,12 +72,14 @@ var ViewGraphState = new Class({
     this._edgesOut[i][j] = true;
     this._edgesIn[j][i] = true;
     this._fire('edgeadded', [this._nodes[i], this._nodes[j]]);
+    this._fire('modified');
   },
   deleteEdge: function(i, j) {
     // remove i -> j
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
     this._fire('edgedeleted', [i, j]);
+    this._fire('modified');
   },
   toJSON: function() {
     var nodes = {};
@@ -382,7 +386,6 @@ var ViewGraph = new Class({
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
       this._edgesOut[node.index] = {};
       this._edgesIn[node.index] = {};
-      this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
     this._state.listen('nodedeleted', function(i) {
       this._deleteNode(i);
@@ -391,7 +394,6 @@ var ViewGraph = new Class({
       var edge = new ViewEdge(this, this._edgeGroup, node1, node2);
       this._edgesOut[node1.index][node2.index] = edge;
       this._edgesIn[node2.index][node1.index] = edge;
-      this._repl.set('text', this._state.toFist().join(' '));
     }.bind(this));
     this._state.listen('edgedeleted', function(i, j) {
       this._deleteEdge(i, j);
@@ -433,7 +435,6 @@ var ViewGraph = new Class({
     for (var i in this._edgesIn[d.index]) {
       this._edgesIn[d.index][i].update();
     }
-    this._repl.set('text', this._state.toFist().join(' '));
   },
   _deleteNode: function(i) {
     var outEdges = Object.keys(this._edgesOut[i]);
@@ -450,13 +451,11 @@ var ViewGraph = new Class({
     delete this._edgesOut[i];
     this._nodes[i].cleanup();
     delete this._nodes[i];
-    this._repl.set('text', this._state.toFist().join(' '));
   },
   _deleteEdge: function(i, j) {
     this._edgesOut[i][j].cleanup();
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
-    this._repl.set('text', this._state.toFist().join(' '));
   }
 });
 
@@ -464,6 +463,15 @@ var FistUI = new Class({
   initialize: function(fist, root) {
     this._viewTable = {};
     this._viewGraphState = new ViewGraphState();
+    this._viewGraphState.listen('modified', function() {
+      this._repl.set('text', this._viewGraphState.toFist().join(' '));
+      console.log(this._repl.get('text'));
+      try {
+        this._fist.execute(this._repl.get('text'));
+      } catch (e) {
+        console.log(e);
+      }
+    }.bind(this));
 
     this._fist = fist;
     this._root = root;
@@ -475,35 +483,35 @@ var FistUI = new Class({
 
     // set up viewer
     this._viewer = this._root.getElement('#viewer');
-    this._svgWrapper = this._root.getElement('#svg_wrapper');
-    var w = this._svgWrapper.getWidth() - 2,
-        h = this._svgWrapper.getHeight() - 2;
-    this._viewGraphSVG = d3.select(this._svgWrapper)
+    this._svgExecuteWrapper = this._root.getElement('#svg_execute_wrapper');
+    this._viewExecuteSVG = d3.select(this._svgExecuteWrapper)
+      .append('svg:svg')
+      .attr('id', 'view_execute')
+      .attr('width', this._svgExecuteWrapper.getWidth() - 2)
+      .attr('height', this._svgExecuteWrapper.getHeight() - 2);
+
+    // set up interpreter
+    this._svgGraphWrapper = this._root.getElement('#svg_graph_wrapper');
+    this._viewGraphSVG = d3.select(this._svgGraphWrapper)
       .append('svg:svg')
       .attr('id', 'view_graph')
-      .attr('width', w)
-      .attr('height', h);
-    this._viewExecuteSVG = d3.select(this._svgWrapper)
-      .append('svg:svg')
-      .attr('class', 'hidden')
-      .attr('id', 'view_execute')
-      .attr('width', w)
-      .attr('height', h)
-    this._svgWrapper.addEventListener('dragenter', function(evt) {
+      .attr('width', this._svgGraphWrapper.getWidth() - 2)
+      .attr('height', this._svgGraphWrapper.getHeight() - 2);
+    this._svgGraphWrapper.addEventListener('dragenter', function(evt) {
       this.addClass('droptarget');
     }, false);
-    this._svgWrapper.addEventListener('dragover', function(evt) {
+    this._svgGraphWrapper.addEventListener('dragover', function(evt) {
       evt.preventDefault();
       evt.dataTransfer.dropEffect = 'move';
       return false;
     }, false);
-    this._svgWrapper.addEventListener('dragleave', function(evt) {
+    this._svgGraphWrapper.addEventListener('dragleave', function(evt) {
       this.removeClass('droptarget');
     }, false);
-    this._svgWrapper.addEventListener('drop', function(evt) {
+    this._svgGraphWrapper.addEventListener('drop', function(evt) {
       evt.stopPropagation();
       var json = JSON.parse(evt.dataTransfer.getData('application/json'));
-      var svgPosition = this._svgWrapper.getPosition(),
+      var svgPosition = this._svgGraphWrapper.getPosition(),
           blockSize = this._dragBlock.getSize(),
           blockX = Math.floor(evt.pageX - svgPosition.x - blockSize.x / 2) + 0.5,
           blockY = Math.floor(evt.pageY - svgPosition.y - blockSize.y / 2) + 0.5,
@@ -518,31 +526,13 @@ var FistUI = new Class({
         blockH
       );
     }.bind(this), false);
-    this._viewToggle = this._root.getElement('#view_toggle');
-    this._viewToggle.addEvent('click', function(evt) {
-      this._viewToggle.toggleClass('on');
-      if (this._viewToggle.hasClass('on')) {
-        // TODO: render view!
-        this._viewGraphSVG.attr('class', 'hidden');
-        this._viewExecuteSVG.attr('class', '');
-        this._fist.execute(this._repl.get('text'));
-        this._viewToggle.set('text', 'hide');
-      } else {
-        // TODO: render patchboard!
-        this._viewGraphSVG.attr('class', '');
-        this._viewExecuteSVG.attr('class', 'hidden');
-        this._viewToggle.set('text', 'show');
-      }
-    }.bind(this));
 
-    // set up interpreter
     this._repl = this._root.getElement('#repl');
     this._viewGraph = new ViewGraph(
       this._viewGraphSVG,
       this._viewGraphState,
       this._repl
     );
-    // TODO: something here
 
     // register event listeners for Fist events
     fist.listen('symbolimport', function(name) {
@@ -570,7 +560,7 @@ var FistUI = new Class({
     block.addEventListener('dragend', function(evt) {
       this._dragBlock = null;
       block.removeClass('dragtarget');
-      this._svgWrapper.removeClass('droptarget');
+      this._svgGraphWrapper.removeClass('droptarget');
     }.bind(this), false);
     block.inject(this._palette);
   },
