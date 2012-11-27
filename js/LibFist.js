@@ -1,11 +1,47 @@
+var _binOp = function(a, b, op) {
+  if (typeOf(a) === 'number') {
+    if (typeOf(b) === 'number') {
+      return op(a, b);
+    }
+    return {
+      at: function(t) {
+        return op(a, b.at(t));
+      },
+      iter: b.iter
+    };
+  }
+  if (typeOf(b) === 'number') {
+    return {
+      at: function(t) {
+        return op(a.at(t), b);
+      },
+      iter: a.iter
+    };
+  }
+  return {
+    at: function(t) {
+      return op(a.at(t), b.at(t));
+    },
+    iter: function() {
+      return MergeIterator(args.map(function(c) { return c.iter(); }));
+    }
+  };
+};
+
 var OpsArith = {
   __exports: [
-    ['plus', '+']
+    ['add', '+'],
+    ['subtract', '-'],
+    ['multiply', '*'],
+    ['divide_float', '/'],
+    ['divide_int', '//'],
+    ['mod', '%'],
+    ['bucket', '//*']
   ],
-  plus: function(args) {
+  add: function(args) {
+    argCheck('+', args, '(* (| number channel))');
     var channels = [],
         numberSum = 0;
-    argCheck('plus', args, '(* (| number channel))');
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
       var argType = typeOf(arg);
@@ -26,11 +62,82 @@ var OpsArith = {
         }
         return total;
       },
-      iter: function(t) {
+      iter: function() {
         return MergeIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
   },
+  multiply: function(args) {
+    argCheck('*', args, '(* (| number channel))');
+    var channels = [],
+        numberProd = 1;
+    for (var i = 0; i < args.length; i++) {
+      var arg = args[i];
+      var argType = typeOf(arg);
+      if (argType === 'number') {
+        numberProd *= arg;
+      } else {
+        channels.push(arg);
+      }
+    }
+    if (channels.length === 0) {
+      return numberProd;
+    }
+    return {
+      at: function(t) {
+        var total = numberProd;
+        for (var i = 0; i < channels.length; i++) {
+          total *= channels[i].at(t);
+        }
+        return total;
+      },
+      iter: function() {
+        return MergeIterator(channels.map(function(c) { return c.iter(); }));
+      }
+    };
+  },
+  subtract: function(args) {
+    argCheck('-', args, '(+ (| number channel) (? (| number channel)))');
+    argTypes = args.map(typeOf);
+    if (args.length === 1) {
+      if (typeOf(args[0]) === 'number') {
+        return -args[0];
+      }
+      return {
+        at: function(t) {
+          return -args[0].at(t);
+        },
+        iter: args[0].iter
+      };
+    }
+    return _binOp(args[0], args[1], function(a, b) {
+      return a - b;
+    });
+  },
+  divide_float: function(args) {
+    argCheck('/', args, '(+ (| number channel) (| number channel))');
+    return _binOp(args[0], args[1], function(a, b) {
+      return a / b;
+    });
+  },
+  divide_int: function(args) {
+    argCheck('//', args, '(+ (| number channel) (| number channel))');
+    return _binOp(args[0], args[1], function(a, b) {
+      return Math.floor(a / b);
+    });
+  },
+  mod: function(args) {
+    argCheck('%', args, '(+ (| number channel) (| number channel))');
+    return _binOp(args[0], args[1], function(a, b) {
+      return a % b;
+    });
+  },
+  bucket: function(args) {
+    argCheck('//*', args, '(+ (| number channel) (| number channel))');
+    return _binOp(args[0], args[1], function(a, b) {
+      return Math.floor(a / b) * b;
+    });
+  }
 };
 var OpsMath = {};
 var OpsString = {};

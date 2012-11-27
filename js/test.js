@@ -172,7 +172,7 @@ QUnit.test('evaluateAtom', function() {
   throws(function() { fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
 
   // ops
-  equal(fist.evaluateAtom('+'), OpsArith.plus);
+  equal(fist.evaluateAtom('+'), OpsArith.add);
 });
 
 QUnit.test('Keywords', function() {
@@ -185,13 +185,32 @@ QUnit.test('OpsArith', function() {
   // number
   equal(fist.execute('(+ 1 2)'), 3);
   equal(fist.execute('(+ 1 2 3)'), 6);
+  equal(fist.execute('(- 45 3)'), 42);
+  equal(fist.execute('(* 2 3 5 7)'), 210);
+  equal(fist.execute('(/ 19 8)'), 2.375);
+  equal(fist.execute('(// 19 8)'), 2);
+  equal(fist.execute('(% 19 8)'), 3);
+  equal(fist.execute('(//* 19 8)'), 16);
+  equal(fist.execute('(//* 19 8)'), fist.execute('(* (// 19 8) 8)'));
 
   // channel
   var c = fist.execute(
-    '(+ ((gen-regular 0 3 3) (constant 2)) ((gen-regular 0 3 3) (constant 1)))'
+    '(+ ((gen-regular 0 3 3) (constant 1)) ((gen-regular 0 3 3) (constant 2)))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
+  }
+  var c = fist.execute(
+    '(- ((gen-regular 0 3 3) (constant 45)) ((gen-regular 0 3 3) (constant 3)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 42);
+  }
+  var c = fist.execute(
+    '(* ((gen-regular 0 3 3) (constant 5)) ((gen-regular 0 3 3) (constant 7)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 35);
   }
 
   // mixed
@@ -200,6 +219,18 @@ QUnit.test('OpsArith', function() {
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
+  }
+  var c = fist.execute(
+    '(- 10 ((gen-regular 0 3 3) (constant 2)))'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 8);
+  }
+  var c = fist.execute(
+    '(* ((gen-regular 0 3 3) (constant 2)) 73)'
+  );
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(i), 146);
   }
 });
 
