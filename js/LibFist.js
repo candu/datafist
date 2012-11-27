@@ -35,7 +35,7 @@ var _binaryOp = function(a, b, op) {
       return op(a.at(t), b.at(t));
     },
     iter: function() {
-      return MergeIterator(args.map(function(c) { return c.iter(); }));
+      return MergeIterator([a.iter(), b.iter()]);
     }
   };
 };
