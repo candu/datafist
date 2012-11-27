@@ -270,6 +270,23 @@ QUnit.test('OpsArith', function() {
   }
 });
 
+QUnit.test('OpsChannel', function() {
+  // simultaneous iteration
+  var c = fist.execute(
+    '(time-shift ((gen-regular 0 3 3) (constant 42)) -7)'
+  );
+  var it1 = c.iter(),
+      it2 = c.iter();
+  for (var i = 0; i < 3; i++) {
+    equal(c.at(it1.peek()), 42);
+    equal(it1.next(), i - 7);
+    equal(c.at(it2.peek()), 42);
+    equal(it2.next(), i - 7);
+  }
+  throws(function() { return it1.next(); }, StopIteration);
+  throws(function() { return it2.next(); }, StopIteration);
+});
+
 QUnit.test('GensData', function() {
   var FOUR_NINES_SIG = 3.89;
 

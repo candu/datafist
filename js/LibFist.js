@@ -45,8 +45,8 @@ var OpsArith = {
     ['add', '+'],
     ['subtract', '-'],
     ['multiply', '*'],
-    ['divide_float', '/'],
-    ['divide_int', '//'],
+    ['divideFloat', '/'],
+    ['divideInt', '//'],
     ['mod', '%'],
     ['bucket', '//*']
   ],
@@ -120,13 +120,13 @@ var OpsArith = {
       return a - b;
     });
   },
-  divide_float: function(args) {
+  divideFloat: function(args) {
     argCheck('/', args, '(+ (| number channel) (| number channel))');
     return _binaryOp(args[0], args[1], function(a, b) {
       return a / b;
     });
   },
-  divide_int: function(args) {
+  divideInt: function(args) {
     argCheck('//', args, '(+ (| number channel) (| number channel))');
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b);
@@ -200,8 +200,33 @@ var OpsMath = {
     });
   },
 };
+
 var OpsString = {};
-var OpsChannel = {};
+
+var OpsChannel = {
+  __exports: [
+    ['timeShift', 'time-shift']
+  ],
+  timeShift: function(args) {
+    argCheck('time-shift', '(+ channel number)');
+    return {
+      at: function(t) {
+        return args[0].at(t - args[1]);
+      },
+      iter: function() {
+        var _iter = args[0].iter();
+        return {
+          next: function() {
+            return _iter.next() + args[1];
+          },
+          peek: function() {
+            return _iter.peek() + args[1];
+          }
+        };
+      }
+    };
+  }
+};
 
 var OpsFilterComparison = {};
 var OpsFilterTime = {};
