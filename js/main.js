@@ -13,7 +13,6 @@ function setupDemo(fist) {
 
 function dynamicResize() {
   var contentSize = $('content').getSize();
-  $('palette').setStyle('height', contentSize.y - 10);
   $('svg_wrapper').setStyle('height', contentSize.y - 10);
 }
 

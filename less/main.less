@@ -83,28 +83,12 @@ tr, td {
   display: inline-block;
 }
 
-@toolbox-width: 200px;
-@palette-border: 1px;
-@palette-margin: 4px;
-
-#toolbox {
-  width: @toolbox-width;
-  background-color: #bbb;
-}
-
-#palette {
-  border: @palette-border solid #999;
-  margin: @palette-margin (@palette-margin / 2) (@palette-margin / 2) @palette-margin;
-  background-color: #f7f7f7;
-  width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
-}
-
 #viewer {
   background-color: #bbb;
 }
 
 #svg_wrapper {
-  margin: 4px 4px 2px 2px;
+  margin: 4px 4px 2px 4px;
   border: 1px solid #999;
   background-color: #f7f7f7;
   position: relative;
@@ -161,13 +145,31 @@ tr, td {
   }
 }
 
-@footer-height: 120px;
+@footer-height: 240px;
 @repl-border: 1px;
 @repl-margin: 4px;
 @repl-padding: 4px;
 
+@toolbox-width: 200px;
+@palette-border: 1px;
+@palette-margin: 4px;
+
 #footer {
   height: @footer-height;
+}
+
+#toolbox {
+  width: @toolbox-width;
+  background-color: #bbb;
+}
+
+#palette {
+  border: @palette-border solid #999;
+  margin: (@palette-margin / 2) (@palette-margin / 2) @palette-margin @palette-margin;
+  background-color: #f7f7f7;
+  width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
+  height: (@footer-height - (2 * @repl-border + 1.5 * @repl-margin));
+  overflow-y: auto;
 }
 
 #interpreter {
@@ -178,13 +180,9 @@ tr, td {
   font-family: "Menlo", monospace;
   background-color: #f7f7f7;
   border: @repl-border solid #999;
-  margin: (@repl-margin / 2) @repl-margin @repl-margin @repl-margin;
+  margin: (@repl-margin / 2) @repl-margin @repl-margin (@repl-margin / 2);
   padding: @repl-padding;
   height: (@footer-height - (2 * (@repl-border + @repl-padding) + 1.5 * @repl-margin));
-}
-
-#palette {
-  overflow-y: auto;
 }
 
 div.block {
