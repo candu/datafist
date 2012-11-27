@@ -392,8 +392,7 @@ QUnit.test('ViewGraphState', function() {
   g.addEdge(0, 2);
   g.addEdge(1, 2);
   var cmds = g.toFist();
-  equal(cmds.length, 1);
-  equal(cmds[0], '(+ c1 c2)');
+  equal(cmds, '(+ c1 c2)');
 
   // full
   g.addNode('v1', null, 10, 20);
@@ -406,8 +405,5 @@ QUnit.test('ViewGraphState', function() {
   g.addEdge(6, 3);
 
   var cmds = g.toFist();
-  equal(cmds.length, 3);
-  equal(cmds[0], '(v1 c4 (+ c1 c2))');
-  equal(cmds[1], '(v2 c1 c2)');
-  equal(cmds[2], 'c3');
+  equal(cmds, '(v1 c4 (+ c1 c2)) (v2 c1 c2) c3');
 });

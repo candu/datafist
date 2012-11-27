@@ -6,7 +6,7 @@ var ViewGraphState = new Class({
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
-    this._fist = null;
+    this._fist = '';
   },
   // TODO: abstract away into Listenable
   _fire: function(type, args) {
