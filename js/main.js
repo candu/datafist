@@ -25,6 +25,21 @@ $(window).addEvent('domready', function() {
   LibFist.import(fist);
   LibFistUI.import(UI);
   setupDemo(fist);
+  var context = new ContextMenu({
+    menu: 'contextmenu',
+    targets: '#svg_graph_wrapper',
+    onShow: function() {
+      this.menu.removeClass('hidden');
+      this.menu.setStyle('z-index', 2000);
+    },
+    onHide: function() {
+      this.menu.addClass('hidden');
+      this.menu.setStyle('z-index', -2000);
+    },
+    onClick: function(menuEvt, item, menuItemEvt) {
+      console.log(arguments);
+    }
+  });
 }).addEvent('resize', function() {
   // TODO: re-enable this once viewExecuteSVG can be dynamically resized
   /*

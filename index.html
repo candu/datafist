@@ -4,8 +4,10 @@
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700,300italic,400italic,500italic,700italic' rel='stylesheet' type='text/css'>
     <link rel="stylesheet/less" type="text/css" href="less/main.less">
     <link rel="stylesheet/less" type="text/css" href="less/view.less">
+    <link rel="stylesheet/less" type="text/css" href="less/contextmenu.less">
     <script src="js/third-party/less.js"></script>
     <script src="js/third-party/mootools.js"></script>
+    <script src="js/third-party/mootools.ContextMenu.js"></script>
     <script src="js/third-party/d3.js"></script>
     <script src="js/third-party/modernizr.js"></script>
     <script src="js/Iterator.js"></script>
@@ -20,6 +22,10 @@
     <title>datafist</title>
   </head>
   <body>
+    <ul id="contextmenu">
+      <li><a id="add">add...</a></li>
+      <li><a id="edit">edit...</a></li>
+    </ul>
     <div id="container">
       <table id="table">
         <tr id="header">
