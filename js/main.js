@@ -1,11 +1,11 @@
 function setupDemo(fist) {
   var a = fist.execute('((gen-regular 0 86400000 96) (constant 1))'),
       b = fist.execute('((gen-regular 0 86400000 96) (constant 2))');
-  fist.registerSymbol('c1', OpsArith.plus([
+  fist.registerSymbol('c1', OpsArith.add([
     a,
     fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.1))')
   ]));
-  fist.registerSymbol('c2', OpsArith.plus([
+  fist.registerSymbol('c2', OpsArith.add([
     b,
     fist.execute('((gen-regular 0 86400000 96) (gaussian 0 0.2))')
   ]));

@@ -1,4 +1,16 @@
-var _binOp = function(a, b, op) {
+var _unaryOp = function(a, op) {
+  if (typeOf(a) === 'number') {
+    return op(a);
+  }
+  return {
+    at: function(t) {
+      return op(a.at(t));
+    },
+    iter: a.iter
+  };
+};
+
+var _binaryOp = function(a, b, op) {
   if (typeOf(a) === 'number') {
     if (typeOf(b) === 'number') {
       return op(a, b);
@@ -100,46 +112,94 @@ var OpsArith = {
     argCheck('-', args, '(+ (| number channel) (? (| number channel)))');
     argTypes = args.map(typeOf);
     if (args.length === 1) {
-      if (typeOf(args[0]) === 'number') {
-        return -args[0];
-      }
-      return {
-        at: function(t) {
-          return -args[0].at(t);
-        },
-        iter: args[0].iter
-      };
+      return _unaryOp(args[0], function(a) {
+        return -a;
+      });
     }
-    return _binOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args[0], args[1], function(a, b) {
       return a - b;
     });
   },
   divide_float: function(args) {
     argCheck('/', args, '(+ (| number channel) (| number channel))');
-    return _binOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args[0], args[1], function(a, b) {
       return a / b;
     });
   },
   divide_int: function(args) {
     argCheck('//', args, '(+ (| number channel) (| number channel))');
-    return _binOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b);
     });
   },
   mod: function(args) {
     argCheck('%', args, '(+ (| number channel) number)');
-    return _binOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args[0], args[1], function(a, b) {
       return a % b;
     });
   },
   bucket: function(args) {
     argCheck('//*', args, '(+ (| number channel) number)');
-    return _binOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b) * b;
     });
   }
 };
-var OpsMath = {};
+
+var OpsMath = {
+  sqrt: function(args) {
+    argCheck('sqrt', args, '(| number channel)');
+    return _unaryOp(args[0], function(a) {
+      return Math.sqrt(a);
+    });
+  },
+  pow: function(args) {
+    argCheck('pow', args, '(+ (| number channel) number)');
+    return _binaryOp(args[0], function(a, b) {
+      return Math.pow(a, b);
+    });
+  },
+  exp: function(args) {
+    argCheck('exp', args, '(+ (? number) (| number channel))');
+    if (args.length === 1) {
+      return _unaryOp(args[0], function(a) {
+        return Math.exp(a);
+      });
+    }
+    return _binaryOp(args[0], args[1], function(a, b) {
+      return Math.pow(a, b);
+    });
+  },
+  log: function(args) {
+    argCheck('log', args, '(+ (| number channel), (? number))');
+    if (args.length === 1) {
+      return _unaryOp(args[0], function(a) {
+        return Math.log(a);
+      });
+    }
+    return _binaryOp(args[0], args[1], function(a, b) {
+      return Math.log(a) / Math.log(b);
+    });
+  },
+  floor: function(args) {
+    argCheck('floor', args, '(| number channel)');
+    return _unaryOp(args[0], function(a) {
+      return Math.floor(a);
+    });
+  },
+  round: function(args) {
+    argCheck('round', args, '(| number channel)');
+    return _unaryOp(args[0], function(a) {
+      return Math.round(a);
+    });
+  },
+  ceil: function(args) {
+    argCheck('ceil', args, '(| number channel)');
+    return _unaryOp(args[0], function(a) {
+      return Math.ceil(a);
+    });
+  },
+};
 var OpsString = {};
 var OpsChannel = {};
 
