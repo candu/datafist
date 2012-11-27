@@ -6,6 +6,7 @@ var ViewGraphState = new Class({
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
+    this._fist = null;
   },
   // TODO: abstract away into Listenable
   _fire: function(type, args) {
@@ -28,7 +29,7 @@ var ViewGraphState = new Class({
     this._edgesOut[i] = {};
     this._edgesIn[i] = {};
     this._fire('nodeadded', [this._nodes[i]]);
-    this._fire('modified');
+    this._updateFist();
   },
   deleteNode: function(i) {
     var outEdges = Object.keys(this._edgesOut[i]);
@@ -43,7 +44,7 @@ var ViewGraphState = new Class({
     delete this._edgesOut[i];
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
-    this._fire('modified');
+    this._updateFist();
   },
   addEdge: function(i, j) {
     console.log('adding (' + i + ', ' + j + ')...');
@@ -72,14 +73,14 @@ var ViewGraphState = new Class({
     this._edgesOut[i][j] = true;
     this._edgesIn[j][i] = true;
     this._fire('edgeadded', [this._nodes[i], this._nodes[j]]);
-    this._fire('modified');
+    this._updateFist();
   },
   deleteEdge: function(i, j) {
     // remove i -> j
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
     this._fire('edgedeleted', [i, j]);
-    this._fire('modified');
+    this._updateFist();
   },
   toJSON: function() {
     var nodes = {};
@@ -95,10 +96,20 @@ var ViewGraphState = new Class({
       edges: this._edgesOut
     });
   },
+  toFist: function() {
+    return this._fist;
+  },
+  _updateFist: function() {
+    var fist = this._toFist().join(' ');
+    if (fist !== this._fist) {
+      this._fist = fist;
+      this._fire('fistmodified');
+    }
+  },
   /**
    * Produce a representation of this ViewGraphState in the fist language.
    */
-  toFist: function() {
+  _toFist: function() {
     var spatialSort = function(indices) {
       indices.sort(function(i, j) {
         var dx = this._nodes[i].x - this._nodes[j].x;
@@ -435,6 +446,7 @@ var ViewGraph = new Class({
     for (var i in this._edgesIn[d.index]) {
       this._edgesIn[d.index][i].update();
     }
+    this._state._updateFist();
   },
   _deleteNode: function(i) {
     var outEdges = Object.keys(this._edgesOut[i]);
@@ -463,8 +475,8 @@ var FistUI = new Class({
   initialize: function(fist, root) {
     this._viewTable = {};
     this._viewGraphState = new ViewGraphState();
-    this._viewGraphState.listen('modified', function() {
-      this._repl.set('text', this._viewGraphState.toFist().join(' '));
+    this._viewGraphState.listen('fistmodified', function() {
+      this._repl.set('text', this._viewGraphState.toFist());
       console.log(this._repl.get('text'));
       try {
         this._fist.execute(this._repl.get('text'));
