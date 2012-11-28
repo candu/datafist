@@ -222,6 +222,7 @@ var ViewNode = new Class({
   updateText: function() {
     this.updatePosition();
     this._rect
+      .attr('class', function(d) { return 'block ' + d.type; })
       .attr('width', function(d) { return d.w; })
       .attr('height', function(d) { return d.h; });
     this._text
@@ -295,7 +296,7 @@ var ViewEdge = new Class({
 
 
 var ViewGraph = new Class({
-  initialize: function(svg, state, repl) {
+  initialize: function(svg, state, fist) {
     this._svg = svg;
     this._edgeGroup = svg.append('svg:g');
     this._tempEdgeGroup = svg.append('svg:g')
@@ -304,10 +305,10 @@ var ViewGraph = new Class({
       .attr('transform', 'translate(-1000, -1000)');
     this._nodeGroup = svg.append('svg:g');
     this._state = state;
-    this._repl = repl;
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
+    this._fist = fist;
 
     // see http://www.w3.org/TR/SVG/painting.html#Markers for inspiration
     var defs = this._svg.append('defs');
@@ -462,10 +463,16 @@ var ViewGraph = new Class({
             if (name === null) {
               return;
             }
+            var type = '';
+            try {
+              type = typeOf(this._fist.execute(name));
+            } catch (e) {
+              console.log(e);
+            }
             var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
             this._state.addNode(
               name,
-              'object',   // TODO: proper typing
+              type,
               blockDimensions.x,
               blockDimensions.y,
               blockDimensions.w,
@@ -478,9 +485,15 @@ var ViewGraph = new Class({
             if (name === null || name === targetNode.name) {
               return;
             }
+            var type = '';
+            try {
+              type = typeOf(this._fist.execute(name));
+            } catch (e) {
+              console.log(e);
+            }
             var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
             targetNode.name = name;
-            // TODO: proper typing
+            targetNode.type = type;
             Object.merge(targetNode, blockDimensions);
             this._onNodeTextChanged(targetNode);
             break;
@@ -642,7 +655,7 @@ var FistUI = new Class({
     this._viewGraph = new ViewGraph(
       this._viewGraphSVG,
       this._viewGraphState,
-      this._repl
+      this._fist
     );
 
     // register event listeners for Fist events
