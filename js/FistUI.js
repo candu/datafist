@@ -148,11 +148,13 @@ ViewGraphState.fromJSON = function(json) {
 
 var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
+    this._node = node;
     this._dragging = false;
     this._controlling = false;
+    this._controlPointSize = 8;
 
     this._g = nodeGroup.append('svg:g')
-      .data([node])
+      .data([this._node])
       .attr('class', 'block')
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
@@ -169,45 +171,65 @@ var ViewNode = new Class({
       }.bind(this))
       .call(graph.nodeDragBehavior());
 
-    this._g.append('svg:rect')
-      .attr('class', 'block ' + node.type)
+    this._rect = this._g.append('svg:rect')
+      .attr('class', 'block ' + this._node.type)
       .attr('x', 0)
       .attr('y', 0)
-      .attr('width', node.w)
-      .attr('height', node.h);
-    this._g.append('svg:text')
-      .attr('class', 'block ' + node.type)
-      .attr('x', node.w / 2)
-      .attr('y', node.h / 2)
+      .attr('width', this._node.w)
+      .attr('height', this._node.h);
+    this._text = this._g.append('svg:text')
+      .attr('class', 'block ' + this._node.type)
+      .attr('x', this._node.w / 2)
+      .attr('y', this._node.h / 2)
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .text(node.name);
+      .text(this._node.name);
 
     this._controls = this._g.append('svg:g')
       .attr('class', 'hidden');
-    var wMid = Math.floor(node.w / 2),
-        hMid = Math.floor(node.h / 2);
-    var controlPoints = [
-      {x: wMid, y: 0, index: node.index},        // top
-      {x: node.w, y: hMid, index: node.index},   // right
-      {x: wMid, y: node.h, index: node.index},   // bottom
-      {x: 0, y: hMid, index: node.index}         // left
-    ];
-    var size = 8;
     this._controls.selectAll('rect')
-      .data(controlPoints)
+      .data([null,null,null,null])
       .enter().append('svg:rect')
         .attr('class', 'control-point')
-        .attr('x', function(d) { return d.x - size / 2; })
-        .attr('y', function(d) { return d.y - size / 2; })
-        .attr('width', size)
-        .attr('height', size)
+        .attr('width', this._controlPointSize)
+        .attr('height', this._controlPointSize)
         .call(graph.edgeCreateBehavior());
+    this._updateControlPoints();
   },
-  update: function() {
+  updatePosition: function() {
     this._g.attr('transform', function(d) {
       return 'translate(' + d.x + ', ' + d.y + ')';
     });
+  },
+  _updateControlPoints: function() {
+    var wMid = Math.floor(this._node.w / 2),
+        hMid = Math.floor(this._node.h / 2);
+    var controlPoints = [
+      {x: wMid, y: 0, index: this._node.index},             // top
+      {x: this._node.w, y: hMid, index: this._node.index},  // right
+      {x: wMid, y: this._node.h, index: this._node.index},  // bottom
+      {x: 0, y: hMid, index: this._node.index}              // left
+    ];
+    this._controls.selectAll('rect')
+      .data(controlPoints)
+      .attr('x', function(d) {
+        return d.x - this._controlPointSize / 2;
+      }.bind(this))
+      .attr('y', function(d) {
+        return d.y - this._controlPointSize / 2;
+      }.bind(this));
+  },
+  updateText: function() {
+    this.updatePosition();
+    this._rect
+      .attr('width', function(d) { return d.w; })
+      .attr('height', function(d) { return d.h; });
+    this._text
+      .attr('class', function(d) { return 'block ' + d.type; })
+      .attr('x', function(d) { return d.w / 2; })
+      .attr('y', function(d) { return d.h / 2; })
+      .text(function(d) { return d.name; });
+    this._updateControlPoints();
   },
   cleanup: function() {
     this._g.remove();
@@ -262,7 +284,7 @@ var ViewEdge = new Class({
       .call(this._snapToClosestSides, this._data)
       .call(graph.edgeDragBehavior());
   },
-  update: function() {
+  updatePosition: function() {
     this._line
       .call(this._snapToClosestSides, this._data);
   },
@@ -276,7 +298,9 @@ var ViewGraph = new Class({
   initialize: function(svg, state, repl) {
     this._svg = svg;
     this._edgeGroup = svg.append('svg:g');
-    this._tempGroup = svg.append('svg:g')
+    this._tempEdgeGroup = svg.append('svg:g')
+      .attr('transform', 'translate(-1000, -1000)');
+    this._tempTextGroup = svg.append('svg:g')
       .attr('transform', 'translate(-1000, -1000)');
     this._nodeGroup = svg.append('svg:g');
     this._state = state;
@@ -323,7 +347,7 @@ var ViewGraph = new Class({
       }.bind(this));
 
     this._tempEdgeEnd = {};
-    this._tempEdge = this._tempGroup.append('svg:line')
+    this._tempEdge = this._tempEdgeGroup.append('svg:line')
       .attr('class', 'edge temp')
       .attr('marker-end', 'url(#edge_end)')
       .attr('x1', 0)
@@ -335,7 +359,7 @@ var ViewGraph = new Class({
         // TODO: fix this horrible positioning hack
         var nodeX = this._nodes[d.index]._g[0][0].__data__.x,
             nodeY = this._nodes[d.index]._g[0][0].__data__.y;
-        this._tempGroup
+        this._tempEdgeGroup
           .attr('transform', 'translate(' + (nodeX + d.x) + ', ' + (nodeY + d.y) + ')');
         this._tempEdgeEnd.x = 0;
         this._tempEdgeEnd.y = 0;
@@ -345,7 +369,7 @@ var ViewGraph = new Class({
       }.bind(this))
       .on('dragend', function(d) {
         d3.event.sourceEvent.stopPropagation();
-        this._tempGroup
+        this._tempEdgeGroup
           .attr('transform', 'translate(-1000, -1000)');
         var targetNode = this._parentNode(d3.event.sourceEvent.target);
         if (targetNode === null) {
@@ -410,6 +434,8 @@ var ViewGraph = new Class({
       this._deleteEdge(i, j);
     }.bind(this));
 
+    this._tempText = this._tempTextGroup.append('svg:text')
+      .attr('class', 'block');
     this._contextMenu = new ContextMenu({
       menu: 'contextmenu',
       targets: '#svg_graph_wrapper',
@@ -429,12 +455,34 @@ var ViewGraph = new Class({
         this._contextMenu.menu.setStyle('z-index', -2000);
       }.bind(this),
       onClick: function(menuEvt, menuItemEvt) {
+        var padding = 2;
         switch (menuItemEvt.target.id) {
           case 'add':
-            console.log('add');
+            var name = window.prompt('enter node name:');
+            if (name === null) {
+              return;
+            }
+            var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
+            this._state.addNode(
+              name,
+              'object',   // TODO: proper typing
+              blockDimensions.x,
+              blockDimensions.y,
+              blockDimensions.w,
+              blockDimensions.h
+            );
             break;
           case 'edit':
-            console.log('edit');
+            var targetNode = this._parentNode(menuEvt.target);
+            var name = window.prompt('edit node name:', targetNode.name);
+            if (name === null || name === targetNode.name) {
+              return;
+            }
+            var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
+            targetNode.name = name;
+            // TODO: proper typing
+            Object.merge(targetNode, blockDimensions);
+            this._onNodeTextChanged(targetNode);
             break;
         }
       }.bind(this)
@@ -468,14 +516,22 @@ var ViewGraph = new Class({
     }
     return false;
   },
-  _onNodeMoved: function(d) {
-    this._nodes[d.index].update();
+  _updateNodeEdges: function(d) {
     for (var i in this._edgesOut[d.index]) {
-      this._edgesOut[d.index][i].update();
+      this._edgesOut[d.index][i].updatePosition();
     }
     for (var i in this._edgesIn[d.index]) {
-      this._edgesIn[d.index][i].update();
+      this._edgesIn[d.index][i].updatePosition();
     }
+  },
+  _onNodeMoved: function(d) {
+    this._nodes[d.index].updatePosition();
+    this._updateNodeEdges(d);
+    this._state._updateFist();
+  },
+  _onNodeTextChanged: function(d) {
+    this._nodes[d.index].updateText();
+    this._updateNodeEdges(d);
     this._state._updateFist();
   },
   _deleteNode: function(i) {
@@ -498,6 +554,19 @@ var ViewGraph = new Class({
     this._edgesOut[i][j].cleanup();
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
+  },
+  _getBlockDimensions: function(clickEvt, name, padding) {
+    var svgPosition = $d3(this._svg).getPosition(),
+        textX = Math.floor(clickEvt.page.x - svgPosition.x) + 0.5,
+        textY = Math.floor(clickEvt.page.y - svgPosition.y) + 0.5;
+    this._tempText.text(name);
+    var textSize = $d3(this._tempText).getSize();
+    return {
+      x: textX - (textSize.x / 2 + padding),
+      y: textY - (textSize.y / 2 + padding),
+      w: textSize.x + 2 * padding,
+      h: textSize.y + 2 * padding
+    };
   }
 });
 
