@@ -325,10 +325,20 @@ var GensChannel = {
 var View = {
   __exports: [
     ['viewChannel', 'view-channel'],
+    ['viewHistogram', 'view-histogram'],
+    ['viewRegression', 'view-regression']
   ],
   viewChannel: function(args) {
     argCheck('view-channel', args, '(* channel)');
     this._viewInvoked('channel', args);
+  },
+  viewHistogram: function(args) {
+    argCheck('view-histogram', args, 'channel');
+    this._viewInvoked('histogram', args);
+  },
+  viewRegression: function(args) {
+    argCheck('view-channel', args, '(+ channel channel)');
+    this._viewInvoked('regression', args);
   }
 };
 
