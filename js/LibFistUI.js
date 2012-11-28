@@ -50,7 +50,6 @@ var ChannelView = {
       });
       return d3.scale.linear()
         .domain([cxMin, cxMax])
-        .nice()
         .range([h * i / n, h * (i + 1) / n]);
     });
 
@@ -73,7 +72,54 @@ var ChannelView = {
 
 var HistogramView = {
   render: function(channels, view) {
+    var w = view.attr('width'),
+        h = view.attr('height');
 
+    var data = [];
+    var it = channels[0].iter();
+    while (true) {
+      try {
+        var t = it.next(),
+            x = channels[0].at(t);
+        data.push(x);
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+
+    data.sort();
+    var hist = [],
+        last = -1;
+    for (var i = 0; i < data.length; i++) {
+      if (last === -1 || data[i] !== hist[last].x) {
+        hist.push({x: data[i], freq: 0});
+        last++;
+      }
+      hist[last].freq++;
+    }
+
+    var xs = hist.map(function(p) { return p.x; }),
+        freqs = hist.map(function(p) { return p.freq; });
+    var scaleX = d3.scale.linear()
+      .domain([d3.min(xs), d3.max(xs)])
+      .range([0, w]);
+    var scaleFreq = d3.scale.linear()
+      .domain([0, d3.max(freqs)])
+      .range([h, 0]);
+
+    var cc = d3.scale.category10();
+
+    view.selectAll('rect')
+      .data(hist)
+      .enter().append('svg:rect')
+        .attr('x', function(d) { return scaleX(d.x); })
+        .attr('y', function(d) { return scaleFreq(d.freq); })
+        .attr('width', 10)
+        .attr('height', function(d) { return h - scaleFreq(d.freq); })
+        .attr('fill', cc(0));
   }
 };
 
@@ -91,7 +137,7 @@ var RegressionView = {
         var t = it.next(),
             x = channels[0].at(t),
             y = channels[1].at(t);
-        data.push({t: t, x: x, y: y});
+        data.push({x: x, y: y});
       } catch(e) {
         if (!(e instanceof StopIteration)) {
           throw e;
@@ -107,27 +153,21 @@ var RegressionView = {
     // create scales
     var scaleX = d3.scale.linear()
       .domain([d3.min(xs), d3.max(xs)])
-      .nice()
       .range([0, w]);
     var scaleY = d3.scale.linear()
       .domain([d3.min(ys), d3.max(ys)])
-      .nice()
       .range([h, 0]);
 
     // color scale!
     var cc = d3.scale.category10();
 
     // now, actually graph this thing
-    var symbol = d3.svg.symbol()
-      .type('circle')
-      .size(8);
-    view.selectAll('path')
+    view.selectAll('circle')
       .data(data)
-      .enter().append('svg:path')
-        .attr('transform', function (d) {
-          return 'translate(' + scaleX(d.x) + ', ' + scaleY(d.y) + ')';
-        })
-        .attr('d', symbol)
+      .enter().append('svg:circle')
+        .attr('cx', function (d) { return scaleX(d.x); })
+        .attr('cy', function (d) { return scaleY(d.y); })
+        .attr('r', 4)
         .attr('fill', cc(0));
   }
 };

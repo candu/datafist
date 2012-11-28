@@ -6,7 +6,9 @@ var _unaryOp = function(a, op) {
     at: function(t) {
       return op(a.at(t));
     },
-    iter: a.iter
+    iter: function() {
+      return a.iter();
+    }
   };
 };
 
@@ -19,7 +21,9 @@ var _binaryOp = function(a, b, op) {
       at: function(t) {
         return op(a, b.at(t));
       },
-      iter: b.iter
+      iter: function() {
+        return b.iter();
+      }
     };
   }
   if (typeOf(b) === 'number') {
@@ -27,7 +31,9 @@ var _binaryOp = function(a, b, op) {
       at: function(t) {
         return op(a.at(t), b);
       },
-      iter: a.iter
+      iter: function() {
+        return a.iter();
+      }
     };
   }
   return {
