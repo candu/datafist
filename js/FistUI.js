@@ -416,12 +416,27 @@ var ViewGraph = new Class({
       onShow: function(menuEvt) {
         this._contextMenu.menu.removeClass('hidden');
         this._contextMenu.menu.setStyle('z-index', 2000);
+        var targetNode = this._parentNode(menuEvt.target);
+        this._contextMenu.clearItems();
+        if (targetNode === null) {
+          this._contextMenu.addItem('add', 'add...');
+        } else {
+          this._contextMenu.addItem('edit', 'edit...');
+        }
       }.bind(this),
       onHide: function() {
         this._contextMenu.menu.addClass('hidden');
         this._contextMenu.menu.setStyle('z-index', -2000);
       }.bind(this),
       onClick: function(menuEvt, menuItemEvt) {
+        switch (menuItemEvt.target.id) {
+          case 'add':
+            console.log('add');
+            break;
+          case 'edit':
+            console.log('edit');
+            break;
+        }
       }.bind(this)
     });
   },

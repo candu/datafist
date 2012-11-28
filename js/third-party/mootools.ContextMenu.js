@@ -54,15 +54,26 @@ var ContextMenu = new Class({
       this.show();
     }.bind(this));
 
-    /* menu items */
-    this.menu.getElements('a').addEvent('click', function(e) {
-      this.fireEvent('click', [this._triggerEvent, e]);
-    }.bind(this));
-
     //hide on body click
     $(document.body).addEvent('click', function() {
       this.hide();
     }.bind(this));
+  },
+
+  addItem: function(id, text) {
+    var menuItem = new Element('li');
+    var menuLink = new Element('a', {
+      id: id,
+      text: text
+    }).addEvent('click', function(e) {
+      this.fireEvent('click', [this._triggerEvent, e]);
+    }.bind(this));
+    menuItem.grab(menuLink);
+    this.menu.grab(menuItem);
+  },
+
+  clearItems: function() {
+    this.menu.empty();
   },
 
   //show menu
