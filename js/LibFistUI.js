@@ -71,8 +71,22 @@ var ChannelView = {
   // TODO: update height automatically on window resize?
 };
 
+var HistogramView = {
+  render: function(channels, view) {
+
+  }
+};
+
+var RegressionView = {
+  render: function(channels, view) {
+
+  }
+};
+
 var LibFistUI = {
   import: function(fistUI) {
     fistUI.importView('channel', ChannelView);
+    fistUI.importView('histogram', HistogramView);
+    fistUI.importView('regression', RegressionView);
   }
 };
