@@ -409,6 +409,21 @@ var ViewGraph = new Class({
     this._state.listen('edgedeleted', function(i, j) {
       this._deleteEdge(i, j);
     }.bind(this));
+
+    this._contextMenu = new ContextMenu({
+      menu: 'contextmenu',
+      targets: '#svg_graph_wrapper',
+      onShow: function(menuEvt) {
+        this._contextMenu.menu.removeClass('hidden');
+        this._contextMenu.menu.setStyle('z-index', 2000);
+      }.bind(this),
+      onHide: function() {
+        this._contextMenu.menu.addClass('hidden');
+        this._contextMenu.menu.setStyle('z-index', -2000);
+      }.bind(this),
+      onClick: function(menuEvt, menuItemEvt) {
+      }.bind(this)
+    });
   },
   nodeDragBehavior: function() {
     return this._nodeDragBehavior;

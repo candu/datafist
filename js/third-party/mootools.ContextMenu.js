@@ -1,6 +1,6 @@
 /*
   Class:      ContextMenu
-  Author:     David Walsh
+  Author:     David Walsh (edited by Evan Savage)
   Website:    http://davidwalsh.name
   Version:    1.0
   Date:       1/20/2009
@@ -67,7 +67,7 @@ var ContextMenu = new Class({
 
   //show menu
   show: function() {
-    this.fireEvent('show');
+    this.fireEvent('show', [this._triggerEvent]);
     this._shown = true;
     return this;
   },
