@@ -79,7 +79,56 @@ var HistogramView = {
 
 var RegressionView = {
   render: function(channels, view) {
+    var w = view.attr('width'),
+        h = view.attr('height');
 
+    // extract data from channels
+    var data = [];
+    // TODO: intersection iterator?
+    var it = MergeIterator([channels[0].iter(), channels[1].iter()]);
+    while (true) {
+      try {
+        var t = it.next(),
+            x = channels[0].at(t),
+            y = channels[1].at(t);
+        data.push({t: t, x: x, y: y});
+      } catch(e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+
+    // get bounds
+    var xs = data.map(function(p) { return p.x; }),
+        ys = data.map(function(p) { return p.y; });
+
+    // create scales
+    var scaleX = d3.scale.linear()
+      .domain([d3.min(xs), d3.max(xs)])
+      .nice()
+      .range([0, w]);
+    var scaleY = d3.scale.linear()
+      .domain([d3.min(ys), d3.max(ys)])
+      .nice()
+      .range([h, 0]);
+
+    // color scale!
+    var cc = d3.scale.category10();
+
+    // now, actually graph this thing
+    var symbol = d3.svg.symbol()
+      .type('circle')
+      .size(8);
+    view.selectAll('path')
+      .data(data)
+      .enter().append('svg:path')
+        .attr('transform', function (d) {
+          return 'translate(' + scaleX(d.x) + ', ' + scaleY(d.y) + ')';
+        })
+        .attr('d', symbol)
+        .attr('fill', cc(0));
   }
 };
 
