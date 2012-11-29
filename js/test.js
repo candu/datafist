@@ -338,7 +338,41 @@ QUnit.test('OpsChannel', function() {
 });
 
 QUnit.test('OpsFilterTime', function() {
-  equal(1, 1);
+  // since
+  var c = fist.execute(
+    '((since 3) ((gen-regular 0 10 10) (constant 1)))'
+  );
+  for (var t = 0; t < 10; t++) {
+    if (t >= 3) {
+      equal(c.at(t), 1);
+    } else {
+      equal(c.at(t), 0);
+    }
+  }
+
+  // until
+  var c = fist.execute(
+    '((until 7) ((gen-regular 0 10 10) (constant 1)))'
+  );
+  for (var t = 0; t < 10; t++) {
+    if (t < 7) {
+      equal(c.at(t), 1);
+    } else {
+      equal(c.at(t), 0);
+    }
+  }
+
+  // between
+  var c = fist.execute(
+    '((between 3 7) ((gen-regular 0 10 10) (constant 1)))'
+  );
+  for (var t = 0; t < 10; t++) {
+    if (t >= 3 && t < 7) {
+      equal(c.at(t), 1);
+    } else {
+      equal(c.at(t), 0);
+    }
+  }
 });
 
 QUnit.test('GensData', function() {
