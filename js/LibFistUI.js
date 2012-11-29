@@ -187,6 +187,24 @@ var HistogramView = {
     var cc = d3.scale.category10();
 
     // axes
+    var axisX = d3.svg.axis()
+      .scale(scaleX)
+      .ticks(10)
+      .tickSize(-histH);
+    view.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + axisW + ', ' + (histH + axisH) + ')')
+      .call(axisX);
+    var axisFreq = d3.svg.axis()
+      .scale(scaleFreq)
+      .orient('left')
+      .ticks(10)
+      .tickSize(-histW);
+    view.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')')
+      .call(axisFreq);
+
 
     // histogram
     var g = view.append('svg:g')
@@ -216,6 +234,12 @@ var HistogramView = {
           .attr('height', function(d) { return histH - scaleFreq(d.freq); })
           .attr('fill', cc(0));
     }
+    g.append('svg:text')
+      .attr('class', 'histogram caption')
+      .attr('x', histW - 8)
+      .attr('y', 8)
+      .attr('text-anchor', 'end')
+      .text(_caption(sexps[0]));
   }
 };
 
