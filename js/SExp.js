@@ -34,6 +34,19 @@ var SExp = {
     return result.sexp;
   },
   /**
+   * Convert an S-expression back into a string.
+   */
+  unparse: function(sexp) {
+    if (typeOf(sexp) === 'string') {
+      return sexp;
+    }
+    var s = [];
+    for (var i = 0; i < sexp.length; i++) {
+      s.push(this.unparse(sexp[i]));
+    }
+    return '(' + s.join(' ') + ')';
+  },
+  /**
    * Parse several s-expressions from a single string.
    */
   parseMany: function(s) {

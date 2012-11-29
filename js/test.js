@@ -145,6 +145,14 @@ QUnit.test('SExp', function() {
   jsonEqual(SExp.parse('(a)      '), ['a']);
   jsonEqual(SExp.parse('   (a)   '), ['a']);
 
+  // unparse
+  equal(SExp.unparse('42'), '42');
+  equal(SExp.unparse([]), '()');
+  equal(SExp.unparse(['42']), '(42)');
+  equal(SExp.unparse([[], [], []]), '(() () ())');
+  equal(SExp.unparse(['+', ['*', '2', '3'], ['/', '81', '9']]),
+        '(+ (* 2 3) (/ 81 9))');
+
   // many
   jsonEqual(SExp.parseMany('() () ()'), [[], [], []]);
   jsonEqual(SExp.parseMany('  () () ()  '), [[], [], []]);
