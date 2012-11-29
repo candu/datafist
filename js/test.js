@@ -8,6 +8,7 @@ QUnit.test('Iterator', function() {
 
   // empty
   it = Iterator([]);
+  throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // next
@@ -25,15 +26,42 @@ QUnit.test('Iterator', function() {
   equal(it.peek(), 1);
 });
 
+QUnit.test('FilterIterator', function() {
+  function filterCheck(a, p) {
+    var expected = a.filter(p),
+        it = FilterIterator(Iterator(a), p);
+    for (var i = 0; i < expected.length; i++) {
+      equal(it.peek(), expected[i]);
+      equal(it.next(), expected[i]);
+    }
+    throws(function() { return it.peek(); }, StopIteration);
+    throws(function() { return it.next(); }, StopIteration);
+  }
+
+  function p(x) {
+    return x % 2 === 0;
+  }
+
+  filterCheck([], p);
+  filterCheck([73], p);
+  filterCheck([6], p);
+  filterCheck([1, 3, 5, 7, 9], p);
+  filterCheck([2, 4, 6, 8, 10], p);
+  filterCheck([1, 2, 3, 4, 5], p);
+});
+
 QUnit.test('MergeIterator', function() {
   var it;
 
   // empty
   it = MergeIterator([]);
+  throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
   it = MergeIterator([Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
   it = MergeIterator([Iterator([]), Iterator([]), Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // 1-way merge
@@ -307,6 +335,10 @@ QUnit.test('OpsChannel', function() {
   }
   throws(function() { return it1.next(); }, StopIteration);
   throws(function() { return it2.next(); }, StopIteration);
+});
+
+QUnit.test('OpsFilterTime', function() {
+  equal(1, 1);
 });
 
 QUnit.test('GensData', function() {

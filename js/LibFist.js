@@ -235,7 +235,20 @@ var OpsChannel = {
 };
 
 var OpsFilterComparison = {};
-var OpsFilterTime = {};
+
+var OpsFilterTime = {
+  since: function(args) {
+    argCheck('since', args, '(| number date)');
+  },
+  until: function(args) {
+    argCheck('until', args, '(| number date)');
+  },
+  between: function(args) {
+    argCheck('until', args, '(+ (| number date) (| number date))');
+
+  }
+};
+
 var OpsFilterLocation = {};
 var OpsFilterRegion = {};
 
