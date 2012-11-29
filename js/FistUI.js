@@ -613,6 +613,9 @@ var FistUI = new Class({
       .attr('id', 'view_execute')
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
+    $d3(this._viewExecuteSVG).addEvent('filteradded', function(filter) {
+      console.log('filter added: ' + filter);
+    });
 
     // set up interpreter
     this._svgGraphWrapper = this._root.getElement('#svg_graph_wrapper');

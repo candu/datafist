@@ -158,6 +158,52 @@ var ChannelView = {
         .attr('text-anchor', 'end')
         .text(_caption(sexps[i]));
     }
+
+    // time-filtering hit area
+    this._selectionStart = null;
+    var dragBehavior = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = d3.event.sourceEvent.pageX - dragPos.x;
+        this._selectionStart = x;
+        this._dragSelectionArea
+          .attr('class', 'channel selection-area')
+          .attr('x', this._selectionStart)
+          .attr('y', 0)
+          .attr('width', 0)
+          .attr('height', channelH * n);
+      }.bind(this))
+      .on('drag', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = Math.min(d3.event.sourceEvent.pageX - dragPos.x, channelW);
+        this._dragSelectionArea
+          .attr('class', 'channel selection-area')
+          .attr('x', Math.min(x, this._selectionStart))
+          .attr('y', 0)
+          .attr('width', Math.abs(x - this._selectionStart))
+          .attr('height', channelH * n);
+      }.bind(this));
+
+    this._dragGroup = view.append('svg:g')
+      .attr('transform', 'translate(' + axisW + ', 0)');
+    this._dragHitArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'channel hit-area')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', channelW)
+      .attr('height', channelH * n)
+      .call(dragBehavior);
+    this._dragSelectionArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'hidden')
+      .on('click', function(d) {
+        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
+            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
+            t1 = scaleT.invert(x1),
+            t2 = scaleT.invert(x2),
+            filter = '(between ' + (+t1) + ' ' + (+t2) + ')';
+        console.log('adding filter: ' + filter);
+        $d3(view).fireEvent('filteradded', [filter]);
+      }.bind(this));
   }
   // TODO: update height automatically on window resize?
 };
