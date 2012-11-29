@@ -181,12 +181,28 @@ var HistogramView = {
     }
 
     var xs = hist.map(function(p) { return p.x; }),
+        xmin = d3.min(xs),
+        xmax = d3.max(xs),
         freqs = hist.map(function(p) { return p.freq; });
+    if (xmin === xmax) {
+      xmin--;
+      xmax++;
+    }
 
     var histH = h - 2 * axisH,
-        histW = w - 2 * axisW;
+        histW = w - 2 * axisW,
+        bucketing = _getBucketing(sexps[0]);
+    if (bucketing !== null) {
+      var buckets = Math.round((xmax - xmin) / bucketing),
+          bucketW = histW / (buckets + 1);
+      if (bucketW < 3) {
+        bucketing = null;
+      } else {
+        xmax += bucketing;
+      }
+    }
     var scaleX = d3.scale.linear()
-      .domain([d3.min(xs), d3.max(xs)])
+      .domain([xmin, xmax])
       .range([0, histW]);
     var scaleFreq = d3.scale.linear()
       .domain([0, d3.max(freqs)])
@@ -217,7 +233,6 @@ var HistogramView = {
     // histogram
     var g = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
-    var bucketing = _getBucketing(sexps[0]);
     if (bucketing === null) {
       g.selectAll('line')
         .data(hist)
@@ -229,16 +244,13 @@ var HistogramView = {
           .attr('opacity', 0.3)
           .attr('stroke', cc(0))
           .attr('stroke-width', 2);
-
     } else {
-      var buckets = Math.round((d3.max(xs) - d3.min(xs)) / bucketing),
-          bucketW = histW / (buckets + 1);
       g.selectAll('rect')
         .data(hist)
         .enter().append('svg:rect')
-          .attr('x', function(d) { return scaleX(d.x); })
+          .attr('x', function(d) { return scaleX(d.x) + 1; })
           .attr('y', function(d) { return scaleFreq(d.freq); })
-          .attr('width', bucketW)
+          .attr('width', bucketW - 2)
           .attr('height', function(d) { return histH - scaleFreq(d.freq); })
           .attr('fill', cc(0));
     }
