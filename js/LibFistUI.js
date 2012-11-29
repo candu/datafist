@@ -290,16 +290,28 @@ var RegressionView = {
 
     // get bounds
     var xs = data.map(function(p) { return p.x; }),
-        ys = data.map(function(p) { return p.y; });
+        xmin = d3.min(xs),
+        xmax = d3.max(xs),
+        ys = data.map(function(p) { return p.y; }),
+        ymin = d3.min(ys),
+        ymax = d3.max(ys);
+    if (xmin === xmax) {
+      xmin--;
+      xmax++;
+    }
+    if (ymin === ymax) {
+      ymin--;
+      ymax++;
+    }
 
     // create scales
     var plotH = h - 2 * axisH,
         plotW = w - 2 * axisW;
     var scaleX = d3.scale.linear()
-      .domain([d3.min(xs), d3.max(xs)])
+      .domain([xmin, xmax])
       .range([0, plotW]);
     var scaleY = d3.scale.linear()
-      .domain([d3.min(ys), d3.max(ys)])
+      .domain([ymin, ymax])
       .range([plotH, 0]);
 
     // color scale!
