@@ -662,8 +662,8 @@ var FistUI = new Class({
     fist.listen('symbolimport', function(name) {
       this.onSymbolImport(name);
     }.bind(this));
-    fist.listen('viewinvoked', function(name, channels) {
-      this.onViewInvoked(name, channels);
+    fist.listen('viewinvoked', function(name, channels, sexps) {
+      this.onViewInvoked(name, channels, sexps);
     }.bind(this));
   },
   onSymbolImport: function(name) {
@@ -688,14 +688,14 @@ var FistUI = new Class({
     }.bind(this), false);
     block.inject(this._palette);
   },
-  onViewInvoked: function(name, channels) {
+  onViewInvoked: function(name, channels, sexps) {
     console.log('rendering view ' + name);
     $d3(this._viewExecuteSVG).empty();
     var view = this._viewTable[name];
     if (view === undefined) {
       throw new Error('unrecognized view: ' + name);
     }
-    view.render(channels, this._viewExecuteSVG);
+    view.render(channels, this._viewExecuteSVG, sexps);
   },
   importView: function(name, view) {
     console.log('importing view ' + name);

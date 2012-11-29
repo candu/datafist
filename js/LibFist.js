@@ -334,17 +334,17 @@ var View = {
     ['viewHistogram', 'view-histogram'],
     ['viewRegression', 'view-regression']
   ],
-  viewChannel: function(args) {
+  viewChannel: function(args, sexps) {
     argCheck('view-channel', args, '(* channel)');
-    this._viewInvoked('channel', args);
+    this._viewInvoked('channel', args, sexps);
   },
-  viewHistogram: function(args) {
+  viewHistogram: function(args, sexps) {
     argCheck('view-histogram', args, 'channel');
-    this._viewInvoked('histogram', args);
+    this._viewInvoked('histogram', args, sexps);
   },
-  viewRegression: function(args) {
+  viewRegression: function(args, sexps) {
     argCheck('view-channel', args, '(+ channel channel)');
-    this._viewInvoked('regression', args);
+    this._viewInvoked('regression', args, sexps);
   }
 };
 

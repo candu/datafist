@@ -1,5 +1,5 @@
 var ChannelView = {
-  render: function(channels, view) {
+  render: function(channels, view, sexps) {
     // TODO: verify that there's at least one channel
 
     var w = view.attr('width'),
@@ -84,7 +84,7 @@ var ChannelView = {
         .call(axisX);
     }
 
-    // now, actually graph these things
+    // sparklines
     for (var i = 0; i < n; i++) {
       var line = d3.svg.line()
         .x(function(d) { return ct(d.t); })
@@ -103,7 +103,24 @@ var ChannelView = {
           .attr('x2', channelWidth)
           .attr('y2', 0);
       }
+      var caption = SExp.unparse(sexps[i]);
+      if (caption.length > 30) {
+      }
+      g.append('svg:text')
+        .attr('class', 'channel-caption')
+        .attr('x', channelWidth - 8)
+        .attr('y', 8)
+        .attr('dy', '.71em')
+        .attr('text-anchor', 'end')
+        .text(this._caption(sexps[i]));
     }
+  },
+  _caption: function(sexp) {
+    var s = SExp.unparse(sexp);
+    if (s.length > 30) {
+      s = s.substring(0, 27) + '...';
+    }
+    return s;
   }
   // TODO: update height automatically on window resize?
 };

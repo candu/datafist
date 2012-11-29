@@ -30,8 +30,8 @@ var Fist = new Class({
   _symbolImported: function(name, value) {
     this._dummyElem.fireEvent('symbolimport', [name, value]);
   },
-  _viewInvoked: function(name, channels) {
-    this._dummyElem.fireEvent('viewinvoked', [name, channels]);
+  _viewInvoked: function(name, channels, sexps) {
+    this._dummyElem.fireEvent('viewinvoked', [name, channels, sexps]);
   },
   listen: function(type, callback) {
     switch (type) {
@@ -91,7 +91,7 @@ var Fist = new Class({
     for (var i = 1; i < sexp.length; i++) {
       args.push(this.evaluate(sexp[i]));
     }
-    return op.call(this, args);
+    return op.call(this, args, sexp.slice(1));
   },
   execute: function(command) {
     return this.evaluate(SExp.parse(command));
