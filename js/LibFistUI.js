@@ -3,7 +3,9 @@ var ChannelView = {
     // TODO: verify that there's at least one channel
 
     var w = view.attr('width'),
-        h = view.attr('height');
+        h = view.attr('height'),
+        axisH = 20,
+        axisW = 60;
 
     // extract data from channels
     var n = channels.length;
@@ -38,9 +40,11 @@ var ChannelView = {
     }));
 
     // create w/h scales for all channels
+    var channelHeight = (h - axisH) / n,
+        channelWidth = w - axisW;
     var ct = d3.scale.linear()
       .domain([ctMin, ctMax])
-      .range([0, w]);
+      .range([0, channelWidth]);
     var cxs = cds.map(function(cd, i) {
       var cxMin = d3.min(cd, function(a) {
         return a.x;
@@ -50,21 +54,55 @@ var ChannelView = {
       });
       return d3.scale.linear()
         .domain([cxMin, cxMax])
-        .range([h * i / n, h * (i + 1) / n]);
+        .range([channelHeight - axisH / 2, axisH / 2]);
     });
 
     // color scale!
     var cc = d3.scale.category10();
+
+    // axes
+    var scaleT = d3.time.scale()
+      .domain([ctMin, ctMax])
+      .range([0, channelWidth]);
+    var axisT = d3.svg.axis()
+      .scale(scaleT)
+      .ticks(10)
+      .tickSize(-channelHeight * n);
+    view.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * n) + ')')
+      .call(axisT);
+    for (var i = 0; i < n; i++) {
+      var axisX = d3.svg.axis()
+        .scale(cxs[i])
+        .orient('left')
+        .ticks(5)
+        .tickSize(-channelWidth);
+      var g = view.append('svg:g')
+        .attr('class', 'channel axis')
+        .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * i) + ')')
+        .call(axisX);
+    }
 
     // now, actually graph these things
     for (var i = 0; i < n; i++) {
       var line = d3.svg.line()
         .x(function(d) { return ct(d.t); })
         .y(function(d) { return cxs[i](d.x); });
-      view.append('svg:path')
-        .attr('d', line(cds[i]))
-        .attr('class', 'channel')
-        .attr('stroke', cc(i));
+      var g = view.append('svg:g')
+        .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * i) + ')');
+      g.append('svg:path')
+          .attr('d', line(cds[i]))
+          .attr('class', 'channel')
+          .attr('stroke', cc(i));
+      if (i > 0) {
+        g.append('svg:line')
+          .attr('class', 'channel-separator')
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', channelWidth)
+          .attr('y2', 0);
+      }
     }
   }
   // TODO: update height automatically on window resize?
