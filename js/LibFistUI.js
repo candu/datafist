@@ -1,3 +1,12 @@
+function _caption(sexp) {
+  var s = SExp.unparse(sexp);
+  if (s.length > 30) {
+    s = s.substring(0, 27) + '...';
+  }
+  return s;
+}
+
+
 var ChannelView = {
   render: function(channels, view, sexps) {
     // TODO: verify that there's at least one channel
@@ -40,11 +49,11 @@ var ChannelView = {
     }));
 
     // create w/h scales for all channels
-    var channelHeight = (h - axisH) / n,
-        channelWidth = w - axisW;
+    var channelH = (h - axisH) / n,
+        channelW = w - axisW;
     var ct = d3.scale.linear()
       .domain([ctMin, ctMax])
-      .range([0, channelWidth]);
+      .range([0, channelW]);
     var cxs = cds.map(function(cd, i) {
       var cxMin = d3.min(cd, function(a) {
         return a.x;
@@ -54,7 +63,7 @@ var ChannelView = {
       });
       return d3.scale.linear()
         .domain([cxMin, cxMax])
-        .range([channelHeight - axisH / 2, axisH / 2]);
+        .range([channelH - axisH / 2, axisH / 2]);
     });
 
     // color scale!
@@ -63,24 +72,24 @@ var ChannelView = {
     // axes
     var scaleT = d3.time.scale()
       .domain([ctMin, ctMax])
-      .range([0, channelWidth]);
+      .range([0, channelW]);
     var axisT = d3.svg.axis()
       .scale(scaleT)
       .ticks(10)
-      .tickSize(-channelHeight * n);
+      .tickSize(-channelH * n);
     view.append('svg:g')
       .attr('class', 'axis')
-      .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * n) + ')')
+      .attr('transform', 'translate(' + axisW + ', ' + (channelH * n) + ')')
       .call(axisT);
     for (var i = 0; i < n; i++) {
       var axisX = d3.svg.axis()
         .scale(cxs[i])
         .orient('left')
         .ticks(5)
-        .tickSize(-channelWidth);
-      var g = view.append('svg:g')
+        .tickSize(-channelW);
+      view.append('svg:g')
         .attr('class', 'channel axis')
-        .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * i) + ')')
+        .attr('transform', 'translate(' + axisW + ', ' + (channelH * i) + ')')
         .call(axisX);
     }
 
@@ -90,7 +99,7 @@ var ChannelView = {
         .x(function(d) { return ct(d.t); })
         .y(function(d) { return cxs[i](d.x); });
       var g = view.append('svg:g')
-        .attr('transform', 'translate(' + axisW + ', ' + (channelHeight * i) + ')');
+        .attr('transform', 'translate(' + axisW + ', ' + (channelH * i) + ')');
       g.append('svg:path')
           .attr('d', line(cds[i]))
           .attr('class', 'channel')
@@ -100,27 +109,17 @@ var ChannelView = {
           .attr('class', 'channel-separator')
           .attr('x1', 0)
           .attr('y1', 0)
-          .attr('x2', channelWidth)
+          .attr('x2', channelW)
           .attr('y2', 0);
       }
-      var caption = SExp.unparse(sexps[i]);
-      if (caption.length > 30) {
-      }
       g.append('svg:text')
-        .attr('class', 'channel-caption')
-        .attr('x', channelWidth - 8)
+        .attr('class', 'channel caption')
+        .attr('x', channelW - 8)
         .attr('y', 8)
         .attr('dy', '.71em')
         .attr('text-anchor', 'end')
-        .text(this._caption(sexps[i]));
+        .text(_caption(sexps[i]));
     }
-  },
-  _caption: function(sexp) {
-    var s = SExp.unparse(sexp);
-    if (s.length > 30) {
-      s = s.substring(0, 27) + '...';
-    }
-    return s;
   }
   // TODO: update height automatically on window resize?
 };
@@ -179,9 +178,11 @@ var HistogramView = {
 };
 
 var RegressionView = {
-  render: function(channels, view) {
+  render: function(channels, view, sexps) {
     var w = view.attr('width'),
-        h = view.attr('height');
+        h = view.attr('height'),
+        axisH = 20,
+        axisW = 60;
 
     // extract data from channels
     var data = [];
@@ -206,24 +207,59 @@ var RegressionView = {
         ys = data.map(function(p) { return p.y; });
 
     // create scales
+    var plotH = h - 2 * axisH,
+        plotW = w - 2 * axisW;
     var scaleX = d3.scale.linear()
       .domain([d3.min(xs), d3.max(xs)])
-      .range([0, w]);
+      .range([0, plotW]);
     var scaleY = d3.scale.linear()
       .domain([d3.min(ys), d3.max(ys)])
-      .range([h, 0]);
+      .range([plotH, 0]);
 
     // color scale!
     var cc = d3.scale.category10();
 
-    // now, actually graph this thing
-    view.selectAll('circle')
+    // axes
+    var axisX = d3.svg.axis()
+      .scale(scaleX)
+      .ticks(10)
+      .tickSize(-plotH);
+    view.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + axisW + ', ' + (plotH + axisH) + ')')
+      .call(axisX);
+    var axisY = d3.svg.axis()
+      .scale(scaleY)
+      .orient('left')
+      .ticks(10)
+      .tickSize(-plotW);
+    view.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')')
+      .call(axisY);
+
+    // plot
+    var g = view.append('svg:g')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
+    g.selectAll('circle')
       .data(data)
       .enter().append('svg:circle')
         .attr('cx', function (d) { return scaleX(d.x); })
         .attr('cy', function (d) { return scaleY(d.y); })
         .attr('r', 4)
         .attr('fill', cc(0));
+    g.append('svg:text')
+      .attr('class', 'regression caption')
+      .attr('x', plotW - 8)
+      .attr('y', plotH - 8)
+      .attr('text-anchor', 'end')
+      .text(_caption(sexps[0]));
+    g.append('svg:text')
+      .attr('class', 'regression caption')
+      .attr('x', 8)
+      .attr('y', 8)
+      .attr('dy', '.71em')
+      .text(_caption(sexps[1]));
   }
 };
 

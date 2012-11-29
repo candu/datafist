@@ -63,6 +63,20 @@ QUnit.test('MergeIterator', function() {
     equal(it.next(), expected[i]);
   }
   throws(function() { return it.next(); }, StopIteration);
+
+  // nested merge iterators
+  var a = [1, 10],
+      b = [2, 9],
+      c = [3, 8],
+      d = [4, 7],
+      e = [5, 6],
+      it1 = MergeIterator([Iterator(a), Iterator(c), Iterator(e)]),
+      it2 = MergeIterator([Iterator(b), Iterator(d)]),
+      it = MergeIterator([it1, it2]);
+  for (var i = 1; i <= 10; i++) {
+    equal(it.next(), i);
+  }
+  throws(function() { return it.next(); }, StopIteration);
 });
 
 QUnit.test('Heap', function() {
