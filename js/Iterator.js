@@ -80,6 +80,9 @@ function MergeIterator(iters) {
       }
     },
     peek: function() {
+      if (_q.empty() && _curIter === null) {
+        throw new StopIteration();
+      }
       return _curIter.peek();
     }
   };
