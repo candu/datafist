@@ -12,6 +12,21 @@ var _unaryOp = function(a, op) {
   };
 };
 
+var _filterOp = function(a, p) {
+  return {
+    at: function(t) {
+      if (p(t)) {
+        return a.at(t);
+      }
+      // TODO: deal with non-numeric values
+      return 0;
+    },
+    iter: function() {
+      return FilterIterator(a.iter(), p);
+    }
+  };
+};
+
 var _binaryOp = function(a, b, op) {
   if (typeOf(a) === 'number') {
     if (typeOf(b) === 'number') {
@@ -239,13 +254,37 @@ var OpsFilterComparison = {};
 var OpsFilterTime = {
   since: function(args) {
     argCheck('since', args, '(| number date)');
+    return function(subargs) {
+      argCheck('since-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _since = +args[0];
+      return _filterOp(_c, function(t) {
+        return t >= _since;
+      });
+    };
   },
   until: function(args) {
     argCheck('until', args, '(| number date)');
+    return function(subargs) {
+      argCheck('until-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _until = +args[0];
+      return _filterOp(_c, function(t) {
+        return t < _until;
+      });
+    };
   },
   between: function(args) {
-    argCheck('until', args, '(+ (| number date) (| number date))');
-
+    argCheck('between', args, '(+ (| number date) (| number date))');
+    return function(subargs) {
+      argCheck('between-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _since = +args[0],
+          _until = +args[1];
+      return _filterOp(_c, function(t) {
+        return t >= _since && t < _until;
+      });
+    };
   }
 };
 
