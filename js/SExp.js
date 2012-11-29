@@ -37,7 +37,7 @@ var SExp = {
    * Convert an S-expression back into a string.
    */
   unparse: function(sexp) {
-    if (typeOf(sexp) === 'string') {
+    if (this.isAtom(sexp)) {
       return sexp;
     }
     var s = [];

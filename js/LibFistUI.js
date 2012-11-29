@@ -6,6 +6,21 @@ function _caption(sexp) {
   return s;
 }
 
+function _getBucketing(sexp) {
+  if (SExp.isAtom(sexp)) {
+    return null;
+  }
+  if (sexp[0] === '//*') {
+    return parseFloat(sexp[2]);
+  }
+  for (var i = 1; i < sexp.length; i++) {
+    var bucketing = _getBucketing(sexp[i]);
+    if (bucketing) {
+      return bucketing;
+    }
+  }
+  return null;
+}
 
 var ChannelView = {
   render: function(channels, view, sexps) {
@@ -125,7 +140,7 @@ var ChannelView = {
 };
 
 var HistogramView = {
-  render: function(channels, view) {
+  render: function(channels, view, sexps) {
     var w = view.attr('width'),
         h = view.attr('height');
 
@@ -166,14 +181,31 @@ var HistogramView = {
 
     var cc = d3.scale.category10();
 
-    view.selectAll('rect')
-      .data(hist)
-      .enter().append('svg:rect')
-        .attr('x', function(d) { return scaleX(d.x); })
-        .attr('y', function(d) { return scaleFreq(d.freq); })
-        .attr('width', 10)
-        .attr('height', function(d) { return h - scaleFreq(d.freq); })
-        .attr('fill', cc(0));
+    var bucketing = _getBucketing(sexps[0]);
+    if (bucketing === null) {
+      view.selectAll('line')
+        .data(hist)
+        .enter().append('svg:line')
+          .attr('x1', function(d) { return scaleX(d.x); })
+          .attr('y1', function(d) { return scaleFreq(d.freq); })
+          .attr('x2', function(d) { return scaleX(d.x); })
+          .attr('y2', h)
+          .attr('opacity', 0.3)
+          .attr('stroke', cc(0))
+          .attr('stroke-width', 2);
+
+    } else {
+      var buckets = Math.round((d3.max(xs) - d3.min(xs)) / bucketing),
+          bucketW = w / (buckets + 1);
+      view.selectAll('rect')
+        .data(hist)
+        .enter().append('svg:rect')
+          .attr('x', function(d) { return scaleX(d.x); })
+          .attr('y', function(d) { return scaleFreq(d.freq); })
+          .attr('width', bucketW)
+          .attr('height', function(d) { return h - scaleFreq(d.freq); })
+          .attr('fill', cc(0));
+    }
   }
 };
 
