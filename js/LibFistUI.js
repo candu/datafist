@@ -142,7 +142,9 @@ var ChannelView = {
 var HistogramView = {
   render: function(channels, view, sexps) {
     var w = view.attr('width'),
-        h = view.attr('height');
+        h = view.attr('height'),
+        axisH = 20,
+        axisW = 60;
 
     var data = [];
     var it = channels[0].iter();
@@ -172,38 +174,46 @@ var HistogramView = {
 
     var xs = hist.map(function(p) { return p.x; }),
         freqs = hist.map(function(p) { return p.freq; });
+
+    var histH = h - 2 * axisH,
+        histW = w - 2 * axisW;
     var scaleX = d3.scale.linear()
       .domain([d3.min(xs), d3.max(xs)])
-      .range([0, w]);
+      .range([0, histW]);
     var scaleFreq = d3.scale.linear()
       .domain([0, d3.max(freqs)])
-      .range([h, 0]);
+      .range([histH, 0]);
 
     var cc = d3.scale.category10();
 
+    // axes
+
+    // histogram
+    var g = view.append('svg:g')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
     var bucketing = _getBucketing(sexps[0]);
     if (bucketing === null) {
-      view.selectAll('line')
+      g.selectAll('line')
         .data(hist)
         .enter().append('svg:line')
           .attr('x1', function(d) { return scaleX(d.x); })
           .attr('y1', function(d) { return scaleFreq(d.freq); })
           .attr('x2', function(d) { return scaleX(d.x); })
-          .attr('y2', h)
+          .attr('y2', histH)
           .attr('opacity', 0.3)
           .attr('stroke', cc(0))
           .attr('stroke-width', 2);
 
     } else {
       var buckets = Math.round((d3.max(xs) - d3.min(xs)) / bucketing),
-          bucketW = w / (buckets + 1);
-      view.selectAll('rect')
+          bucketW = histW / (buckets + 1);
+      g.selectAll('rect')
         .data(hist)
         .enter().append('svg:rect')
           .attr('x', function(d) { return scaleX(d.x); })
           .attr('y', function(d) { return scaleFreq(d.freq); })
           .attr('width', bucketW)
-          .attr('height', function(d) { return h - scaleFreq(d.freq); })
+          .attr('height', function(d) { return histH - scaleFreq(d.freq); })
           .attr('fill', cc(0));
     }
   }
