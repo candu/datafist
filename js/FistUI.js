@@ -2,7 +2,7 @@ var ViewGraphState = new Class({
   initialize: function() {
     this._dummyElem = new Element('div');
 
-    this._nextNodeId = 0;
+    this._nextNodeID = 0;
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
@@ -16,7 +16,7 @@ var ViewGraphState = new Class({
     this._dummyElem.addEvent(type, callback);
   },
   addNode: function(name, type, x, y, w, h) {
-    var i = this._nextNodeId++;
+    var i = this._nextNodeID++;
     this._nodes[i] = {
       name: name,
       type: type,
@@ -104,6 +104,35 @@ var ViewGraphState = new Class({
     if (fist !== this._fist) {
       this._fist = fist;
       this._fire('fistmodified');
+    }
+  },
+  /**
+   * If there is an active view, add the given filter to all incoming edges of
+   * that view.
+   *
+   * TODO: move this to ViewGraph for w/h calculation, proper typing
+   */
+  _addFilter: function(filter) {
+    var viewNode = null;
+    for (var i in this._nodes) {
+      if (this._nodes[i].name.indexOf('view-') === 0) {
+        viewNode = this._nodes[i];
+        break;
+      }
+    }
+    for (var i in this._edgesIn[viewNode.index]) {
+      var inNode = this._nodes[i],
+          w = 60,  // TODO: proper w/h calculation for filter nodes
+          h = 20,
+          x = (viewNode.x + inNode.x - w) / 2,
+          y = (viewNode.y + inNode.y - h) / 2,
+          j = this._nextNodeID;
+      // TODO: proper typing
+      this.addNode(filter, 'object', x, y, w, h);
+      // TODO: keep disconnected until the end of the operation
+      this.deleteEdge(i, viewNode.index);
+      this.addEdge(i, j);
+      this.addEdge(j, viewNode.index);
     }
   },
   /**
@@ -615,7 +644,8 @@ var FistUI = new Class({
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
     $d3(this._viewExecuteSVG).addEvent('filteradded', function(filter) {
       console.log('filter added: ' + filter);
-    });
+      this._viewGraphState._addFilter(filter);
+    }.bind(this));
 
     // set up interpreter
     this._svgGraphWrapper = this._root.getElement('#svg_graph_wrapper');
