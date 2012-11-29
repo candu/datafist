@@ -67,12 +67,27 @@ var ChannelView = {
       ctMax++;
     }
 
-    // create w/h scales for all channels
     var channelH = (h - axisH) / n,
         channelW = w - axisW;
     var ct = d3.scale.linear()
       .domain([ctMin, ctMax])
       .range([0, channelW]);
+
+    // filter out sub-pixel time increments
+    cds = cds.map(function(cd) {
+      var lastT = -Infinity,
+          filtered = [];
+      for (var i = 0; i < cd.length; i++) {
+        var curT = ct(cd[i].t);
+        if (curT - lastT >= 1) {
+          lastT = curT;
+          filtered.push(cd[i]);
+        }
+      }
+      return filtered;
+    });
+
+    // create w/h scales for all channels
     var cxs = cds.map(function(cd, i) {
       var cxMin = d3.min(cd, function(a) {
         return a.x;
