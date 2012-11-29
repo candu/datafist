@@ -62,6 +62,10 @@ var ChannelView = {
         return a.t;
       });
     }));
+    if (ctMax === ctMin) {
+      ctMin--;
+      ctMax++;
+    }
 
     // create w/h scales for all channels
     var channelH = (h - axisH) / n,
@@ -76,6 +80,10 @@ var ChannelView = {
       var cxMax = d3.max(cd, function(a) {
         return a.x;
       });
+      if (cxMax === cxMin) {
+        cxMin--;
+        cxMax++;
+      }
       return d3.scale.linear()
         .domain([cxMin, cxMax])
         .range([channelH - axisH / 2, axisH / 2]);
