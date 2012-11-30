@@ -46,6 +46,18 @@ var ViewGraphState = new Class({
     this._fire('nodedeleted', [i]);
     this._updateFist();
   },
+  empty: function() {
+    var depthDeleteNodes = function(i) {
+      var S = Object.keys(this._edgesIn[i]);
+      this.deleteNode(i);
+      S.each(depthDeleteNodes);
+    }.bind(this);
+    for (var i in this._edgesOut) {
+      if (Object.isEmpty(this._edgesOut[i])) {
+        depthDeleteNodes(i);
+      }
+    }
+  },
   addEdge: function(i, j) {
     console.log('adding (' + i + ', ' + j + ')...');
     // enforce DAG property: i -> j will complete a cycle iff there exists a
@@ -81,20 +93,6 @@ var ViewGraphState = new Class({
     delete this._edgesIn[j][i];
     this._fire('edgedeleted', [i, j]);
     this._updateFist();
-  },
-  toJSON: function() {
-    var nodes = {};
-    for (var i in this._nodes) {
-      nodes[i] = {
-        name: this._nodes[i]._name,
-        x: this._nodes[i].x,
-        y: this._nodes[i]._y
-      }
-    }
-    return JSON.stringify({
-      nodes: nodes,
-      edges: this._edgesOut
-    });
   },
   toFist: function() {
     return this._fist;
@@ -609,6 +607,28 @@ var ViewGraph = new Class({
       w: textSize.x + 2 * padding,
       h: textSize.y + 2 * padding
     };
+  },
+  _replaceSExp: function(sexp) {
+    console.log(JSON.stringify(sexp));
+    // NOTE: I *think* this works correctly; each event should be completely
+    // processed before the next one is enqueued.
+    this._state.empty();
+
+    var cols = [];
+    var computeGridPositions = function(exp, row) {
+      if (row === cols.length) {
+        cols.push(0);
+      }
+      if (SExp.isAtom(exp)) {
+        console.log(exp, row, cols[row]++);
+      } else {
+        console.log(exp[0], row, cols[row]++);
+        for (var i = 1; i < exp.length; i++) {
+          computeGridPositions(exp[i], row + 1);
+        }
+      }
+    };
+    computeGridPositions(sexp, 0);
   }
 });
 
@@ -642,9 +662,8 @@ var FistUI = new Class({
       .attr('id', 'view_execute')
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
-    $d3(this._viewExecuteSVG).addEvent('filteradded', function(filter) {
-      console.log('filter added: ' + filter);
-      this._viewGraphState._addFilter(filter);
+    $d3(this._viewExecuteSVG).addEvent('sexpreplaced', function(sexp) {
+      this._viewGraph._replaceSExp(sexp);
     }.bind(this));
 
     // set up interpreter
