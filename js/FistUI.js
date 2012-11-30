@@ -496,7 +496,10 @@ var ViewGraph = new Class({
             } catch (e) {
               console.log(e);
             }
-            var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
+            var svgPosition = $d3(this._svg).getPosition(),
+                textX = Math.floor(menuEvt.page.x - svgPosition.x) + 0.5,
+                textY = Math.floor(menuEvt.page.y - svgPosition.y) + 0.5,
+                blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
             this._state.addNode(
               name,
               type,
@@ -518,7 +521,10 @@ var ViewGraph = new Class({
             } catch (e) {
               console.log(e);
             }
-            var blockDimensions = this._getBlockDimensions(menuEvt, name, padding);
+            var svgPosition = $d3(this._svg).getPosition(),
+                textX = Math.floor(menuEvt.page.x - svgPosition.x) + 0.5,
+                textY = Math.floor(menuEvt.page.y - svgPosition.y) + 0.5,
+                blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
             targetNode.name = name;
             targetNode.type = type;
             Object.merge(targetNode, blockDimensions);
@@ -595,15 +601,15 @@ var ViewGraph = new Class({
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
   },
-  _getBlockDimensions: function(clickEvt, name, padding) {
-    var svgPosition = $d3(this._svg).getPosition(),
-        textX = Math.floor(clickEvt.page.x - svgPosition.x) + 0.5,
-        textY = Math.floor(clickEvt.page.y - svgPosition.y) + 0.5;
+  _getTextSize: function(name) {
     this._tempText.text(name);
-    var textSize = $d3(this._tempText).getSize();
+    return $d3(this._tempText).getSize();
+  },
+  _getBlockDimensions: function(x, y, name, padding) {
+    var textSize = this._getTextSize(name);
     return {
-      x: textX - (textSize.x / 2 + padding),
-      y: textY - (textSize.y / 2 + padding),
+      x: x - (textSize.x / 2 + padding),
+      y: y - (textSize.y / 2 + padding),
       w: textSize.x + 2 * padding,
       h: textSize.y + 2 * padding
     };
