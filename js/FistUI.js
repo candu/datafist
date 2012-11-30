@@ -497,8 +497,8 @@ var ViewGraph = new Class({
               console.log(e);
             }
             var svgPosition = $d3(this._svg).getPosition(),
-                textX = Math.floor(menuEvt.page.x - svgPosition.x) + 0.5,
-                textY = Math.floor(menuEvt.page.y - svgPosition.y) + 0.5,
+                textX = menuEvt.page.x - svgPosition.x,
+                textY = menuEvt.page.y - svgPosition.y,
                 blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
             this._state.addNode(
               name,
@@ -522,8 +522,8 @@ var ViewGraph = new Class({
               console.log(e);
             }
             var svgPosition = $d3(this._svg).getPosition(),
-                textX = Math.floor(menuEvt.page.x - svgPosition.x) + 0.5,
-                textY = Math.floor(menuEvt.page.y - svgPosition.y) + 0.5,
+                textX = menuEvt.page.x - svgPosition.x,
+                textY = menuEvt.page.y - svgPosition.y,
                 blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
             targetNode.name = name;
             targetNode.type = type;
@@ -608,8 +608,8 @@ var ViewGraph = new Class({
   _getBlockDimensions: function(x, y, name, padding) {
     var textSize = this._getTextSize(name);
     return {
-      x: x - (textSize.x / 2 + padding),
-      y: y - (textSize.y / 2 + padding),
+      x: Math.floor(x - (textSize.x / 2 + padding)) + 0.5,
+      y: Math.floor(y - (textSize.y / 2 + padding)) + 0.5,
       w: textSize.x + 2 * padding,
       h: textSize.y + 2 * padding
     };
