@@ -224,9 +224,20 @@ var OpsMath = {
 
 var OpsString = {};
 
+var OpsFunctional = {
+  map: function(args) {
+    argCheck('map', '(+ function (* any))');
+    var _fn = args[0],
+        _args = args.slice(1);
+    return _args.map(function(arg) {
+      return _fn([arg]);
+    });
+  }
+};
+
 var OpsChannel = {
   __exports: [
-    ['timeShift', 'time-shift']
+    ['timeShift', 'time-shift'],
   ],
   timeShift: function(args) {
     argCheck('time-shift', '(+ channel number)');
@@ -407,6 +418,7 @@ var LibFist = {
     fist.importModule(null, OpsArith);
     fist.importModule(null, OpsMath);
     fist.importModule(null, OpsString);
+    fist.importModule(null, OpsFunctional);
     fist.importModule(null, OpsChannel);
 
     fist.importModule(null, OpsFilterComparison);
