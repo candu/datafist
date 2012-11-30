@@ -175,7 +175,8 @@ var ChannelView = {
       }.bind(this))
       .on('drag', function(d) {
         var dragPos = $d3(this._dragGroup).getPosition(),
-            x = Math.min(d3.event.sourceEvent.pageX - dragPos.x, channelW);
+            x = d3.event.sourceEvent.pageX - dragPos.x;
+        x = Math.max(0, Math.min(x, channelW));
         this._dragSelectionArea
           .attr('class', 'channel selection-area')
           .attr('x', Math.min(x, this._selectionStart))
