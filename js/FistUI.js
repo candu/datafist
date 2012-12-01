@@ -660,8 +660,8 @@ var ViewGraph = new Class({
         node.index = this._state.addNode(
           node.name,
           node.type,
-          levelX[level],
-          pos * 40 + 10,
+          levelX[level] + 0.5,
+          pos * 40 + 10 + 0.5,
           node.size.x + 2 * padding,
           node.size.y + 2 * padding
         );
