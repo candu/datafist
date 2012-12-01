@@ -30,6 +30,7 @@ var ViewGraphState = new Class({
     this._edgesIn[i] = {};
     this._fire('nodeadded', [this._nodes[i]]);
     this._updateFist();
+    return i;
   },
   deleteNode: function(i) {
     var outEdges = Object.keys(this._edgesOut[i]);
@@ -615,26 +616,61 @@ var ViewGraph = new Class({
     };
   },
   _replaceSExp: function(sexp) {
-    console.log(JSON.stringify(sexp));
-    // NOTE: I *think* this works correctly; each event should be completely
-    // processed before the next one is enqueued.
     this._state.empty();
 
-    var cols = [];
-    var computeGridPositions = function(exp, row) {
-      if (row === cols.length) {
-        cols.push(0);
+    var levels = [];
+    var buildGrid = function(exp, level, p) {
+      if (level === levels.length) {
+        levels.push([]);
       }
       if (SExp.isAtom(exp)) {
-        console.log(exp, row, cols[row]++);
+        levels[level].push({name: exp, p: p});
       } else {
-        console.log(exp[0], row, cols[row]++);
+        levels[level].push({name: SExp.unparse(exp[0]), p: p});
         for (var i = 1; i < exp.length; i++) {
-          computeGridPositions(exp[i], row + 1);
+          buildGrid(exp[i], level + 1, levels[level].length - 1);
         }
       }
     };
-    computeGridPositions(sexp, 0);
+    buildGrid(sexp, 0, null);
+
+    var gridPadding = 10,
+        padding = 2,
+        x = gridPadding,
+        levelX = [];
+    for (var level = 0; level < levels.length; level++) {
+      levelX.push(x);
+      var maxNodeWidth = 0;
+      for (var pos = 0; pos < levels[level].length; pos++) {
+        var node = levels[level][pos];
+        node.size = this._getTextSize(node.name);
+        node.type = '';
+        try {
+          node.type = typeOf(this._fist.execute(node.name));
+        } catch (e) {
+          console.log(e);
+        }
+        maxNodeWidth = Math.max(maxNodeWidth, node.size.x);
+      }
+      x += maxNodeWidth + 2 * (padding + gridPadding);
+    }
+    for (var level = 0; level < levels.length; level++) {
+      for (var pos = 0; pos < levels[level].length; pos++) {
+        var node = levels[level][pos];
+        node.index = this._state.addNode(
+          node.name,
+          node.type,
+          levelX[level],
+          pos * 40 + 10,
+          node.size.x + 2 * padding,
+          node.size.y + 2 * padding
+        );
+        if (node.p !== null) {
+          var parentNode = levels[level - 1][node.p];
+          this._state.addEdge(node.index, parentNode.index);
+        }
+      }
+    }
   }
 });
 
