@@ -46,6 +46,10 @@ var ViewGraphState = new Class({
     delete this._nodes[i];
     this._fire('nodedeleted', [i]);
     this._updateFist();
+    // this helps clean up gestural filters
+    if (outEdges.length === 1 && inEdges.length === 1) {
+      this.addEdge(inEdges[0], outEdges[0]);
+    }
   },
   empty: function() {
     var depthDeleteNodes = function(i) {
