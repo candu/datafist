@@ -642,8 +642,8 @@ var ViewGraph = new Class({
         padding = 2,
         x = gridPadding,
         levelX = [];
-    for (var level = 0; level < levels.length; level++) {
-      levelX.push(x);
+    for (var level = levels.length - 1; level >= 0; level--) {
+      levelX.unshift(x);
       var maxNodeWidth = 0;
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
