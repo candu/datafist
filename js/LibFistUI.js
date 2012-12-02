@@ -199,11 +199,24 @@ var ChannelView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            t1 = scaleT.invert(x1),
-            t2 = scaleT.invert(x2);
+            t = [+(scaleT.invert(x1)), +(scaleT.invert(x2))];
         var filteredSexp = sexps.map(function(sexp) {
-          return [['between', +t1, +t2], sexp];
-        });
+          if (SExp.isAtom(sexp)) {
+            return [['between', String(t[0]), String(t[1])], sexp];
+          }
+          var sexpClone = Array.clone(sexp);
+          while (SExp.isList(sexpClone) &&
+                 SExp.isList(sexpClone[0]) &&
+                 sexpClone[0][0] == 'between') {
+            var u = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
+            t = Interval.intersect(t, u);
+            if (t === null) {
+              return [];
+            }
+            sexpClone = sexpClone[1];
+          }
+          return [['between', String(t[0]), String(t[1])], sexpClone];
+        }.bind(this));
         filteredSexp.unshift('view-channel');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));

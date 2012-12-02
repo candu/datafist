@@ -3,6 +3,25 @@ QUnit.test('Object', function() {
   equal(Object.isEmpty({a:{}}), false);
 });
 
+QUnit.test('Interval', function() {
+  function intervalCheck(a, b, expected) {
+    var ab = JSON.stringify(Interval.intersect(a, b)),
+        ba = JSON.stringify(Interval.intersect(b, a)),
+        c = JSON.stringify(expected);
+    equal(ab, c);
+    equal(ba, c);
+  }
+
+  intervalCheck([1, 4], [2, 3], [2, 3]);
+  intervalCheck([1, 3], [2, 4], [2, 3]);
+  intervalCheck([1, 2], [3, 4], null);
+  intervalCheck([0, 0], [-1, 1], [0, 0]);
+  intervalCheck([1, 4], [1, 3], [1, 3]);
+  intervalCheck([1, 4], [2, 4], [2, 4]);
+  intervalCheck([0, 1], [0, 1], [0, 1]);
+  intervalCheck([1, 1], [1, 1], [1, 1]);
+});
+
 QUnit.test('Iterator', function() {
   var it;
 
