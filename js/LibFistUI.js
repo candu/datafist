@@ -558,28 +558,24 @@ var RegressionView = {
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
             y2 = y1 + parseFloat(this._dragSelectionArea.attr('height'))
-            y = Interval.nice([+(scaleY.invert(y1)), +(scaleY.invert(y2))]);
-        var filteredSexp = sexps.map(function(sexp) {
-          /*
-          if (SExp.isAtom(sexp)) {
-            return [['value-between', _format(x[0]), _format(x[1])], sexp];
-          }
-          var sexpClone = Array.clone(sexp);
-          while (SExp.isList(sexpClone) &&
-                 SExp.isList(sexpClone[0]) &&
-                 sexpClone[0][0] == 'value-between') {
-            var w = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
-            x = Interval.intersect(x, w);
-            if (x === null) {
-              return [];
-            }
-            sexpClone = sexpClone[1];
-          }
-          return [['value-between', _format(x[0]), _format(x[1])], sexpClone];
-          */
-          return sexp;
-        }.bind(this));
-        filteredSexp.unshift('view-regression');
+            y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]);
+        var curX = sexps[0];
+        while (SExp.isList(curX) &&
+               SExp.isList(curX[0]) &&
+               curX[0][0] == 'value-between') {
+          curX = curX[1];
+        }
+        var curY = sexps[1];
+        while (SExp.isList(curY) &&
+               SExp.isList(curY[0]) &&
+               curY[0][0] == 'value-between') {
+          curY = curY[1];
+        }
+        var filteredSexp = [
+          'view-regression',
+          [['value-between', _format(x[0]), _format(x[1])], curX],
+          [['value-between', _format(y[0]), _format(y[1])], curY]
+        ]
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
   }
