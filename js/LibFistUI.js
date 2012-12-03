@@ -22,6 +22,18 @@ function _getBucketing(sexp) {
   return null;
 }
 
+function _format(x) {
+  var e = d3.format('.8e')(x).replace(/0+e/, 'e').replace('.e', 'e');
+      g = d3.format('.8g')(x);
+  if (g.indexOf('.') !== -1) {
+    g = g.replace(/0+$/, '').replace(/\.$/, '');
+  }
+  if (e.length < g.length) {
+    return e;
+  }
+  return g;
+}
+
 var ChannelView = {
   render: function(channels, view, sexps) {
     // TODO: verify that there's at least one channel
@@ -199,10 +211,10 @@ var ChannelView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            t = [+(scaleT.invert(x1)), +(scaleT.invert(x2))];
+            t = Interval.nice([+(scaleT.invert(x1)), +(scaleT.invert(x2))]);
         var filteredSexp = sexps.map(function(sexp) {
           if (SExp.isAtom(sexp)) {
-            return [['between', String(t[0]), String(t[1])], sexp];
+            return [['between', _format(t[0]), _format(t[1])], sexp];
           }
           var sexpClone = Array.clone(sexp);
           while (SExp.isList(sexpClone) &&
@@ -215,7 +227,7 @@ var ChannelView = {
             }
             sexpClone = sexpClone[1];
           }
-          return [['between', String(t[0]), String(t[1])], sexpClone];
+          return [['between', _format(t[0]), _format(t[1])], sexpClone];
         }.bind(this));
         filteredSexp.unshift('view-channel');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
@@ -379,10 +391,10 @@ var HistogramView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = [+(scaleX.invert(x1)), +(scaleX.invert(x2))];
+            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
         var filteredSexp = sexps.map(function(sexp) {
           if (SExp.isAtom(sexp)) {
-            return [['value-between', String(x[0]), String(x[1])], sexp];
+            return [['value-between', _format(x[0]), _format(x[1])], sexp];
           }
           var sexpClone = Array.clone(sexp);
           while (SExp.isList(sexpClone) &&
@@ -395,7 +407,7 @@ var HistogramView = {
             }
             sexpClone = sexpClone[1];
           }
-          return [['value-between', String(x[0]), String(x[1])], sexpClone];
+          return [['value-between', _format(x[0]), _format(x[1])], sexpClone];
         }.bind(this));
         filteredSexp.unshift('view-histogram');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
