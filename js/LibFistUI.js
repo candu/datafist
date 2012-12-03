@@ -408,8 +408,7 @@ var RegressionView = {
 
     // extract data from channels
     var data = [];
-    // TODO: intersection iterator?
-    var it = UnionIterator([channels[0].iter(), channels[1].iter()]);
+    var it = IntersectionIterator([channels[0].iter(), channels[1].iter()]);
     while (true) {
       try {
         var t = it.next(),
