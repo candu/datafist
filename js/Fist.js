@@ -131,5 +131,14 @@ var Fist = new Class({
         this.registerSymbol(def, module[def]);
       }
     }
+  },
+  getType: function(command) {
+    try {
+      // TODO: better typing
+      return typeOf(this.execute(command));
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 });

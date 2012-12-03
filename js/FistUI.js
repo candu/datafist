@@ -110,35 +110,6 @@ var ViewGraphState = new Class({
     }
   },
   /**
-   * If there is an active view, add the given filter to all incoming edges of
-   * that view.
-   *
-   * TODO: move this to ViewGraph for w/h calculation, proper typing
-   */
-  _addFilter: function(filter) {
-    var viewNode = null;
-    for (var i in this._nodes) {
-      if (this._nodes[i].name.indexOf('view-') === 0) {
-        viewNode = this._nodes[i];
-        break;
-      }
-    }
-    for (var i in this._edgesIn[viewNode.index]) {
-      var inNode = this._nodes[i],
-          w = 60,  // TODO: proper w/h calculation for filter nodes
-          h = 20,
-          x = (viewNode.x + inNode.x - w) / 2,
-          y = (viewNode.y + inNode.y - h) / 2,
-          j = this._nextNodeID;
-      // TODO: proper typing
-      this.addNode(filter, 'object', x, y, w, h);
-      // TODO: keep disconnected until the end of the operation
-      this.deleteEdge(i, viewNode.index);
-      this.addEdge(i, j);
-      this.addEdge(j, viewNode.index);
-    }
-  },
-  /**
    * Produce a representation of this ViewGraphState in the fist language.
    */
   _toFist: function() {
@@ -390,10 +361,9 @@ var ViewGraph = new Class({
         d3.event.sourceEvent.stopPropagation();
         this._nodes[d.index]._controlling = true;
         // TODO: fix this horrible positioning hack
-        var nodeX = this._nodes[d.index]._g[0][0].__data__.x,
-            nodeY = this._nodes[d.index]._g[0][0].__data__.y;
+        var node = this._state._nodes[d.index];
         this._tempEdgeGroup
-          .attr('transform', 'translate(' + (nodeX + d.x) + ', ' + (nodeY + d.y) + ')');
+          .attr('transform', 'translate(' + (node.x + d.x) + ', ' + (node.y + d.y) + ')');
         this._tempEdgeEnd.x = 0;
         this._tempEdgeEnd.y = 0;
         this._tempEdge
@@ -495,13 +465,8 @@ var ViewGraph = new Class({
             if (name === null) {
               return;
             }
-            var type = '';
-            try {
-              type = typeOf(this._fist.execute(name));
-            } catch (e) {
-              console.log(e);
-            }
-            var svgPosition = $d3(this._svg).getPosition(),
+            var type = this._fist.getType(name),
+                svgPosition = $d3(this._svg).getPosition(),
                 textX = menuEvt.page.x - svgPosition.x,
                 textY = menuEvt.page.y - svgPosition.y,
                 blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
@@ -520,13 +485,8 @@ var ViewGraph = new Class({
             if (name === null || name === targetNode.name) {
               return;
             }
-            var type = '';
-            try {
-              type = typeOf(this._fist.execute(name));
-            } catch (e) {
-              console.log(e);
-            }
-            var svgPosition = $d3(this._svg).getPosition(),
+            var type = this._fist.getType(name),
+                svgPosition = $d3(this._svg).getPosition(),
                 textX = menuEvt.page.x - svgPosition.x,
                 textY = menuEvt.page.y - svgPosition.y,
                 blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
@@ -547,6 +507,19 @@ var ViewGraph = new Class({
   },
   edgeDragBehavior: function() {
     return this._edgeDragBehavior;
+  },
+  addNode: function(name, x, y) {
+    var type = this._fist.getType(name),
+        padding = 2,
+        blockDimensions = this._getBlockDimensions(x, y, name, padding);
+    this._state.addNode(
+      name,
+      type,
+      blockDimensions.x,
+      blockDimensions.y,
+      blockDimensions.w,
+      blockDimensions.h
+    );
   },
   _parentNode: function(elem) {
     while (elem !== null) {
@@ -648,12 +621,7 @@ var ViewGraph = new Class({
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
         node.size = this._getTextSize(node.name);
-        node.type = '';
-        try {
-          node.type = typeOf(this._fist.execute(node.name));
-        } catch (e) {
-          console.log(e);
-        }
+        node.type = this._fist.getType(node.name);
         maxNodeWidth = Math.max(maxNodeWidth, node.size.x);
       }
       x += maxNodeWidth + 2 * (padding + gridPadding);
@@ -734,19 +702,9 @@ var FistUI = new Class({
       evt.stopPropagation();
       var json = JSON.parse(evt.dataTransfer.getData('application/json'));
       var svgPosition = this._svgGraphWrapper.getPosition(),
-          blockSize = this._dragBlock.getSize(),
-          blockX = Math.floor(evt.pageX - svgPosition.x - blockSize.x / 2) + 0.5,
-          blockY = Math.floor(evt.pageY - svgPosition.y - blockSize.y / 2) + 0.5,
-          blockW = blockSize.x,
-          blockH = blockSize.y;
-      this._viewGraphState.addNode(
-        json.name,
-        json.type,
-        blockX,
-        blockY,
-        blockW,
-        blockH
-      );
+          x = evt.pageX - svgPosition.x,
+          y = evt.pageY - svgPosition.y;
+      this._viewGraph.addNode(json.name, x, y);
     }.bind(this), false);
 
     this._repl = this._root.getElement('#repl');
@@ -765,7 +723,7 @@ var FistUI = new Class({
     }.bind(this));
   },
   onSymbolImport: function(name) {
-    var type = typeOf(this._fist.execute(name));
+    var type = this._fist.getType(name);
     var block = Element('div.block.' + type, {
       text: name,
       draggable: true
