@@ -34,6 +34,16 @@ function _format(x) {
   return g;
 }
 
+function _stripFilters(sexp, filterName) {
+  var cur = sexp;
+  while (SExp.isList(cur) &&
+         SExp.isList(cur[0]) &&
+         cur[0][0] === filterName) {
+    cur = cur[1];
+  }
+  return cur;
+}
+
 var ChannelView = {
   render: function(channels, view, sexps) {
     // TODO: verify that there's at least one channel
@@ -213,21 +223,8 @@ var ChannelView = {
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             t = Interval.nice([+(scaleT.invert(x1)), +(scaleT.invert(x2))]);
         var filteredSexp = sexps.map(function(sexp) {
-          if (SExp.isAtom(sexp)) {
-            return [['between', _format(t[0]), _format(t[1])], sexp];
-          }
-          var sexpClone = Array.clone(sexp);
-          while (SExp.isList(sexpClone) &&
-                 SExp.isList(sexpClone[0]) &&
-                 sexpClone[0][0] == 'between') {
-            var u = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
-            t = Interval.intersect(t, u);
-            if (t === null) {
-              return [];
-            }
-            sexpClone = sexpClone[1];
-          }
-          return [['between', _format(t[0]), _format(t[1])], sexpClone];
+          var sexpF = _stripFilters(sexp, 'between');
+          return [['between', _format(t[0]), _format(t[1])], sexpF];
         }.bind(this));
         filteredSexp.unshift('view-channel');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
@@ -391,25 +388,12 @@ var HistogramView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
-        var filteredSexp = sexps.map(function(sexp) {
-          if (SExp.isAtom(sexp)) {
-            return [['value-between', _format(x[0]), _format(x[1])], sexp];
-          }
-          var sexpClone = Array.clone(sexp);
-          while (SExp.isList(sexpClone) &&
-                 SExp.isList(sexpClone[0]) &&
-                 sexpClone[0][0] == 'value-between') {
-            var w = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
-            x = Interval.intersect(x, w);
-            if (x === null) {
-              return [];
-            }
-            sexpClone = sexpClone[1];
-          }
-          return [['value-between', _format(x[0]), _format(x[1])], sexpClone];
-        }.bind(this));
-        filteredSexp.unshift('view-histogram');
+            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
+            sexpX = _stripFilters(sexps[0], 'value-between');
+        var filteredSexp = [
+          'view-histogram',
+          [['value-between', _format(x[0]), _format(x[1])], sexpX]
+        ];
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
   }
@@ -558,23 +542,13 @@ var RegressionView = {
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
             y2 = y1 + parseFloat(this._dragSelectionArea.attr('height'))
-            y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]);
-        var curX = sexps[0];
-        while (SExp.isList(curX) &&
-               SExp.isList(curX[0]) &&
-               curX[0][0] == 'value-between') {
-          curX = curX[1];
-        }
-        var curY = sexps[1];
-        while (SExp.isList(curY) &&
-               SExp.isList(curY[0]) &&
-               curY[0][0] == 'value-between') {
-          curY = curY[1];
-        }
+            y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]),
+            sexpX = _stripFilters(sexps[0], 'value-between'),
+            sexpY = _stripFilters(sexps[1], 'value-between');
         var filteredSexp = [
           'view-regression',
-          [['value-between', _format(x[0]), _format(x[1])], curX],
-          [['value-between', _format(y[0]), _format(y[1])], curY]
+          [['value-between', _format(x[0]), _format(x[1])], sexpX],
+          [['value-between', _format(y[0]), _format(y[1])], sexpY]
         ]
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
