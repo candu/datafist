@@ -510,6 +510,78 @@ var RegressionView = {
       .attr('y', 8)
       .attr('dy', '.71em')
       .text(_caption(sexps[1]));
+
+    // region-filtering hit area
+    // TODO: merge this with time-filtering code from ChannelView
+    this._selectionStart = null;
+    var dragBehavior = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = d3.event.sourceEvent.pageX - dragPos.x,
+            y = d3.event.sourceEvent.pageY - dragPos.y;
+        this._selectionStart = {x: x, y: y};
+        this._dragSelectionArea
+          .attr('class', 'regression selection-area')
+          .attr('x', this._selectionStart.x)
+          .attr('y', this._selectionStart.y)
+          .attr('width', 0)
+          .attr('height', 0);
+      }.bind(this))
+      .on('drag', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = d3.event.sourceEvent.pageX - dragPos.x,
+            y = d3.event.sourceEvent.pageY - dragPos.y;
+        x = Math.max(0, Math.min(x, plotW));
+        y = Math.max(0, Math.min(y, plotH));
+        this._dragSelectionArea
+          .attr('class', 'regression selection-area')
+          .attr('x', Math.min(x, this._selectionStart.x))
+          .attr('y', Math.min(y, this._selectionStart.y))
+          .attr('width', Math.abs(x - this._selectionStart.x))
+          .attr('height', Math.abs(y - this._selectionStart.y));
+      }.bind(this));
+
+    this._dragGroup = view.append('svg:g')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
+    this._dragHitArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'regression hit-area')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', plotW)
+      .attr('height', plotH)
+      .call(dragBehavior);
+    this._dragSelectionArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'hidden')
+      .on('click', function(d) {
+        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
+            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
+            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
+            y1 = parseFloat(this._dragSelectionArea.attr('y')),
+            y2 = y1 + parseFloat(this._dragSelectionArea.attr('height'))
+            y = Interval.nice([+(scaleY.invert(y1)), +(scaleY.invert(y2))]);
+        var filteredSexp = sexps.map(function(sexp) {
+          /*
+          if (SExp.isAtom(sexp)) {
+            return [['value-between', _format(x[0]), _format(x[1])], sexp];
+          }
+          var sexpClone = Array.clone(sexp);
+          while (SExp.isList(sexpClone) &&
+                 SExp.isList(sexpClone[0]) &&
+                 sexpClone[0][0] == 'value-between') {
+            var w = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
+            x = Interval.intersect(x, w);
+            if (x === null) {
+              return [];
+            }
+            sexpClone = sexpClone[1];
+          }
+          return [['value-between', _format(x[0]), _format(x[1])], sexpClone];
+          */
+          return sexp;
+        }.bind(this));
+        filteredSexp.unshift('view-regression');
+        $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
+      }.bind(this));
   }
 };
 
