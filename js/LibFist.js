@@ -485,20 +485,20 @@ var GensChannel = {
 
 var View = {
   __exports: [
-    ['viewChannel', 'view-channel'],
+    ['viewSparkline', 'view-sparkline'],
     ['viewHistogram', 'view-histogram'],
     ['viewRegression', 'view-regression']
   ],
-  viewChannel: function(args, sexps) {
-    argCheck('view-channel', args, '(* channel)');
-    this._viewInvoked('channel', args, sexps);
+  viewSparkline: function(args, sexps) {
+    argCheck('view-sparkline', args, '(* channel)');
+    this._viewInvoked('sparkline', args, sexps);
   },
   viewHistogram: function(args, sexps) {
     argCheck('view-histogram', args, 'channel');
     this._viewInvoked('histogram', args, sexps);
   },
   viewRegression: function(args, sexps) {
-    argCheck('view-channel', args, '(+ channel channel)');
+    argCheck('view-regression', args, '(+ channel channel)');
     this._viewInvoked('regression', args, sexps);
   }
 };

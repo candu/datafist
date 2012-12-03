@@ -44,7 +44,7 @@ function _stripFilters(sexp, filterName) {
   return cur;
 }
 
-var ChannelView = {
+var SparklineView = {
   render: function(channels, view, sexps) {
     // TODO: verify that there's at least one channel
 
@@ -226,7 +226,7 @@ var ChannelView = {
           var sexpF = _stripFilters(sexp, 'between');
           return [['between', _format(t[0]), _format(t[1])], sexpF];
         }.bind(this));
-        filteredSexp.unshift('view-channel');
+        filteredSexp.unshift('view-sparkline');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
   }
@@ -348,7 +348,7 @@ var HistogramView = {
       .text(_caption(sexps[0]));
 
     // value-filtering hit area
-    // TODO: merge this with time-filtering code from ChannelView
+    // TODO: merge this with time-filtering code from SparklineView
     this._selectionStart = null;
     var dragBehavior = d3.behavior.drag()
       .on('dragstart', function(d) {
@@ -495,7 +495,7 @@ var RegressionView = {
       .text(_caption(sexps[1]));
 
     // region-filtering hit area
-    // TODO: merge this with time-filtering code from ChannelView
+    // TODO: merge this with time-filtering code from SparklineView
     this._selectionStart = null;
     var dragBehavior = d3.behavior.drag()
       .on('dragstart', function(d) {
@@ -556,7 +556,7 @@ var RegressionView = {
 
 var LibFistUI = {
   import: function(fistUI) {
-    fistUI.importView('channel', ChannelView);
+    fistUI.importView('sparkline', SparklineView);
     fistUI.importView('histogram', HistogramView);
     fistUI.importView('regression', RegressionView);
   }
