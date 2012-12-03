@@ -67,11 +67,10 @@ function FilterIterator(iter, p) {
 }
 
 /**
- * Given N sorted iterators, UnionIterator produces a single
- * sorted iterator that returns unique sorted values from all N
- * iterators.
+ * Given N sorted iterators, MergeIterator produces a single sorted iterator
+ * that returns the union multiset of values from all N iterators.
  */
-function UnionIterator(iters) {
+function MergeIterator(iters) {
   iters = iters.filter(function(a) {
     try {
       a.peek();
@@ -87,7 +86,6 @@ function UnionIterator(iters) {
     return a.peek() - b.peek();
   });
   var _curIter = null;
-  var _lastValue = null;
   function _next() {
     if (_q.empty() && _curIter === null) {
       throw new StopIteration();
@@ -113,8 +111,28 @@ function UnionIterator(iters) {
   }
   return {
     next: function() {
+      return _next();
+    },
+    peek: function() {
+      if (_q.empty() && _curIter === null) {
+        throw new StopIteration();
+      }
+      return _curIter.peek();
+    }
+  };
+}
+
+/**
+ * Given N sorted iterators, UnionIterator produces a single sorted iterator
+ * that returns the union set of values from all N iterators.
+ */
+function UnionIterator(iters) {
+  var _iter = MergeIterator(iters),
+      _lastValue = null;
+  return {
+    next: function() {
       while (true) {
-        var curValue = _next();
+        var curValue = _iter.next();
         if (curValue !== _lastValue) {
           _lastValue = curValue;
           return curValue;
@@ -122,10 +140,35 @@ function UnionIterator(iters) {
       }
     },
     peek: function() {
-      if (_q.empty() && _curIter === null) {
-        throw new StopIteration();
+      return _iter.peek();
+    }
+  }
+}
+
+/**
+ * Given N sorted iterators, IntersectionIterator produces a single sorted
+ * iterator that returns the intersection set of values from all N iterators.
+ */
+function IntersectionIterator(iters) {
+  var _iter = MergeIterator(iters),
+      _lastValue = null,
+      _lastCount = 0;
+  return {
+    next: function() {
+      while (true) {
+        var curValue = _iter.next();
+        if (curValue !== _lastValue) {
+          _lastValue = curValue;
+          _lastCount = 0;
+        }
+        _lastCount++;
+        if (_lastCount === iters.length) {
+          return curValue;
+        }
       }
-      return _curIter.peek();
+    },
+    peek: function() {
+      return _iter.peek();
     }
   };
 }

@@ -69,23 +69,23 @@ QUnit.test('FilterIterator', function() {
   filterCheck([1, 2, 3, 4, 5], p);
 });
 
-QUnit.test('UnionIterator', function() {
+QUnit.test('MergeIterator', function() {
   var it;
 
   // empty
-  it = UnionIterator([]);
+  it = MergeIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = UnionIterator([Iterator([])]);
+  it = MergeIterator([Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  it = MergeIterator([Iterator([]), Iterator([]), Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // 1-way merge
   var a = [6, 17, 73];
-  it = UnionIterator([Iterator(a)]);
+  it = MergeIterator([Iterator(a)]);
   for (var i = 0; i < a.length; i++) {
     equal(it.next(), a[i]);
   }
@@ -95,7 +95,7 @@ QUnit.test('UnionIterator', function() {
   var a = [1, 5, 8];
   var b = [2, 3, 9];
   var c = [4, 6, 7];
-  it = UnionIterator([Iterator(a), Iterator(b), Iterator(c)]);
+  it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
   for (var i = 1; i <= 9; i++) {
     equal(it.next(), i);
   }
@@ -104,8 +104,8 @@ QUnit.test('UnionIterator', function() {
   // duplicate values
   var a = [2, 3, 5, 7];
   var b = [1, 2, 3, 5, 8];
-  var expected = [1, 2, 3, 5, 7, 8];
-  it = UnionIterator([Iterator(a), Iterator(b)]);
+  var expected = [1, 2, 2, 3, 3, 5, 5, 7, 8];
+  it = MergeIterator([Iterator(a), Iterator(b)]);
   for (var i = 0; i < expected.length; i++) {
     equal(it.next(), expected[i]);
   }
@@ -117,11 +117,58 @@ QUnit.test('UnionIterator', function() {
       c = [3, 8],
       d = [4, 7],
       e = [5, 6],
-      it1 = UnionIterator([Iterator(a), Iterator(c), Iterator(e)]),
-      it2 = UnionIterator([Iterator(b), Iterator(d)]),
-      it = UnionIterator([it1, it2]);
+      it1 = MergeIterator([Iterator(a), Iterator(c), Iterator(e)]),
+      it2 = MergeIterator([Iterator(b), Iterator(d)]),
+      it = MergeIterator([it1, it2]);
   for (var i = 1; i <= 10; i++) {
     equal(it.next(), i);
+  }
+  throws(function() { return it.next(); }, StopIteration);
+
+});
+
+QUnit.test('UnionIterator', function() {
+  // empty
+  it = UnionIterator([]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+  it = UnionIterator([Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+  it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+
+  // duplicate values
+  var a = [2, 3, 5, 7];
+  var b = [1, 2, 3, 5, 8];
+  var expected = [1, 2, 3, 5, 7, 8];
+  it = UnionIterator([Iterator(a), Iterator(b)]);
+  for (var i = 0; i < expected.length; i++) {
+    equal(it.next(), expected[i]);
+  }
+  throws(function() { return it.next(); }, StopIteration);
+});
+
+QUnit.test('IntersectionIterator', function() {
+  // empty
+  it = IntersectionIterator([]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+  it = IntersectionIterator([Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+  it = IntersectionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  throws(function() { return it.peek(); }, StopIteration);
+  throws(function() { return it.next(); }, StopIteration);
+
+  // duplicate values
+  var a = [2, 3, 5, 7];
+  var b = [1, 2, 3, 5, 8];
+  var expected = [2, 3, 5];
+  it = IntersectionIterator([Iterator(a), Iterator(b)]);
+  for (var i = 0; i < expected.length; i++) {
+    equal(it.next(), expected[i]);
   }
   throws(function() { return it.next(); }, StopIteration);
 });
