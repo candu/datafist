@@ -69,23 +69,23 @@ QUnit.test('FilterIterator', function() {
   filterCheck([1, 2, 3, 4, 5], p);
 });
 
-QUnit.test('MergeIterator', function() {
+QUnit.test('UnionIterator', function() {
   var it;
 
   // empty
-  it = MergeIterator([]);
+  it = UnionIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = MergeIterator([Iterator([])]);
+  it = UnionIterator([Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = MergeIterator([Iterator([]), Iterator([]), Iterator([])]);
+  it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // 1-way merge
   var a = [6, 17, 73];
-  it = MergeIterator([Iterator(a)]);
+  it = UnionIterator([Iterator(a)]);
   for (var i = 0; i < a.length; i++) {
     equal(it.next(), a[i]);
   }
@@ -95,7 +95,7 @@ QUnit.test('MergeIterator', function() {
   var a = [1, 5, 8];
   var b = [2, 3, 9];
   var c = [4, 6, 7];
-  it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
+  it = UnionIterator([Iterator(a), Iterator(b), Iterator(c)]);
   for (var i = 1; i <= 9; i++) {
     equal(it.next(), i);
   }
@@ -105,7 +105,7 @@ QUnit.test('MergeIterator', function() {
   var a = [2, 3, 5, 7];
   var b = [1, 2, 3, 5, 8];
   var expected = [1, 2, 3, 5, 7, 8];
-  it = MergeIterator([Iterator(a), Iterator(b)]);
+  it = UnionIterator([Iterator(a), Iterator(b)]);
   for (var i = 0; i < expected.length; i++) {
     equal(it.next(), expected[i]);
   }
@@ -117,9 +117,9 @@ QUnit.test('MergeIterator', function() {
       c = [3, 8],
       d = [4, 7],
       e = [5, 6],
-      it1 = MergeIterator([Iterator(a), Iterator(c), Iterator(e)]),
-      it2 = MergeIterator([Iterator(b), Iterator(d)]),
-      it = MergeIterator([it1, it2]);
+      it1 = UnionIterator([Iterator(a), Iterator(c), Iterator(e)]),
+      it2 = UnionIterator([Iterator(b), Iterator(d)]),
+      it = UnionIterator([it1, it2]);
   for (var i = 1; i <= 10; i++) {
     equal(it.next(), i);
   }

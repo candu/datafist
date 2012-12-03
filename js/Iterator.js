@@ -67,11 +67,11 @@ function FilterIterator(iter, p) {
 }
 
 /**
- * Given N sorted iterators, MergeIterator produces a single
+ * Given N sorted iterators, UnionIterator produces a single
  * sorted iterator that returns unique sorted values from all N
  * iterators.
  */
-function MergeIterator(iters) {
+function UnionIterator(iters) {
   iters = iters.filter(function(a) {
     try {
       a.peek();

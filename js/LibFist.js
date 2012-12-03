@@ -56,7 +56,7 @@ var _binaryOp = function(a, b, op) {
       return op(a.at(t), b.at(t));
     },
     iter: function() {
-      return MergeIterator([a.iter(), b.iter()]);
+      return UnionIterator([a.iter(), b.iter()]);
     }
   };
 };
@@ -96,7 +96,7 @@ var OpsArith = {
         return total;
       },
       iter: function() {
-        return MergeIterator(channels.map(function(c) { return c.iter(); }));
+        return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
   },
@@ -125,7 +125,7 @@ var OpsArith = {
         return total;
       },
       iter: function() {
-        return MergeIterator(channels.map(function(c) { return c.iter(); }));
+        return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
   },
