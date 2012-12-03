@@ -11,26 +11,19 @@ function setupDemo(fist) {
   ]));
 }
 
-function dynamicResize() {
-  var contentSize = $('content').getSize();
-  $('svg_execute_wrapper').setStyle('height', contentSize.y - 10);
-}
-
-var resizeTimer;
-var fist;
+var resizeTimer = null,
+    fist = null;
+    fistUI = null;
 $(window).addEvent('domready', function() {
-  dynamicResize();
   fist = new Fist();
-  var UI = new FistUI(fist, $('container'));
+  fistUI = new FistUI(fist, $('container'));
+  fistUI.dynamicResize();
   LibFist.import(fist);
-  LibFistUI.import(UI);
+  LibFistUI.import(fistUI);
   setupDemo(fist);
 }).addEvent('resize', function() {
-  // TODO: re-enable this once viewExecuteSVG can be dynamically resized
-  /*
   window.clearTimeout(resizeTimer);
   resizeTimer = (function() {
-    dynamicResize();
+    fistUI.dynamicResize();
   }).delay(50);
-  */
 });

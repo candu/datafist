@@ -661,6 +661,7 @@ var FistUI = new Class({
 
     // set up viewer
     this._viewer = this._root.getElement('#viewer');
+    this._content = this._root.getElement('#content');
     this._svgExecuteWrapper = this._root.getElement('#svg_execute_wrapper');
     this._viewExecuteSVG = d3.select(this._svgExecuteWrapper)
       .append('svg:svg')
@@ -747,5 +748,16 @@ var FistUI = new Class({
   importView: function(name, view) {
     console.log('importing view ' + name);
     this._viewTable[name] = view;
+  },
+  dynamicResize: function() {
+    var contentSize = this._content.getSize();
+    this._svgExecuteWrapper.setStyle('height', contentSize.y - 10);
+    this._viewExecuteSVG
+      .attr('height', this._svgExecuteWrapper.getHeight() - 2);
+    try {
+      this._fist.execute(this._repl.get('text'));
+    } catch (e) {
+      console.log(e);
+    }
   }
 });
