@@ -337,6 +337,69 @@ var HistogramView = {
       .attr('y', 8)
       .attr('text-anchor', 'end')
       .text(_caption(sexps[0]));
+
+    // value-filtering hit area
+    // TODO: merge this with time-filtering code from ChannelView
+    this._selectionStart = null;
+    var dragBehavior = d3.behavior.drag()
+      .on('dragstart', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = d3.event.sourceEvent.pageX - dragPos.x;
+        this._selectionStart = x;
+        this._dragSelectionArea
+          .attr('class', 'histogram selection-area')
+          .attr('x', this._selectionStart)
+          .attr('y', 0)
+          .attr('width', 0)
+          .attr('height', histH);
+      }.bind(this))
+      .on('drag', function(d) {
+        var dragPos = $d3(this._dragGroup).getPosition(),
+            x = d3.event.sourceEvent.pageX - dragPos.x;
+        x = Math.max(0, Math.min(x, histW));
+        this._dragSelectionArea
+          .attr('class', 'histogram selection-area')
+          .attr('x', Math.min(x, this._selectionStart))
+          .attr('y', 0)
+          .attr('width', Math.abs(x - this._selectionStart))
+          .attr('height', histH);
+      }.bind(this));
+
+    this._dragGroup = view.append('svg:g')
+      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
+    this._dragHitArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'histogram hit-area')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', histW)
+      .attr('height', histH)
+      .call(dragBehavior);
+    this._dragSelectionArea = this._dragGroup.append('svg:rect')
+      .attr('class', 'hidden')
+      .on('click', function(d) {
+        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
+            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
+            x = [+(scaleX.invert(x1)), +(scaleX.invert(x2))];
+        var filteredSexp = sexps.map(function(sexp) {
+          if (SExp.isAtom(sexp)) {
+            return [['value-between', String(x[0]), String(x[1])], sexp];
+          }
+          var sexpClone = Array.clone(sexp);
+          while (SExp.isList(sexpClone) &&
+                 SExp.isList(sexpClone[0]) &&
+                 sexpClone[0][0] == 'value-between') {
+            var w = [parseFloat(sexpClone[0][1]), parseFloat(sexpClone[0][2])];
+            x = Interval.intersect(x, w);
+            if (x === null) {
+              return [];
+            }
+            sexpClone = sexpClone[1];
+          }
+          return [['value-between', String(x[0]), String(x[1])], sexpClone];
+        }.bind(this));
+        filteredSexp.unshift('view-histogram');
+        $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
+      }.bind(this));
   }
 };
 

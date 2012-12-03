@@ -260,7 +260,99 @@ var OpsChannel = {
   }
 };
 
-var OpsFilterComparison = {};
+var OpsFilterComparison = {
+  __exports: [
+    ['lt', '<'],
+    ['lteq', '<='],
+    ['eq', '='],
+    ['neq', '!='],
+    ['gteq', '>='],
+    ['gt', '>'],
+    ['valueBetween', 'value-between']
+  ],
+  lt: function(args) {
+    argCheck('<', args, 'number');
+    return function(subargs) {
+      argCheck('<-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        return _c.at(t) < _bound;
+      });
+    }
+  },
+  lteq: function(args) {
+    argCheck('<=', args, 'number');
+    return function(subargs) {
+      argCheck('<=-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        return _c.at(t) <= _bound;
+      });
+    }
+  },
+  eq: function(args) {
+    argCheck('=', args, 'any');
+    return function(subargs) {
+      argCheck('=-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        // TODO: this won't work properly for dates or other objects
+        return _c.at(t) === _bound;
+      });
+    }
+  },
+  neq: function(args) {
+    argCheck('!=', args, 'any');
+    return function(subargs) {
+      argCheck('!=-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        // TODO: this won't work properly for dates or other objects
+        return _c.at(t) !== _bound;
+      });
+    }
+  },
+  gteq: function(args) {
+    argCheck('>=', args, 'number');
+    return function(subargs) {
+      argCheck('>=-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        return _c.at(t) >= _bound;
+      });
+    }
+  },
+  gt: function(args) {
+    argCheck('>=', args, 'number');
+    return function(subargs) {
+      argCheck('>=-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _bound = args[0];
+      return _filterOp(_c, function(t) {
+        return _c.at(t) >= _bound;
+      });
+    }
+  },
+  valueBetween: function(args) {
+    argCheck('value-between', args, '(+ number number)');
+    return function(subargs) {
+      argCheck('value-between-fn', subargs, 'channel');
+      var _c = subargs[0],
+          _min = args[0],
+          _max = args[1];
+      return _filterOp(_c, function(t) {
+        var x = _c.at(t);
+        return x >= _min && x < _max;
+      });
+    }
+
+  }
+};
 
 var OpsFilterTime = {
   since: function(args) {

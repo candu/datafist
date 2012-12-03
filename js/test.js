@@ -367,6 +367,65 @@ QUnit.test('OpsChannel', function() {
   throws(function() { return it2.next(); }, StopIteration);
 });
 
+QUnit.test('OpsFilterComparison', function() {
+  // see http://en.wikipedia.org/wiki/Normal_distribution
+  var FOUR_NINES_SIG = 3.89,
+      TWO_DEV_PROB = 0.954499736104;
+
+  function checkInequality(filter, p) {
+    var c = fist.execute(
+      '(' + filter + ' ((gen-regular 0 1000 1000) (gaussian 3 1)))'
+    );
+    var found = 0,
+        N = 1000,
+        it = c.iter();
+    while (true) {
+      try {
+        var x = it.next();
+        if (Math.random < 0.01) console.log(x);
+        found++;
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    // estimate this as a binomial process
+    var error = Math.abs(p * N - found),
+        limit = FOUR_NINES_SIG * Math.sqrt(N * p * (1 - p));
+    ok(error < limit);
+  }
+
+  checkInequality('(< 1)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(<= 1)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(>= 5)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(> 5)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(value-between 1 5)', TWO_DEV_PROB);
+
+  var c = fist.execute(
+    '((= 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+  );
+  for (var t = 0; t < 10; t++) {
+    if (t % 2 == 0) {
+      equal(c.at(t), 0);
+    } else {
+      equal(c.at(t), 1);
+    }
+  }
+
+  var c = fist.execute(
+    '((!= 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+  );
+  for (var t = 0; t < 10; t++) {
+    if (t % 2 == 0) {
+      equal(c.at(t), 2);
+    } else {
+      equal(c.at(t), 0);
+    }
+  }
+});
+
 QUnit.test('OpsFilterTime', function() {
   // since
   var c = fist.execute(
