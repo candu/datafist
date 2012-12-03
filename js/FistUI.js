@@ -465,19 +465,10 @@ var ViewGraph = new Class({
             if (name === null) {
               return;
             }
-            var type = this._fist.getType(name),
-                svgPosition = $d3(this._svg).getPosition(),
-                textX = menuEvt.page.x - svgPosition.x,
-                textY = menuEvt.page.y - svgPosition.y,
-                blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
-            this._state.addNode(
-              name,
-              type,
-              blockDimensions.x,
-              blockDimensions.y,
-              blockDimensions.w,
-              blockDimensions.h
-            );
+            var svgPosition = $d3(this._svg).getPosition(),
+                x = menuEvt.page.x - svgPosition.x,
+                y = menuEvt.page.y - svgPosition.y;
+            this.addNode(name, x, y);
             break;
           case 'edit':
             var targetNode = this._parentNode(menuEvt.target);
