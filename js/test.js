@@ -164,6 +164,27 @@ QUnit.test('Heap', function() {
   }
 });
 
+QUnit.test('Region', function() {
+  var r = Region([[1, 1], [-1, 1], [-1, -1], [1, -1]]);
+  ok(r.contains([0, 0]));
+  var foundOutside = false;
+  for (var i = 0; i < 1000; i++) {
+    var p = [Random.uniform(-1, 1), Random.uniform(-1, 1)];
+    if (!r.contains(p)) {
+      foundOutside = true;
+      break;
+    }
+  }
+  ok(!foundOutside);
+  ok(!r.contains([-3, 4]));
+  ok(!r.contains([-1 - 1e-12, -1 - 1e-12]));
+  ok(!r.contains([-1 - 1e-12, -1 + 1e-12]));
+  ok(!r.contains([-1 + 1e-12, -1 - 1e-12]));
+  ok(!r.contains([1 + 1e-12, 1 + 1e-12]));
+  ok(!r.contains([1 + 1e-12, 1 - 1e-12]));
+  ok(!r.contains([1 - 1e-12, 1 + 1e-12]));
+});
+
 QUnit.test('SExp', function() {
   function jsonEqual(a, b) {
     equal(JSON.stringify(a), JSON.stringify(b));
