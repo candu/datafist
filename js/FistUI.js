@@ -691,9 +691,17 @@ var FistUI = new Class({
         return;
       }
       var file = evt.dataTransfer.files[0];
-      DataImporter.importFile(file, function(channels) {
-        console.log(channels);
-      }.bind(this));
+      FileImporter(file)
+        .start(function(file) {
+          console.log('start!');
+        })
+        .progress(function(file, progress) {
+          console.log('progress: ' + progress + '...');
+        })
+        .load(function(file, data) {
+          console.log('load!');
+        })
+        .import();
     }.bind(this), false);
 
     // set up viewer
