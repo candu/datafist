@@ -1,20 +1,24 @@
 // http://colorschemedesigner.com/#01420ZRw0lXot
 
-@source-text: #36f;
-@source-border: #9af;
-@source-bg: #ace;
+@blue-text: #36f;
+@blue-border: #9af;
+@blue-bg: #ace;
 
-@source-text-hover: #00f;
-@source-border-hover: #68f;
-@source-bg-hover: #79e;
+@yellow-text: #963;
+@yellow-border: #dc4;
+@yellow-bg: #fe7;
 
-@filter-text: #963;
-@filter-border: #dc4;
-@filter-bg: #fe7;
+@green-text: #6b3;
+@green-border: #ae9;
+@green-bg: #cea;
 
-@filter-text-hover: #c90;
-@filter-border-hover: #ed2;
-@filter-bg-hover: #ff2;
+@red-text: #f30;
+@red-border: #fa7;
+@red-bg: #fc9;
+
+@grey-text: #888;
+@grey-border: #ccc;
+@grey-bg: #ddd;
 
 html, body {
   font-family: 'Ubuntu', sans-serif;
@@ -145,20 +149,41 @@ tr, td {
   }
   rect.block {
     &.function {
-      fill: @filter-bg;
-      stroke: @filter-border;
+      fill: @yellow-bg;
+      stroke: @yellow-border;
     }
     &.object {
-      fill: @source-bg;
-      stroke: @source-border;
+      fill: @blue-bg;
+      stroke: @blue-border;
+    }
+    &.number {
+      fill: @green-bg;
+      stroke: @green-border;
+    }
+    &.string {
+      fill: @red-bg;
+      stroke: @red-border;
+    }
+    &.null {
+      fill: @grey-bg;
+      stroke: @grey-border;
     }
   }
   text.block {
     &.function {
-      fill: @filter-text;
+      fill: @yellow-text;
     }
     &.object {
-      fill: @source-text;
+      fill: @blue-text;
+    }
+    &.number {
+      fill: @green-text;
+    }
+    &.string {
+      fill: @red-text;
+    }
+    &.null {
+      fill: @grey-text;
     }
   }
   line.edge {
@@ -187,14 +212,14 @@ div.block {
   margin: 2px;
   // TODO: better typing for blocks
   &.function {
-    background-color: @filter-bg;
-    border: 1px solid @filter-border;
-    color: @filter-text;
+    background-color: @yellow-bg;
+    border: 1px solid @yellow-border;
+    color: @yellow-text;
   }
   &.object {
-    background-color: @source-bg;
-    border: 1px solid @source-border;
-    color: @source-text;
+    background-color: @blue-bg;
+    border: 1px solid @blue-border;
+    color: @blue-text;
   }
   &.dragtarget {
     opacity: 0.6;
