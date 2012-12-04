@@ -689,6 +689,7 @@ var FistUI = new Class({
     this._svgGraphWrapper.addEventListener('dragover', function(evt) {
       evt.preventDefault();
       evt.dataTransfer.dropEffect = 'move';
+      this.addClass('droptarget');
       return false;
     }, false);
     this._svgGraphWrapper.addEventListener('dragleave', function(evt) {
