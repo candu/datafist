@@ -173,6 +173,15 @@ var SparklineView = {
           .attr('x2', channelW)
           .attr('y2', 0);
       }
+      g.selectAll('circle')
+        .data(cds[i])
+        .enter().append('svg:circle')
+          .attr('class', 'channel')
+          .attr('cx', function(d) { return ct(d.t); })
+          .attr('cy', function(d) { return cxs[i](d.x); })
+          .attr('fill', d3.rgb(cc(i)).brighter(0.5))
+          .attr('stroke', d3.rgb(cc(i)).darker(0.5))
+          .attr('r', 4);
       g.append('svg:text')
         .attr('class', 'channel caption')
         .attr('x', channelW - 8)
