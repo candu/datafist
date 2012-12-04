@@ -462,7 +462,7 @@ var ViewGraph = new Class({
         switch (menuItemEvt.target.id) {
           case 'add':
             var name = window.prompt('enter node name:');
-            if (name === null) {
+            if (name === null || name.length === 0) {
               return;
             }
             var svgPosition = $d3(this._svg).getPosition(),
@@ -473,7 +473,9 @@ var ViewGraph = new Class({
           case 'edit':
             var targetNode = this._parentNode(menuEvt.target);
             var name = window.prompt('edit node name:', targetNode.name);
-            if (name === null || name === targetNode.name) {
+            if (name === null ||
+                name.length === 0 ||
+                name === targetNode.name) {
               return;
             }
             var type = this._fist.getType(name),
@@ -572,7 +574,9 @@ var ViewGraph = new Class({
   },
   _getTextSize: function(name) {
     this._tempText.text(name);
-    return $d3(this._tempText).getSize();
+    var textSize = $d3(this._tempText).getSize();
+    textSize.x = Math.max(50, textSize.x);
+    return textSize;
   },
   _getBlockDimensions: function(x, y, name, padding) {
     var textSize = this._getTextSize(name);
