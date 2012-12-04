@@ -409,6 +409,9 @@ var HistogramView = {
           'view-histogram',
           [['value-between', _format(x[0]), _format(x[1])], sexpX]
         ];
+        if (applyBuckets) {
+          filteredSexp.push(String(bucketing));
+        }
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
   }
