@@ -14,6 +14,7 @@ function setupDemo(fist) {
 var resizeTimer = null,
     fist = null;
     fistUI = null;
+    loadStart = +(new Date());
 $(window).addEvent('domready', function() {
   fist = new Fist();
   fistUI = new FistUI(fist, $('container'));
@@ -21,6 +22,7 @@ $(window).addEvent('domready', function() {
   LibFist.import(fist);
   LibFistUI.import(fistUI);
   setupDemo(fist);
+  fistUI.loaded(loadStart);
 }).addEvent('resize', function() {
   window.clearTimeout(resizeTimer);
   resizeTimer = (function() {

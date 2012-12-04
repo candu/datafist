@@ -32,17 +32,21 @@ function FileImporter(file) {
       }
       var reader = new FileReader();
       reader.onloadstart = function(evt) {
+        var total = null;
+        if (evt.lengthComputable) {
+          total = evt.total;
+        }
         if (_startCallback !== null) {
-          _startCallback(file);
+          _startCallback(file, total);
         }
       };
       reader.onprogress = function(evt) {
-        var progress = null;
+        var loaded = null;
         if (evt.lengthComputable) {
-          progress = evt.loaded / evt.total;
+          loaded = evt.loaded;
         }
         if (_progressCallback !== null) {
-          _progressCallback(file, progress);
+          _progressCallback(file, loaded);
         }
       };
       reader.onload = function(evt) {

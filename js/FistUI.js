@@ -649,9 +649,15 @@ var FistUI = new Class({
       this._repl.set('text', this._viewGraphState.toFist());
       console.log(this._repl.get('text'));
       try {
+        this._statusWrapper.set('class', 'working');
+        this._messageBox.set('text', 'running view graph...');
         this._fist.execute(this._repl.get('text'));
+        this._statusWrapper.set('class', 'ok');
+        this._messageBox.set('text', 'ran view graph successfully.');
       } catch (e) {
         console.log(e);
+        this._statusWrapper.set('class', 'not-ok');
+        this._messageBox.set('text', e.toString());
       }
     }.bind(this));
 
@@ -659,6 +665,13 @@ var FistUI = new Class({
     this._root = root;
 
     this._dragBlock = null;
+
+    // set up status area
+    this._statusWrapper = this._root.getElement('#status_wrapper');
+    this._messageBox = this._root.getElement('#message');
+    this._importBox = this._root.getElement('#import');
+    this._filenameBox = this._root.getElement('#filename');
+    this._progressBar = this._root.getElement('#progress');
 
     // set up palette
     this._palette = this._root.getElement('#palette');
@@ -691,17 +704,33 @@ var FistUI = new Class({
         return;
       }
       this._palette.removeClass('droptarget');
-      FileImporter(evt.dataTransfer.files[0])
-        .start(function(file) {
-          console.log('start!');
-        })
-        .progress(function(file, progress) {
-          console.log('progress: ' + progress + '...');
-        })
-        .load(function(file, data) {
-          console.log('load!');
-        })
-        .import();
+      try {
+        FileImporter(evt.dataTransfer.files[0])
+          .start(function(file, total) {
+            this._statusWrapper.set('class', 'working');
+            this._messageBox.set('text', 'importing data...');
+            this._filenameBox.set('text', file.name);
+            this._progressBar.set('value', 0);
+            this._progressBar.set('max', total);
+            this._importBox.removeClass('hidden');
+          }.bind(this))
+          .progress(function(file, loaded) {
+            this._progressBar.set('value', loaded);
+          }.bind(this))
+          .load(function(file, data) {
+            console.log(file);
+            this._statusWrapper.set('class', 'ok');
+            this._messageBox.set('text', 'import finished.');
+          }.bind(this))
+          .import();
+      } catch (e) {
+        console.log(e);
+        if (!(e instanceof DataImportError)) {
+          throw e;
+        }
+        this._statusWrapper.set('class', 'not-ok');
+        this._messageBox.set('text', e.toString());
+      }
     }.bind(this), false);
 
     // set up viewer
@@ -819,5 +848,10 @@ var FistUI = new Class({
     } catch (e) {
       console.log(e);
     }
+  },
+  loaded: function(loadStart) {
+    var loadTime = +(new Date()) - loadStart;
+    this._statusWrapper.set('class', 'ok');
+    this._messageBox.set('text', 'fist v0.1: loaded in ' + loadTime + ' ms');
   }
 });
