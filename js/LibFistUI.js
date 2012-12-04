@@ -330,6 +330,7 @@ var HistogramView = {
     var g = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
     if (bucketing === null) {
+      var opacity = Math.max(0.2, 1 / Math.log(Math.max(2, data.length)));
       g.selectAll('line')
         .data(hist)
         .enter().append('svg:line')
@@ -337,7 +338,7 @@ var HistogramView = {
           .attr('y1', function(d) { return scaleFreq(d.freq); })
           .attr('x2', function(d) { return scaleX(d.x); })
           .attr('y2', histH)
-          .attr('opacity', 0.3)
+          .attr('opacity', opacity)
           .attr('stroke', cc(0))
           .attr('stroke-width', 2);
     } else {
