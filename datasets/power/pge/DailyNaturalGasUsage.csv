@@ -1,7 +1,3 @@
-Name,ROBERT DAHL
-Address,"2374 EUNICE ST, BERKELEY, CA 94708"
-Account Number,9455184194
-
 TYPE,DATE,USAGE,UNITS,COST,NOTES
 Natural gas usage,2012-10-31,1.02,therms,$0.97,
 Natural gas usage,2012-11-01,2.04,therms,$2.05,

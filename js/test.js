@@ -623,6 +623,194 @@ QUnit.test('GensChannel', function() {
   ok(error < limit);
 });
 
+QUnit.test('DataLoader', function() {
+  function jsonEqual(a, b) {
+    equal(JSON.stringify(a), JSON.stringify(b));
+  }
+
+  // empty data
+  var data = 't,x';
+  jsonEqual(DataLoader.load(data), {});
+
+  // invalid data
+  var data = '';
+  throws(function() { DataLoader.load(data); }, DataImportError);
+
+  // missing data
+  var data = 't,a,b\n1986-07-31,42,1729\n1986-08-01,,6\n1986-08-02,73,';
+  jsonEqual(DataLoader.load(data), {
+    'a': [
+      {t: 523177200000, x: 42},
+      {t: 523350000000, x: 73}
+    ],
+    'b': [
+      {t: 523177200000, x: 1729},
+      {t: 523263600000, x: 6}
+    ]
+  });
+
+  // UNIX timestamped data (Epoch seconds)
+  var data = [
+    't,x',
+    '1354650000,3',
+    '1354650060,2',
+    '1354650120,1'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'x': [
+      {t: 1354650000000, x: 3},
+      {t: 1354650060000, x: 2},
+      {t: 1354650120000, x: 1}
+    ]
+  });
+
+  // JS timestamped data (Epoch milliseconds)
+  var data = [
+    't,x',
+    '1354650180000,3',
+    '1354650240000,2',
+    '1354650300000,1'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'x': [
+      {t: 1354650180000, x: 3},
+      {t: 1354650240000, x: 2},
+      {t: 1354650300000, x: 1}
+    ]
+  });
+
+
+  // simple counts
+  var data = [
+    'date,caffeine,sweets,alcohol,supplements',
+    '2012-01-16,0,1,2,0',
+    '2012-01-17,1,2,4,0',
+    '2012-01-18,1,1,4,1'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'caffeine': [
+      {t: 1326700800000, x: 0},
+      {t: 1326787200000, x: 1},
+      {t: 1326873600000, x: 1}
+    ],
+    'sweets': [
+      {t: 1326700800000, x: 1},
+      {t: 1326787200000, x: 2},
+      {t: 1326873600000, x: 1}
+    ],
+    'alcohol': [
+      {t: 1326700800000, x: 2},
+      {t: 1326787200000, x: 4},
+      {t: 1326873600000, x: 4}
+    ],
+    'supplements': [
+      {t: 1326700800000, x: 0},
+      {t: 1326787200000, x: 0},
+      {t: 1326873600000, x: 1}
+    ],
+  });
+
+  // dollar format
+  var data = [
+    'TYPE,DATE,USAGE,UNITS,COST,NOTES',
+    'Natural gas usage,2012-10-31,1.02,therms,$0.97,',
+    'Natural gas usage,2012-11-01,2.04,therms,$2.05,',
+    'Natural gas usage,2012-11-02,1.02,therms,$1.03,'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'USAGE': [
+      {t: 1351666800000, x: 1.02},
+      {t: 1351753200000, x: 2.04},
+      {t: 1351839600000, x: 1.02}
+    ],
+    'COST': [
+      {t: 1351666800000, x: 0.97},
+      {t: 1351753200000, x: 2.05},
+      {t: 1351839600000, x: 1.03}
+    ]
+  });
+
+  // split date/time columns
+  var data = [
+    'TYPE,DATE,START TIME,END TIME,USAGE,UNITS,COST,NOTES',
+    'Electric usage,2012-10-31,00:00,00:59,1.16,kWh,$0.15,',
+    'Electric usage,2012-10-31,01:00,01:59,0.97,kWh,$0.12,',
+    'Electric usage,2012-10-31,02:00,02:59,0.73,kWh,$0.09,',
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'USAGE': [
+      {t: 1351666800000, x: 1.16},
+      {t: 1351670400000, x: 0.97},
+      {t: 1351674000000, x: 0.73}
+    ],
+    'COST': [
+      {t: 1351666800000, x: 0.15},
+      {t: 1351670400000, x: 0.12},
+      {t: 1351674000000, x: 0.09}
+    ]
+  });
+
+  // reverse chronological order
+  var data = [
+    'Date,Open,Close,Volume',
+    '2012-11-30,27.26,28.00,126947100',
+    '2012-11-29,26.50,27.32,88759700',
+    '2012-11-28,25.94,26.36,49205600'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'Open': [
+      {t: 1354089600000, x: 25.94},
+      {t: 1354176000000, x: 26.50},
+      {t: 1354262400000, x: 27.26}
+    ],
+    'Close': [
+      {t: 1354089600000, x: 26.36},
+      {t: 1354176000000, x: 27.32},
+      {t: 1354262400000, x: 28.00}
+    ],
+    'Volume': [
+      {t: 1354089600000, x: 49205600},
+      {t: 1354176000000, x: 88759700},
+      {t: 1354262400000, x: 126947100}
+    ]
+  });
+
+  // different date format, thousands separators
+  var data = [
+    'Date,Close,Volume',
+    '"Dec 3, 2012","1,409.46","517,130,581"',
+    '"Nov 30, 2012","1,416.18","836,942,757"',
+    '"Nov 29, 2012","1,415.95","509,860,077"'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'Close': [
+      {t: 1354176000000, x: 1415.95},
+      {t: 1354262400000, x: 1416.18},
+      {t: 1354521600000, x: 1409.46}
+    ],
+    'Volume': [
+      {t: 1354176000000, x: 509860077},
+      {t: 1354262400000, x: 836942757},
+      {t: 1354521600000, x: 517130581}
+    ]
+  });
+
+  // DMY format (new Date() won't parse this!)
+  var data = [
+    'Time,Close',
+    '03.12.2002 16:00:00.000,1.57100',
+    '04.12.2002 16:00:00.000,1.57560',
+    '05.12.2002 16:00:00.000,1.57300'
+  ].join('\n');
+  jsonEqual(DataLoader.load(data), {
+    'Close': [
+      {t: 1038960000000, x: 1.57100},
+      {t: 1039046400000, x: 1.57560},
+      {t: 1039132800000, x: 1.57300}
+    ]
+  });
+});
+
 QUnit.test('Fist', function() {
   // TODO: fix this when I actually implement proper typing :)
 

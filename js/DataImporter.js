@@ -8,6 +8,15 @@ var DataImportError = new Class({
   }
 });
 
+var DataLoader = {
+  load: function(data) {
+    rows = d3.csv.parse(data);
+    // TODO: timestamp detection
+    // TODO: channel type marshalling
+    return rows;
+  }
+};
+
 function FileImporter(file) {
   var _startCallback = null,
       _progressCallback = null,
