@@ -252,12 +252,8 @@ var HistogramView = {
 
     var data = [],
         it = channels[0].iter(),
-        bucketing = _getBucketing(sexps[0]),
-        applyBuckets = false;
-    if (bucketing === null && channels[1] !== undefined) {
-      bucketing = channels[1];
-      applyBuckets = true;
-    }
+        bucketing = channels[1] || _getBucketing(sexps[0]),
+        applyBuckets = channels[1] !== undefined;
     while (true) {
       try {
         var t = it.next(),
