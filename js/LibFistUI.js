@@ -250,12 +250,21 @@ var HistogramView = {
         axisH = 20,
         axisW = 60;
 
-    var data = [];
-    var it = channels[0].iter();
+    var data = [],
+        it = channels[0].iter(),
+        bucketing = _getBucketing(sexps[0]),
+        applyBuckets = false;
+    if (bucketing === null && channels[1] !== undefined) {
+      bucketing = channels[1];
+      applyBuckets = true;
+    }
     while (true) {
       try {
         var t = it.next(),
             x = channels[0].at(t);
+        if (applyBuckets) {
+          x = Math.floor(x / bucketing) * bucketing;
+        }
         data.push(x);
       } catch (e) {
         if (!(e instanceof StopIteration)) {
@@ -286,8 +295,7 @@ var HistogramView = {
     }
 
     var histH = h - 2 * axisH,
-        histW = w - 2 * axisW,
-        bucketing = _getBucketing(sexps[0]);
+        histW = w - 2 * axisW;
     if (bucketing !== null) {
       var buckets = Math.round((xmax - xmin) / bucketing),
           bucketW = histW / (buckets + 1);

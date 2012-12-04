@@ -494,7 +494,7 @@ var View = {
     this._viewInvoked('sparkline', args, sexps);
   },
   viewHistogram: function(args, sexps) {
-    argCheck('view-histogram', args, 'channel');
+    argCheck('view-histogram', args, '(+ channel (? number))');
     this._viewInvoked('histogram', args, sexps);
   },
   viewRegression: function(args, sexps) {
