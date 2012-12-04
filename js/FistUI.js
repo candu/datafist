@@ -690,8 +690,8 @@ var FistUI = new Class({
       if (!evt.isFileDrag()) {
         return;
       }
-      var file = evt.dataTransfer.files[0];
-      FileImporter(file)
+      this._palette.removeClass('droptarget');
+      FileImporter(evt.dataTransfer.files[0])
         .start(function(file) {
           console.log('start!');
         })
