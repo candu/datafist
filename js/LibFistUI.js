@@ -23,14 +23,15 @@ function _getBucketing(sexp) {
 }
 
 function _format(x) {
-  var e = d3.format('.8e')(x).replace(/0+e/, 'e').replace('.e', 'e');
+  var e = d3.format('.8e')(x).replace(/0+e/, 'e').replace('.e', 'e'),
       g = d3.format('.8g')(x);
   if (g.indexOf('.') !== -1) {
     g = g.replace(/0+$/, '').replace(/\.$/, '');
   }
   if (e.length < g.length) {
-    return e;
+    g = e;
   }
+  g = g.replace('\u2212', '-');
   return g;
 }
 
@@ -78,12 +79,12 @@ var SparklineView = {
       return d3.min(cd, function(a) {
         return a.t;
       });
-    }));
+    })) || 0;
     var ctMax = d3.max(cds.map(function(cd) {
       return d3.max(cd, function(a) {
         return a.t;
       });
-    }));
+    })) || 0;
     if (ctMax === ctMin) {
       ctMin--;
       ctMax++;
@@ -113,10 +114,10 @@ var SparklineView = {
     var cxs = cds.map(function(cd, i) {
       var cxMin = d3.min(cd, function(a) {
         return a.x;
-      });
+      }) || 0;
       var cxMax = d3.max(cd, function(a) {
         return a.x;
-      });
+      }) || 0;
       if (cxMax === cxMin) {
         cxMin--;
         cxMax++;
@@ -267,8 +268,8 @@ var HistogramView = {
     }
 
     var xs = hist.map(function(p) { return p.x; }),
-        xmin = d3.min(xs),
-        xmax = d3.max(xs),
+        xmin = d3.min(xs) || 0,
+        xmax = d3.max(xs) || 0,
         freqs = hist.map(function(p) { return p.freq; });
     if (xmin === xmax) {
       xmin--;
@@ -291,7 +292,7 @@ var HistogramView = {
       .domain([xmin, xmax])
       .range([0, histW]);
     var scaleFreq = d3.scale.linear()
-      .domain([0, d3.max(freqs)])
+      .domain([0, d3.max(freqs) || 1])
       .range([histH, 0]);
 
     var cc = d3.scale.category10();
@@ -425,11 +426,11 @@ var RegressionView = {
 
     // get bounds
     var xs = data.map(function(p) { return p.x; }),
-        xmin = d3.min(xs),
-        xmax = d3.max(xs),
+        xmin = d3.min(xs) || 0,
+        xmax = d3.max(xs) || 0,
         ys = data.map(function(p) { return p.y; }),
-        ymin = d3.min(ys),
-        ymax = d3.max(ys);
+        ymin = d3.min(ys) || 0,
+        ymax = d3.max(ys) || 0;
     if (xmin === xmax) {
       xmin--;
       xmax++;
