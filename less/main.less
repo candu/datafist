@@ -123,6 +123,10 @@ tr, td {
   width: (@toolbox-width - (2 * @palette-border + 1.5 * @palette-margin));
   height: (@footer-height - (2 * @palette-border + 1.5 * @palette-margin));
   overflow-y: auto;
+  &.droptarget {
+    border: 1px solid #6f3;
+    background-color: #dfc;
+  }
 }
 
 #interpreter {

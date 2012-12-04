@@ -662,6 +662,39 @@ var FistUI = new Class({
 
     // set up palette
     this._palette = this._root.getElement('#palette');
+    this._palette.addEventListener('dragenter', function(evt) {
+      evt.stop();
+      if (!evt.isFileDrag()) {
+        return;
+      }
+      this.addClass('droptarget');
+    }, false);
+    this._palette.addEventListener('dragover', function(evt) {
+      evt.stop();
+      if (!evt.isFileDrag()) {
+        return;
+      }
+      evt.dataTransfer.dropEffect = 'copy';
+      this.addClass('droptarget');
+      return false;
+    }, false);
+    this._palette.addEventListener('dragleave', function(evt) {
+      evt.stop();
+      if (!evt.isFileDrag()) {
+        return;
+      }
+      this.removeClass('droptarget');
+    }, false);
+    this._palette.addEventListener('drop', function(evt) {
+      evt.stop();
+      if (!evt.isFileDrag()) {
+        return;
+      }
+      var file = evt.dataTransfer.files[0];
+      DataImporter.importFile(file, function(channels) {
+        console.log(channels);
+      }.bind(this));
+    }.bind(this), false);
 
     // set up viewer
     this._viewer = this._root.getElement('#viewer');
@@ -684,19 +717,33 @@ var FistUI = new Class({
       .attr('width', this._svgGraphWrapper.getWidth() - 2)
       .attr('height', this._svgGraphWrapper.getHeight() - 2);
     this._svgGraphWrapper.addEventListener('dragenter', function(evt) {
+      evt.stop();
+      if (evt.isFileDrag()) {
+        return;
+      }
       this.addClass('droptarget');
     }, false);
     this._svgGraphWrapper.addEventListener('dragover', function(evt) {
-      evt.preventDefault();
+      evt.stop();
+      if (evt.isFileDrag()) {
+        return;
+      }
       evt.dataTransfer.dropEffect = 'move';
       this.addClass('droptarget');
       return false;
     }, false);
     this._svgGraphWrapper.addEventListener('dragleave', function(evt) {
+      evt.stop();
+      if (evt.isFileDrag()) {
+        return;
+      }
       this.removeClass('droptarget');
     }, false);
     this._svgGraphWrapper.addEventListener('drop', function(evt) {
-      evt.stopPropagation();
+      evt.stop();
+      if (evt.isFileDrag()) {
+        return;
+      }
       var json = JSON.parse(evt.dataTransfer.getData('application/json'));
       var svgPosition = this._svgGraphWrapper.getPosition(),
           x = evt.pageX - svgPosition.x,

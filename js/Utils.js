@@ -5,6 +5,19 @@ Object.isEmpty = function(obj) {
   return true;
 }
 
+Event.prototype.stop = function() {
+  this.preventDefault();
+  this.stopPropagation();
+};
+
+Event.prototype.isFileDrag = function() {
+  return (
+    this.dataTransfer !== undefined &&
+    this.dataTransfer.items.length > 0 &&
+    this.dataTransfer.items[0].kind === 'file'
+  );
+};
+
 /**
  * Converts the result of a call to d3.select() into a mootools $() object.
  * (d3 plays nicely with mootools, jQuery, etc. objects already.)
