@@ -623,6 +623,31 @@ QUnit.test('GensChannel', function() {
   ok(error < limit);
 });
 
+QUnit.test('Fist', function() {
+  // TODO: fix this when I actually implement proper typing :)
+
+  // atoms
+  equal(fist.getType('42'), 'number');
+  equal(fist.getType('3.14'), 'number');
+  equal(fist.getType('6.18e-1'), 'number');
+  equal(fist.getType('"foo"'), 'string');
+
+  // invalid atoms
+  equal(fist.getType('blargh'), null);
+
+  // views
+  equal(fist.getType('view-sparkline'), 'function');
+
+  // channels
+  equal(fist.getType('((gen-regular 0 10 10) (constant 1))'), 'object');
+
+  // filters
+  equal(fist.getType('>'), 'function');
+  equal(fist.getType('(> 9000)'), 'function');
+  equal(fist.getType('(since 0)'), 'function');
+  equal(fist.getType('(between 6 101)'), 'function');
+});
+
 QUnit.test('ViewGraphState', function() {
   var g = new ViewGraphState();
 
