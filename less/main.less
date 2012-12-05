@@ -209,17 +209,13 @@ tr, td {
       fill: @blue-bg;
       stroke: @blue-border;
     }
-    &.number {
+    &.number, &.string {
       fill: @green-bg;
       stroke: @green-border;
     }
-    &.string {
+    &.null {
       fill: @red-bg;
       stroke: @red-border;
-    }
-    &.null {
-      fill: @grey-bg;
-      stroke: @grey-border;
     }
   }
   text.block {
@@ -229,14 +225,11 @@ tr, td {
     &.channel {
       fill: @blue-text;
     }
-    &.number {
+    &.number, &.string {
       fill: @green-text;
     }
-    &.string {
-      fill: @red-text;
-    }
     &.null {
-      fill: @grey-text;
+      fill: @red-text;
     }
   }
   line.edge {

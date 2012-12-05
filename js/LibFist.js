@@ -289,19 +289,22 @@ var OpsChannel = {
   ],
   __fullName: 'Channel Operators',
   timeShift: new FistFunction(function(args) {
-    argCheck('time-shift', '(+ channel number)');
+    var _dt = args[1];
+    if (typeOf(_dt) === 'string') {
+      _dt = TimeDelta.parse(_dt);
+    }
     return {
       at: function(t) {
-        return args[0].at(t - args[1]);
+        return args[0].at(t - _dt);
       },
       iter: function() {
         var _iter = args[0].iter();
         return {
           next: function() {
-            return _iter.next() + args[1];
+            return _iter.next() + _dt;
           },
           peek: function() {
-            return _iter.peek() + args[1];
+            return _iter.peek() + _dt;
           }
         };
       }
