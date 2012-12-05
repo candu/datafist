@@ -71,6 +71,7 @@ var OpsArith = {
     ['mod', '%'],
     ['bucket', '//*']
   ],
+  __fullName: 'Arithmetic Operators',
   add: new FistFunction(function(args) {
     var channels = [],
         numberSum = 0;
@@ -191,6 +192,7 @@ var OpsArith = {
 };
 
 var OpsMath = {
+  __fullName: 'Math Operators',
   sqrt: new FistFunction(function(args) {
     argCheck('sqrt', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
@@ -285,6 +287,7 @@ var OpsChannel = {
   __exports: [
     ['timeShift', 'time-shift'],
   ],
+  __fullName: 'Channel Operators',
   timeShift: new FistFunction(function(args) {
     argCheck('time-shift', '(+ channel number)');
     return {
@@ -311,7 +314,7 @@ var OpsChannel = {
     )
 };
 
-var OpsFilterComparison = {
+var OpsFilterValue = {
   __exports: [
     ['lt', '<'],
     ['lteq', '<='],
@@ -321,6 +324,7 @@ var OpsFilterComparison = {
     ['gt', '>'],
     ['valueBetween', 'value-between']
   ],
+  __fullName: 'Value Filters',
   lt: new FistFunction(function(args) {
     argCheck('<', args, 'number');
     return function(subargs) {
@@ -434,6 +438,7 @@ var OpsFilterComparison = {
 };
 
 var OpsFilterTime = {
+  __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
     argCheck('since', args, '(| number date)');
     return function(subargs) {
@@ -487,6 +492,7 @@ var OpsFilterRegion = {};
 var OpsReduce = {};
 
 var GensData = {
+  __fullName: 'Data Generators',
   constant: new FistFunction(function(args) {
     argCheck('constant', args, 'any');
     return function(t) {
@@ -611,6 +617,7 @@ var View = {
     ['viewHistogram', 'view-histogram'],
     ['viewRegression', 'view-regression']
   ],
+  __fullName: 'Views',
   viewSparkline: new FistFunction(function(args, sexps) {
     argCheck('view-sparkline', args, '(* channel)');
     this._viewInvoked('sparkline', args, sexps);
@@ -645,15 +652,15 @@ var LibFist = {
   import: function(fist) {
     fist.importModule(null, OpsArith);
     fist.importModule(null, OpsMath);
-    fist.importModule(null, OpsString);
+    //fist.importModule(null, OpsString);
     fist.importModule(null, OpsChannel);
 
-    fist.importModule(null, OpsFilterComparison);
+    fist.importModule(null, OpsFilterValue);
     fist.importModule(null, OpsFilterTime);
-    fist.importModule(null, OpsFilterLocation);
-    fist.importModule(null, OpsFilterRegion);
+    //fist.importModule(null, OpsFilterLocation);
+    //fist.importModule(null, OpsFilterRegion);
 
-    fist.importModule(null, OpsReduce);
+    //fist.importModule(null, OpsReduce);
 
     fist.importModule(null, GensData);
     fist.importModule(null, GensChannel);
