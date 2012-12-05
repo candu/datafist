@@ -830,14 +830,17 @@ var FistUI = new Class({
     );
 
     // register event listeners for Fist events
-    fist.listen('symbolimport', function(name) {
-      this.onSymbolImport(name);
+    fist.listen('symbolimport', function(name, value, moduleName) {
+      this.onSymbolImport(name, moduleName);
+    }.bind(this));
+    fist.listen('moduleimport', function(moduleName) {
+      this.onModuleImport(moduleName);
     }.bind(this));
     fist.listen('viewinvoked', function(name, channels, sexps) {
       this.onViewInvoked(name, channels, sexps);
     }.bind(this));
   },
-  onSymbolImport: function(name) {
+  onSymbolImport: function(name, moduleName) {
     var type = this._fist.getType(name);
     var block = Element('div.block.' + type, {
       text: name,
@@ -870,7 +873,39 @@ var FistUI = new Class({
       block.removeClass('dragtarget');
       this._svgGraphWrapper.removeClass('droptarget');
     }.bind(this), false);
-    block.inject(this._palette);
+    if (moduleName === undefined) {
+      block.inject(this._palette, 'top');
+      this._palette.scrollTo(0, 0);
+    } else {
+      var moduleGroup = this._palette.getElement(
+        'div.module-group[name=' + moduleName + ']'
+      );
+      moduleGroup.getElement('div.module-contents').adopt(block);
+    }
+  },
+  onModuleImport: function(moduleName) {
+    var moduleGroup = new Element('div.module-group', {
+          name: moduleName
+        }),
+        moduleContents = new Element('div.module-contents.hidden'),
+        moduleHeader = new Element('div.module-name', {
+          text: moduleName + ' \u25b8'
+        });
+    // HACK: keep Views open
+    if (moduleName === 'Views') {
+      moduleHeader.set('text', moduleName + ' \u25be');
+      moduleContents.removeClass('hidden');
+    }
+    moduleHeader.addEvent('click', function(evt) {
+      if (moduleContents.hasClass('hidden')) {
+        this.set('text', moduleName + ' \u25be');
+        moduleContents.removeClass('hidden');
+      } else {
+        this.set('text', moduleName + ' \u25b8');
+        moduleContents.addClass('hidden');
+      }
+    });
+    moduleGroup.adopt(moduleHeader, moduleContents).inject(this._palette);
   },
   onViewInvoked: function(name, channels, sexps) {
     console.log('rendering view ' + name);

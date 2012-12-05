@@ -59,8 +59,11 @@ var Fist = new Class({
     this._symbolTable = {};
     this._dummyElem = new Element('div');
   },
-  _symbolImported: function(name, value) {
-    this._dummyElem.fireEvent('symbolimport', [name, value]);
+  _symbolImported: function(name, value, moduleName) {
+    this._dummyElem.fireEvent('symbolimport', [name, value, moduleName]);
+  },
+  _moduleImported: function(moduleName) {
+    this._dummyElem.fireEvent('moduleimport', [moduleName]);
   },
   _viewInvoked: function(name, channels, sexps) {
     this._dummyElem.fireEvent('viewinvoked', [name, channels, sexps]);
@@ -68,6 +71,7 @@ var Fist = new Class({
   listen: function(type, callback) {
     switch (type) {
       case 'symbolimport':
+      case 'moduleimport':
       case 'viewinvoked':
         this._dummyElem.addEvent(type, callback);
         break;
@@ -129,28 +133,30 @@ var Fist = new Class({
   execute: function(command) {
     return this.evaluate(SExp.parse(command));
   },
-  registerSymbol: function(name, value) {
-    console.log('importing symbol ' + name);
+  registerSymbol: function(name, value, moduleName) {
+    console.log('importing symbol ' + name + ' in module ' + moduleName);
     this._symbolTable[name] = value;
-    this._symbolImported(name);
+    this._symbolImported(name, value, moduleName);
   },
   importData: function(name, data, source) {
     this.registerSymbol(name, new DataChannel(data, source));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...
+    console.log('importing module ' + module.__fullName);
+    this._moduleImported(module.__fullName);
     if (module.__exports !== undefined) {
       console.log('found __exports declaration');
       for (var i = 0; i < module.__exports.length; i++) {
         var def = module.__exports[i];
         var defType = typeOf(def);
         if (defType === 'string') {
-          this.registerSymbol(def, module[def]);
+          this.registerSymbol(def, module[def], module.__fullName);
         } else if (defType === 'array') {
           if (def.length !== 2) {
             throw new Error('expected internal/external name pair');
           }
-          this.registerSymbol(def[1], module[def[0]]);
+          this.registerSymbol(def[1], module[def[0]], module.__fullName);
         } else {
           throw new Error('invalid __exports declaration');
         }
@@ -161,7 +167,7 @@ var Fist = new Class({
         if (def.indexOf('_') === 0) {
           continue;
         }
-        this.registerSymbol(def, module[def]);
+        this.registerSymbol(def, module[def], module.__fullName);
       }
     }
   },

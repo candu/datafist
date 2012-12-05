@@ -539,6 +539,7 @@ var GensChannel = {
     ['genUniform', 'gen-uniform'],
     ['genPoisson', 'gen-poisson']
   ],
+  __fullName: 'Channel Generators',
   genRegular: new FistFunction(function(args) {
     argCheck('gen-regular', args, '(+ number number number)');
     return function(subargs) {
@@ -650,6 +651,8 @@ var Display = {};
 
 var LibFist = {
   import: function(fist) {
+    fist.importModule(null, View);
+
     fist.importModule(null, OpsArith);
     fist.importModule(null, OpsMath);
     //fist.importModule(null, OpsString);
@@ -664,7 +667,5 @@ var LibFist = {
 
     fist.importModule(null, GensData);
     fist.importModule(null, GensChannel);
-
-    fist.importModule(null, View);
   }
 };
