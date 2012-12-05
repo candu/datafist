@@ -319,7 +319,29 @@ var OpsTime = {
     ),
   timeBucketSum: new FistFunction(function(args) {
     var _data = [],
-        _it = args[0].iter();
+        _c = args[0],
+        _it = _c.iter(),
+        _dt = args[1];
+    if (typeOf(_dt) === 'string') {
+      _dt = TimeDelta.parse(_dt);
+    }
+    while (true) {
+      try {
+        var t = _it.next(),
+            x = args[0].at(t);
+        t = Math.floor(t / _dt) * _dt;
+        if (_data.length === 0 || t > _data[_data.length - 1].t) {
+          _data.push({t: t, x: 0});
+        }
+        _data[_data.length - 1].x += x;
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    return new DataChannel(_data);
   }).signature('(-> channel (| number string))', 'channel')
     .describe(
       'With two parameters (c, dt), groups the data points of c into time ' +
@@ -657,7 +679,7 @@ var View = {
     argCheck('view-histogram', args, '(+ channel (? number))');
     this._viewInvoked('histogram', args, sexps);
   }).signature('channel', 'view')
-    .signature('(-> channel number', 'view')
+    .signature('(-> channel number)', 'view')
     .describe(
       'Displays its channel as a histogram. If the second parameter is ' +
       'provided, that is used as the histogram bucket width; otherwise, it ' +
