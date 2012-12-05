@@ -734,6 +734,10 @@ var FistUI = new Class({
               columns.sort();
               this._showImportDialog(file, columns, function(tcols, xcols, prefix) {
                 try {
+                  if (tcols === undefined) {
+                    // user cancelled
+                    throw new DataImportError('import cancelled.');
+                  }
                   this._messageBox.set('text', 'extracting channels...');
                   var channels = ChannelExtractor.extract(tcols, xcols, rows);
                   this._messageBox.set('text', 'importing channels...');
@@ -900,6 +904,10 @@ var FistUI = new Class({
   _showImportDialog: function(file, cols, callback) {
     // TODO: mustache templating here? move to separate ModalDialog handler?
     var modalDialog = $('modal');
+    $('prefix').set('value', '');
+    $('prefix_row').removeClass('warning');
+    $('tcols_row').removeClass('warning');
+    $('xcols_row').removeClass('warning');
     modalDialog.getElement('div.modal-subtitle').set('text', 'from ' + file.name);
     function makeCheckbox(col, name) {
       return new Element('div.checkbox').adopt(
@@ -922,19 +930,41 @@ var FistUI = new Class({
       $('xcols').adopt(makeCheckbox(col, 'xcols'));
     });
     $('modal_ok').removeEvents('click').addEvent('click', function(evt) {
-      modalDialog.removeClass('active');
+      var prefix = $('prefix').value;
+      if (prefix.length === 0) {
+        $('prefix_row').addClass('warning');
+        return false;
+      } else {
+        $('prefix_row').removeClass('warning');
+      }
       var tcols = $$('#tcols input[type=checkbox]').filter(function(c) {
         return c.checked;
       }).map(function(c) {
         return c.get('text');
       });
+      if (tcols.length === 0) {
+        $('tcols_row').addClass('warning');
+        return false;
+      } else {
+        $('tcols_row').removeClass('warning');
+      }
       var xcols = $$('#xcols input[type=checkbox]').filter(function(c) {
         return c.checked;
       }).map(function(c) {
         return c.get('text');
       });
-      var prefix = $('prefix').value;
+      if (xcols.length === 0) {
+        $('xcols_row').addClass('warning');
+        return false;
+      } else {
+        $('xcols_row').removeClass('warning');
+      }
+      modalDialog.removeClass('active');
       callback(tcols, xcols, prefix);
+    });
+    $('modal_cancel').removeEvents('click').addEvent('click', function(evt) {
+      modalDialog.removeClass('active');
+      callback();
     });
     modalDialog.addClass('active');
   }

@@ -28,6 +28,7 @@
     background: -moz-linear-gradient(#fff, #999);
     background: -webkit-linear-gradient(#fff, #999);
     background: -o-linear-gradient(#fff, #999);
+    overflow-y: auto;
     & > .modal-subtitle {
       background: rgba(0, 0, 0, 0.2);
       padding: 4px;
@@ -38,6 +39,9 @@
       padding: 4px;
       & > .form-row {
         width: 100%;
+        &.warning {
+          background: rgba(255, 0, 0, 0.5);
+        }
         & > .form-row-title {
           font-size: 120%;
         }
@@ -49,6 +53,10 @@
         padding: 3px;
         width: 191px;
       }
+      input[type=checkbox] {
+        height: 14px;
+        width: 14px;
+      }
     }
   }
   #prefix {
@@ -57,19 +65,35 @@
     margin: 4px 0 8px 0;
   }
   #modal_ok {
+    cursor: pointer;
     background: #666;
     color: #eee;
     line-height: 25px;
     text-align: center;
     text-decoration: none;
     font-size: 100%;
-    font-weight: bold;
     -moz-box-shadow: 1px 1px 3px #000;
     -webkit-box-shadow: 1px 1px 3px #000;
-    box-shadow: 1px 1px 3px #000; 
+    box-shadow: 1px 1px 3px #000;
     &:hover {
       color: #cea;
       background: #6b3;
+    }
+  }
+  #modal_cancel {
+    cursor: pointer;
+    background: #999;
+    color: #ccc;
+    line-height: 25px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 100%;
+    -moz-box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    box-shadow: 1px 1px 3px #000;
+    &:hover {
+      color: #fc9;
+      background: #f30;
     }
   }
 }

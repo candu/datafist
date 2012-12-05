@@ -34,25 +34,26 @@
         <h2>import data</h2>
         <div class="modal-subtitle">foo</div>
         <div class="modal-content">
-          <div class="form-row">
+          <div id="prefix_row" class="form-row">
             <div class="form-row-title">
               enter a prefix for the channel names
             </div>
             <input id="prefix" placeholder="channel name prefix" name="prefix"></input>
           </div>
-          <div class="form-row">
+          <div id="tcols_row" class="form-row">
             <div class="form-row-title">
               select timestamp columns
             </div>
             <div id="tcols" class="cols-checkboxes"></div>
           </div>
-          <div class="form-row">
+          <div id="xcols_row" class="form-row">
             <div class="form-row-title">
               select value columns
             </div>
             <div id="xcols" class="cols-checkboxes"></div>
           </div>
           <input type="button" id="modal_ok" value="import"></input>
+          <input type="button" id="modal_cancel" value="cancel"></input>
         </div>
       </div>
     </div>
