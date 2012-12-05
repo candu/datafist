@@ -97,10 +97,9 @@ var ChannelExtractor = {
     var hasTime = ts.every(function(t) {
       return t.indexOf(':') !== -1;
     });
-    console.log(hasTime);
     var tds = ts.map(function(t) {
       var d = new Date(t);
-      if (!hasTime) {
+      if (!hasTime && d.getHours() !== 0) {
         var tzOffset = d.getTimezoneOffset() * 60 * 1000;
         return +d + tzOffset;
       }
@@ -117,7 +116,10 @@ var ChannelExtractor = {
     throw new DataImportError('could not get timestamps!');
   },
   _getValue: function(x) {
-    // TODO: deal with more
+    // kill thousands separators
+    x = x.replace(/,/g, '');
+    // kill currency symbols
+    x = x.replace(/[$€£]/, '');
     return parseFloat(x);
   },
   _extractColumn: function(ts, xcol, rows) {
