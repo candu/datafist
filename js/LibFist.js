@@ -458,7 +458,7 @@ var OpsFilterValue = {
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
-        return _c.at(t) >= _bound;
+        return _c.at(t) > _bound;
       });
     }
   }).signature('number', 'function')

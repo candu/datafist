@@ -83,14 +83,20 @@ var ChannelExtractor = {
     x = x.replace(/[$€£]/, '');
     return parseFloat(x);
   },
-  _extractColumn: function(ts, xcol, rows) {
-    var data = [];
+  _extractColumn: function(xcol, rows) {
+    var data = [],
+        lastT = null;
     for (var i = 0; i < rows.length; i++) {
       var x = rows[i][xcol];
       if (x === undefined || x.length === 0) {
         continue;
       }
-      data.push({t: ts[i], x: this._getValue(x)});
+      var t = rows[i]['__t'];
+      if (t <= lastT) {
+        t = lastT + 1;
+      }
+      data.push({t: t, x: this._getValue(x)});
+      lastT = t;
     }
     return data;
   },
@@ -104,9 +110,15 @@ var ChannelExtractor = {
       }).join(' ');
     });
     ts = this._getTimestamps(ts);
+    rows.each(function(row, i) {
+      row['__t'] = ts[i];
+    });
+    rows.sort(function(a, b) {
+      return a['__t'] - b['__t'];
+    });
     var channels = {};
     xcols.each(function(xcol) {
-      channels[xcol] = this._extractColumn(ts, xcol, rows);
+      channels[xcol] = this._extractColumn(xcol, rows);
     }.bind(this));
     return channels;
   }

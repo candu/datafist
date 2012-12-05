@@ -713,6 +713,25 @@ QUnit.test('ChannelExtractor', function() {
     ]
   });
 
+  // duplicate timestamps
+  var data = RowLoader.load([
+    't,x',
+    '1986-07-31,1',
+    '1986-07-31,2',
+    '1986-07-31,3',
+    '1986-08-02,4',
+    '1986-08-02,5',
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract(['t'], ['x'], data), {
+    'x': [
+      {t: 523177200000, x: 1},
+      {t: 523177200001, x: 2},
+      {t: 523177200002, x: 3},
+      {t: 523350000000, x: 4},
+      {t: 523350000001, x: 5}
+    ]
+  });
+
   // UNIX timestamped data (Epoch seconds)
   var data = RowLoader.load([
     't,x',
@@ -742,7 +761,6 @@ QUnit.test('ChannelExtractor', function() {
       {t: 1354650300000, x: 1}
     ]
   });
-
 
   // simple counts
   var data = RowLoader.load([
@@ -823,19 +841,19 @@ QUnit.test('ChannelExtractor', function() {
   ].join('\n'));
   jsonEqual(ChannelExtractor.extract(['Date'], ['Open', 'Close', 'Volume'], data), {
     'Open': [
-      {t: 1354262400000, x: 27.26},
+      {t: 1354089600000, x: 25.94},
       {t: 1354176000000, x: 26.50},
-      {t: 1354089600000, x: 25.94}
+      {t: 1354262400000, x: 27.26}
     ],
     'Close': [
-      {t: 1354262400000, x: 28.00},
+      {t: 1354089600000, x: 26.36},
       {t: 1354176000000, x: 27.32},
-      {t: 1354089600000, x: 26.36}
+      {t: 1354262400000, x: 28.00}
     ],
     'Volume': [
-      {t: 1354262400000, x: 126947100},
+      {t: 1354089600000, x: 49205600},
       {t: 1354176000000, x: 88759700},
-      {t: 1354089600000, x: 49205600}
+      {t: 1354262400000, x: 126947100}
     ]
   });
 
@@ -848,14 +866,14 @@ QUnit.test('ChannelExtractor', function() {
   ].join('\n'));
   jsonEqual(ChannelExtractor.extract(['Date'], ['Close', 'Volume'], data), {
     'Close': [
-      {t: 1354521600000, x: 1409.46},
+      {t: 1354176000000, x: 1415.95},
       {t: 1354262400000, x: 1416.18},
-      {t: 1354176000000, x: 1415.95}
+      {t: 1354521600000, x: 1409.46}
     ],
     'Volume': [
-      {t: 1354521600000, x: 517130581},
+      {t: 1354176000000, x: 509860077},
       {t: 1354262400000, x: 836942757},
-      {t: 1354176000000, x: 509860077}
+      {t: 1354521600000, x: 517130581}
     ]
   });
 
