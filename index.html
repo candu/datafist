@@ -7,6 +7,7 @@
     <link rel="stylesheet/less" type="text/css" href="less/view.less">
     <link rel="stylesheet/less" type="text/css" href="less/contextmenu.less">
     <link rel="stylesheet/less" type="text/css" href="less/tooltip.less">
+    <link rel="stylesheet/less" type="text/css" href="less/modal.less">
     <script src="js/third-party/less.js"></script>
     <script src="js/third-party/mootools.js"></script>
     <script src="js/third-party/mootools.more.js"></script>
@@ -28,11 +29,23 @@
   </head>
   <body>
     <ul id="contextmenu"></ul>
+    <div id="modal" class="modal-dialog">
+      <div>
+        <a href="#close" title="Close" class="close">X</a>
+        <h2>Modal Dialog</h2>
+        <p>
+          This is a sexy CSS3 modal dialog.
+        </p>
+      </div>
+    </div>
     <div id="container">
       <table id="table">
         <tr id="header">
           <td id="banner">
-            <div id="title">datafist</div>
+            <div id="title">
+              <a href="#modal">datafist</a>
+            </div>
+            <!--<div id="title">datafist</div>-->
           </td>
           <td id="status">
             <div id="status_wrapper" class="working">
