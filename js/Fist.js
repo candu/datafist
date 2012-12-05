@@ -131,7 +131,11 @@ var Fist = new Class({
     return op.call(this, args, sexp.slice(1));
   },
   execute: function(command) {
-    return this.evaluate(SExp.parse(command));
+    var sexps = SExp.parseMany(command);
+    if (sexps.length === 0) {
+      return null;
+    }
+    return this.evaluate(sexps[0]);
   },
   registerSymbol: function(name, value, moduleName) {
     console.log('importing symbol ' + name + ' in module ' + moduleName);
