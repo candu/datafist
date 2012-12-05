@@ -498,7 +498,8 @@ var RegressionView = {
         .attr('cx', function (d) { return scaleX(d.x); })
         .attr('cy', function (d) { return scaleY(d.y); })
         .attr('r', 4)
-        .attr('fill', cc(0));
+        .attr('fill', d3.rgb(cc(0)).brighter(0.5))
+        .attr('stroke', d3.rgb(cc(0)).darker(0.5))
     g.append('svg:text')
       .attr('class', 'regression caption')
       .attr('x', plotW - 8)

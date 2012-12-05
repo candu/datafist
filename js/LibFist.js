@@ -286,6 +286,8 @@ var OpsString = {};
 var OpsTime = {
   __exports: [
     ['timeShift', 'time-shift'],
+    ['timeBucketSum', 'time-bucket-sum'],
+    ['hourOfDay', 'hour-of-day']
   ],
   __fullName: 'Time Operators',
   timeShift: new FistFunction(function(args) {
@@ -314,6 +316,28 @@ var OpsTime = {
       'With two parameters (c, dt), time-shifts c by dt milliseconds. ' +
       'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
       'whereas (time-shift c "-1 minute") shifts c back one minute.'
+    ),
+  timeBucketSum: new FistFunction(function(args) {
+    var _data = [],
+        _it = args[0].iter();
+  }).signature('(-> channel (| number string))', 'channel')
+    .describe(
+      'With two parameters (c, dt), groups the data points of c into time ' +
+      'buckets of width dt, then sums all values within each bucket.'
+    ),
+  hourOfDay: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return new Date(t).getHours();
+      },
+      iter: function() {
+        return args[0].iter();
+      }
+    }
+  }).signature('channel', 'channel')
+    .describe(
+      'Creates a new channel with values equal to the hour of day (0-24) ' +
+      'for its timestamps.'
     )
 };
 
