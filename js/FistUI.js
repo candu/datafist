@@ -734,6 +734,17 @@ var FistUI = new Class({
               this._messageBox.set('text', 'extracting channels...');
               var channels = ChannelExtractor.extract(spec, rows);
               this._messageBox.set('text', 'importing channels...');
+              var prefix = window.prompt(
+                'enter a prefix for these channels:'
+              );
+              if (prefix === null) {
+                throw new DataImportError('import cancelled.');
+              }
+              Object.each(channels, function(data, suffix) {
+                var name = prefix + '-' + suffix;
+                name = name.toLowerCase().replace(/\s+/g, '-');
+                this._fist.importData(name, data);
+              }.bind(this));
               this._statusWrapper.set('class', 'ok');
               this._messageBox.set('text', 'import successful.');
             } catch (e) {
