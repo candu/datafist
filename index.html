@@ -31,21 +31,33 @@
     <ul id="contextmenu"></ul>
     <div id="modal" class="modal-dialog">
       <div>
-        <a href="#close" title="Close" class="close">X</a>
-        <h2>Modal Dialog</h2>
-        <p>
-          This is a sexy CSS3 modal dialog.
-        </p>
+        <div class="modal-title">import data</div>
+        <div class="modal-subtitle"></div>
+        <div class="modal-content">
+          <div class="form-row">
+            <input id="prefix" placeholder="channel name prefix" name="prefix"></input>
+          </div>
+          <div class="form-row">
+            <div class="cols-title">
+              select timestamp columns:
+            </div>
+            <div id="tcols" class="cols-checkboxes"></div>
+          </div>
+          <div class="form-row">
+            <div class="cols-title">
+              select value columns:
+            </div>
+            <div id="xcols" class="cols-checkboxes"></div>
+          </div>
+          <input type="button" id="modal_ok" value="import"></input>
+        </div>
       </div>
     </div>
     <div id="container">
       <table id="table">
         <tr id="header">
           <td id="banner">
-            <div id="title">
-              <a href="#modal">datafist</a>
-            </div>
-            <!--<div id="title">datafist</div>-->
+            <div id="title">datafist</div>
           </td>
           <td id="status">
             <div id="status_wrapper" class="working">

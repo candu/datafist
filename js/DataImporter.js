@@ -23,45 +23,6 @@ var RowLoader = {
 };
 
 var ChannelExtractor = {
-  _validate: function(spec, rows) {
-    var sexp;
-    try {
-      sexp = SExp.parse(spec);
-    } catch (e) {
-      throw new DataImportError('invalid spec: SExp.parse() failed');
-    }
-    if (SExp.isAtom(sexp)) {
-      throw new DataImportError('invalid spec: not a list');
-    }
-    if (sexp.length !== 2) {
-      throw new DataImportError('invalid spec: expected (tcols xcols)');
-    }
-    var tcols = sexp[0],
-        xcols = sexp[1];
-    if (!SExp.isList(tcols) || tcols.length > 2) {
-      throw new DataImportError('invalid spec: expected (date [time])');
-    }
-    if (!SExp.isList(xcols)) {
-      throw new DataImportError('invalid spec: expected (col1 ... colN)');
-    }
-    for (var i = 0; i < tcols.length; i++) {
-      if (/"(.*)"/.test(tcols[i])) {
-        tcols[i] = tcols[i].replace(/"(.*)"/, '$1').replace(/\\"/g, '"');
-      }
-      if (rows[0][tcols[i]] === undefined) {
-        throw new DataImportError('invalid spec: unknown column ' + tcols[i]);
-      }
-    }
-    for (var i = 0; i < xcols.length; i++) {
-      if (/"(.*)"/.test(xcols[i])) {
-        xcols[i] = xcols[i].replace(/"(.*)"/, '$1').replace(/\\"/g, '"');
-      }
-      if (rows[0][xcols[i]] === undefined) {
-        throw new DataImportError('invalid spec: unknown column ' + xcols[i]);
-      }
-    }
-    return {t: tcols, x: xcols};
-  },
   _getTimestamps: function(ts) {
     // Is it a timestamp? UNIX or JavaScript-style?
     var nowMs = +new Date();
@@ -133,16 +94,18 @@ var ChannelExtractor = {
     }
     return data;
   },
-  extract: function(spec, rows) {
-    var cols = this._validate(spec, rows);
+  extract: function(tcols, xcols, rows) {
+    if (tcols.length === 0 || xcols.length === 0) {
+      throw new DataImportError('missing timestamp or value columns');
+    }
     var ts = rows.map(function(row) {
-      return cols.t.map(function(tcol) {
+      return tcols.map(function(tcol) {
         return row[tcol];
       }).join(' ');
     });
     ts = this._getTimestamps(ts);
     var channels = {};
-    cols.x.each(function(xcol) {
+    xcols.each(function(xcol) {
       channels[xcol] = this._extractColumn(ts, xcol, rows);
     }.bind(this));
     return channels;

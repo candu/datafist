@@ -131,9 +131,7 @@ var Fist = new Class({
   },
   registerSymbol: function(name, value) {
     console.log('importing symbol ' + name);
-    console.log(value);
     this._symbolTable[name] = value;
-    console.log('added to symbol table!');
     this._symbolImported(name);
   },
   importData: function(name, data, source) {

@@ -718,42 +718,38 @@ var FistUI = new Class({
             this._progressBar.set('value', loaded);
           }.bind(this))
           .load(function(file, data) {
-            try {
-              this._messageBox.set('text', 'loading rows...');
-              var rows = RowLoader.load(data);
-              this._messageBox.set('text', 'identifying channels...');
-              // TODO: build a reasonable import dialog :)
-              var cols = Object.keys(rows[0]);
-              cols.sort();
-              var spec = window.prompt(
-                'available columns: ' + cols.join(', ')
-              );
-              if (spec === null) {
-                throw new DataImportError('import cancelled.');
-              }
-              this._messageBox.set('text', 'extracting channels...');
-              var channels = ChannelExtractor.extract(spec, rows);
-              this._messageBox.set('text', 'importing channels...');
-              var prefix = window.prompt(
-                'enter a prefix for these channels:'
-              );
-              if (prefix === null) {
-                throw new DataImportError('import cancelled.');
-              }
-              Object.each(channels, function(data, suffix) {
-                var name = prefix + '-' + suffix;
-                name = name.toLowerCase().replace(/\s+/g, '-');
-                this._fist.importData(name, data, file.name);
-              }.bind(this));
-              this._statusWrapper.set('class', 'ok');
-              this._messageBox.set('text', 'import successful.');
-            } catch (e) {
+            var trapDataImportError = function(e) {
               console.log(e);
               if (!(e instanceof DataImportError)) {
                 throw e;
               }
               this._statusWrapper.set('class', 'not-ok');
               this._messageBox.set('text', e.toString());
+            }.bind(this);
+            try {
+              this._messageBox.set('text', 'loading rows...');
+              var rows = RowLoader.load(data);
+              this._messageBox.set('text', 'identifying channels...');
+              var columns = Object.keys(rows[0]);
+              columns.sort();
+              this._showImportDialog(file, columns, function(tcols, xcols, prefix) {
+                try {
+                  this._messageBox.set('text', 'extracting channels...');
+                  var channels = ChannelExtractor.extract(tcols, xcols, rows);
+                  this._messageBox.set('text', 'importing channels...');
+                  Object.each(channels, function(data, suffix) {
+                    var name = prefix + '-' + suffix;
+                    name = name.toLowerCase().replace(/\s+/g, '-');
+                    this._fist.importData(name, data, file.name);
+                  }.bind(this));
+                  this._statusWrapper.set('class', 'ok');
+                  this._messageBox.set('text', 'import successful.');
+                } catch (e) {
+                  trapDataImportError(e);
+                }
+              }.bind(this));
+            } catch (e) {
+              trapDataImportError(e);
             }
           }.bind(this))
           .import();
@@ -900,5 +896,46 @@ var FistUI = new Class({
     var loadTime = +(new Date()) - loadStart;
     this._statusWrapper.set('class', 'ok');
     this._messageBox.set('text', 'fist v0.1: loaded in ' + loadTime + ' ms');
+  },
+  _showImportDialog: function(file, cols, callback) {
+    // TODO: mustache templating here? move to separate ModalDialog handler?
+    var modalDialog = $('modal');
+    modalDialog.getElement('div.modal-subtitle').set('text', 'from ' + file.name);
+    function makeCheckbox(col, name) {
+      return new Element('div.checkbox').adopt(
+        new Element('span.checkbox', {
+          text: col
+        }),
+        new Element('input', {
+          type: 'checkbox',
+          text: col,
+          name: name
+        })
+      );
+    }
+    $('tcols').empty();
+    cols.each(function(col) {
+      $('tcols').adopt(makeCheckbox(col, 'tcols'));
+    });
+    $('xcols').empty();
+    cols.each(function(col) {
+      $('xcols').adopt(makeCheckbox(col, 'xcols'));
+    });
+    $('modal_ok').removeEvents('click').addEvent('click', function(evt) {
+      modalDialog.removeClass('active');
+      var tcols = $$('#tcols input[type=checkbox]').filter(function(c) {
+        return c.checked;
+      }).map(function(c) {
+        return c.get('text');
+      });
+      var xcols = $$('#xcols input[type=checkbox]').filter(function(c) {
+        return c.checked;
+      }).map(function(c) {
+        return c.get('text');
+      });
+      var prefix = $('prefix').value;
+      callback(tcols, xcols, prefix);
+    });
+    modalDialog.addClass('active');
   }
 });
