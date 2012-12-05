@@ -62,9 +62,88 @@ var ChannelExtractor = {
     }
     return {t: tcols, x: xcols};
   },
+  _getTimestamps: function(ts) {
+    // Is it a timestamp? UNIX or JavaScript-style?
+    var nowMs = +new Date();
+    var isJS = ts.every(function(t) {
+      var tf = parseFloat(t);
+      return (
+        !isNaN(tf) &&
+        nowMs / 2 <= tf &&
+        tf <= nowMs * 2
+      );
+    });
+    if (isJS) {
+      return ts.map(function(t) {
+        return parseFloat(t);
+      });
+    }
+    var nowS = nowMs / 1000;
+    var isUNIX = ts.every(function(t) {
+      var tf = parseFloat(t);
+      return (
+        !isNaN(tf) &&
+        nowS / 2 <= tf &&
+        tf <= nowS * 2
+      );
+    });
+    if (isUNIX) {
+      return ts.map(function(t) {
+        return parseFloat(t) * 1000;
+      });
+    }
+
+    // Is it Date-parseable?
+    var hasTime = ts.every(function(t) {
+      return t.indexOf(':') !== -1;
+    });
+    console.log(hasTime);
+    var tds = ts.map(function(t) {
+      var d = new Date(t);
+      if (!hasTime) {
+        var tzOffset = d.getTimezoneOffset() * 60 * 1000;
+        return +d + tzOffset;
+      }
+      return +d;
+    });
+    var isDateParseable = tds.every(function(t) {
+      return !isNaN(t);
+    });
+    if (isDateParseable) {
+      return tds;
+    }
+
+    // TODO: deal with more
+    throw new DataImportError('could not get timestamps!');
+  },
+  _getValue: function(x) {
+    // TODO: deal with more
+    return parseFloat(x);
+  },
+  _extractColumn: function(ts, xcol, rows) {
+    var data = [];
+    for (var i = 0; i < rows.length; i++) {
+      var x = rows[i][xcol];
+      if (x === undefined || x.length === 0) {
+        continue;
+      }
+      data.push({t: ts[i], x: this._getValue(x)});
+    }
+    return data;
+  },
   extract: function(spec, rows) {
     var cols = this._validate(spec, rows);
-    return [];
+    var ts = rows.map(function(row) {
+      return cols.t.map(function(tcol) {
+        return row[tcol];
+      }).join(' ');
+    });
+    ts = this._getTimestamps(ts);
+    var channels = {};
+    cols.x.each(function(xcol) {
+      channels[xcol] = this._extractColumn(ts, xcol, rows);
+    }.bind(this));
+    return channels;
   }
 };
 
