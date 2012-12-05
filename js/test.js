@@ -414,17 +414,6 @@ QUnit.test('OpsArith', function() {
   }
 });
 
-QUnit.test('OpsFunctional', function() {
-  var cs = fist.execute(
-    '(map (gen-regular 0 3 3) (constant 1) (constant 2) (constant 3))'
-  );
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) {
-      equal(cs[i].at(j), i + 1);
-    }
-  }
-});
-
 QUnit.test('OpsChannel', function() {
   // simultaneous iteration
   var c = fist.execute(
@@ -844,7 +833,7 @@ QUnit.test('Fist', function() {
   equal(fist.getType('view-sparkline'), 'function');
 
   // channels
-  equal(fist.getType('((gen-regular 0 10 10) (constant 1))'), 'object');
+  equal(fist.getType('((gen-regular 0 10 10) (constant 1))'), 'channel');
 
   // filters
   equal(fist.getType('>'), 'function');

@@ -170,7 +170,24 @@ var Fist = new Class({
   getType: function(command) {
     try {
       // TODO: better typing
-      return typeOf(this.execute(command));
+      var value = this.execute(command),
+          type = typeOf(value);
+      if (type === 'object') {
+        if (value instanceof FistFunction) {
+          return 'function';
+        }
+        if (value.at !== undefined && value.iter !== undefined) {
+          return 'channel';
+        }
+        if (value.render !== undefined) {
+          return 'view';
+        }
+        return 'object';
+      }
+      if (type === 'array') {
+        return 'data';
+      }
+      return type;
     } catch (e) {
       console.log(e);
       return null;

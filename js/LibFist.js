@@ -100,7 +100,7 @@ var OpsArith = {
     };
   }).signature('(+ number)', 'number')
     .signature('(+ (| number channel))', 'channel')
-    .describe('Takes the sum of one or more numbers or channels.'),
+    .describe('Takes the sum of its parameters.'),
   multiply: new FistFunction(function(args) {
     var channels = [],
         numberProd = 1;
@@ -130,7 +130,7 @@ var OpsArith = {
     };
   }).signature('(+ number)', 'number')
     .signature('(+ (| number channel))', 'channel')
-    .describe('Takes the product of one or more numbers or channels.'),
+    .describe('Takes the product of its parameters.'),
   subtract: new FistFunction(function(args) {
     argTypes = args.map(typeOf);
     if (args.length === 1) {
@@ -146,8 +146,8 @@ var OpsArith = {
     .signature('(-> number number)', 'number')
     .signature('(-> (| number channel) (| number channel))', 'channel')
     .describe(
-      'With one parameter, negates a number or channel. ' +
-      'With two parameters, subtracts the second number or channel from the first.'
+      'With one parameter, negates that parameter. ' +
+      'With two parameters, subtracts the second parameter from the first.'
     ),
   divideFloat: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
@@ -155,7 +155,7 @@ var OpsArith = {
     })
   }).signature('(-> number number)', 'number')
     .signature('(-> (| number channel) (| number channel))', 'channel')
-    .describe('Divides the first number or channel by the second.'),
+    .describe('Divides the first parameter by the second.'),
   divideInt: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b);
@@ -163,7 +163,7 @@ var OpsArith = {
   }).signature('(-> number number)', 'number')
     .signature('(-> (| number channel) (| number channel))', 'channel')
     .describe(
-      'Divides the first number or channel by the second. ' +
+      'Divides the first parameter by the second. ' +
       'The resulting number or channel values are rounded down ' +
       'to the nearest integer.'
     ),
@@ -191,19 +191,27 @@ var OpsArith = {
 };
 
 var OpsMath = {
-  sqrt: function(args) {
+  sqrt: new FistFunction(function(args) {
     argCheck('sqrt', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.sqrt(a);
     });
-  },
-  pow: function(args) {
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .describe(
+      'Takes the square root of a number or channel.'
+    ),
+  pow: new FistFunction(function(args) {
     argCheck('pow', args, '(+ (| number channel) number)');
     return _binaryOp(args[0], function(a, b) {
       return Math.pow(a, b);
     });
-  },
-  exp: function(args) {
+  }).signature('(-> number number)', 'number')
+    .signature('(-> channel number)', 'channel')
+    .describe(
+      'With two parameters (x, a), computes x^a.'
+    ),
+  exp: new FistFunction(function(args) {
     argCheck('exp', args, '(+ (? number) (| number channel))');
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
@@ -213,8 +221,15 @@ var OpsMath = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.pow(a, b);
     });
-  },
-  log: function(args) {
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .signature('(-> number number)', 'number')
+    .signature('(-> number channel)', 'channel')
+    .describe(
+      'With one parameter x, computes e^x. With two parameters ' +
+      '(a, x), computes a^x.'
+    ),
+  log: new FistFunction(function(args) {
     argCheck('log', args, '(+ (| number channel), (? number))');
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
@@ -224,45 +239,53 @@ var OpsMath = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.log(a) / Math.log(b);
     });
-  },
-  floor: function(args) {
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .signature('(-> number number)', 'number')
+    .signature('(-> channel number)', 'channel')
+    .describe(
+      'With one parameter x, computes ln x. With two parameters ' +
+      '(x, b), computes x log b.'
+    ),
+  floor: new FistFunction(function(args) {
     argCheck('floor', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.floor(a);
     });
-  },
-  round: function(args) {
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .describe(
+      'Rounds its parameter down.'
+    ),
+  round: new FistFunction(function(args) {
     argCheck('round', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.round(a);
     });
-  },
-  ceil: function(args) {
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .describe(
+      'Rounds its parameter to the nearest integer.'
+    ),
+  ceil: new FistFunction(function(args) {
     argCheck('ceil', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.ceil(a);
     });
-  },
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .describe(
+      'Rounds its parameter up.'
+    )
 };
 
 var OpsString = {};
-
-var OpsFunctional = {
-  map: function(args) {
-    argCheck('map', '(+ function (* any))');
-    var _fn = args[0],
-        _args = args.slice(1);
-    return _args.map(function(arg) {
-      return _fn([arg]);
-    });
-  }
-};
 
 var OpsChannel = {
   __exports: [
     ['timeShift', 'time-shift'],
   ],
-  timeShift: function(args) {
+  timeShift: new FistFunction(function(args) {
     argCheck('time-shift', '(+ channel number)');
     return {
       at: function(t) {
@@ -280,7 +303,12 @@ var OpsChannel = {
         };
       }
     };
-  }
+  }).signature('(-> channel (| number string))', 'channel')
+    .describe(
+      'With two parameters (c, dt), time-shifts c by dt milliseconds. ' +
+      'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
+      'whereas (time-shift c "-1 minute") shifts c back one minute.'
+    )
 };
 
 var OpsFilterComparison = {
@@ -293,7 +321,7 @@ var OpsFilterComparison = {
     ['gt', '>'],
     ['valueBetween', 'value-between']
   ],
-  lt: function(args) {
+  lt: new FistFunction(function(args) {
     argCheck('<', args, 'number');
     return function(subargs) {
       argCheck('<-fn', subargs, 'channel');
@@ -303,8 +331,12 @@ var OpsFilterComparison = {
         return _c.at(t) < _bound;
       });
     }
-  },
-  lteq: function(args) {
+  }).signature('number', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points less than its parameter.'
+    ),
+  lteq: new FistFunction(function(args) {
     argCheck('<=', args, 'number');
     return function(subargs) {
       argCheck('<=-fn', subargs, 'channel');
@@ -314,8 +346,12 @@ var OpsFilterComparison = {
         return _c.at(t) <= _bound;
       });
     }
-  },
-  eq: function(args) {
+  }).signature('number', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points less than or equal to its parameter.'
+    ),
+  eq: new FistFunction(function(args) {
     argCheck('=', args, 'any');
     return function(subargs) {
       argCheck('=-fn', subargs, 'channel');
@@ -326,8 +362,12 @@ var OpsFilterComparison = {
         return _c.at(t) === _bound;
       });
     }
-  },
-  neq: function(args) {
+  }).signature('any', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points equal to its parameter.'
+    ),
+  neq: new FistFunction(function(args) {
     argCheck('!=', args, 'any');
     return function(subargs) {
       argCheck('!=-fn', subargs, 'channel');
@@ -338,8 +378,12 @@ var OpsFilterComparison = {
         return _c.at(t) !== _bound;
       });
     }
-  },
-  gteq: function(args) {
+  }).signature('any', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points not equal to its parameter.'
+    ),
+  gteq: new FistFunction(function(args) {
     argCheck('>=', args, 'number');
     return function(subargs) {
       argCheck('>=-fn', subargs, 'channel');
@@ -349,8 +393,12 @@ var OpsFilterComparison = {
         return _c.at(t) >= _bound;
       });
     }
-  },
-  gt: function(args) {
+  }).signature('number', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points greater than or equal to its parameter.'
+    ),
+  gt: new FistFunction(function(args) {
     argCheck('>=', args, 'number');
     return function(subargs) {
       argCheck('>=-fn', subargs, 'channel');
@@ -360,8 +408,12 @@ var OpsFilterComparison = {
         return _c.at(t) >= _bound;
       });
     }
-  },
-  valueBetween: function(args) {
+  }).signature('number', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points greater than to its parameter.'
+    ),
+  valueBetween: new FistFunction(function(args) {
     argCheck('value-between', args, '(+ number number)');
     return function(subargs) {
       argCheck('value-between-fn', subargs, 'channel');
@@ -373,12 +425,16 @@ var OpsFilterComparison = {
         return x >= _min && x < _max;
       });
     }
-
-  }
+  }).signature('(-> number number)', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points between the first parameter (inclusive) and the ' +
+      'second parameter (exclusive).'
+    )
 };
 
 var OpsFilterTime = {
-  since: function(args) {
+  since: new FistFunction(function(args) {
     argCheck('since', args, '(| number date)');
     return function(subargs) {
       argCheck('since-fn', subargs, 'channel');
@@ -388,9 +444,12 @@ var OpsFilterTime = {
         return t >= _since;
       });
     };
-  },
-  until: function(args) {
-    argCheck('until', args, '(| number date)');
+  }).signature('(| number string)', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points timestamped on or after its parameter.'
+    ),
+  until: new FistFunction(function(args) {
     return function(subargs) {
       argCheck('until-fn', subargs, 'channel');
       var _c = subargs[0],
@@ -399,9 +458,12 @@ var OpsFilterTime = {
         return t < _until;
       });
     };
-  },
-  between: function(args) {
-    argCheck('between', args, '(+ (| number date) (| number date))');
+  }).signature('(| number string)', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points timestamped before its parameter.'
+    ),
+  between: new FistFunction(function(args) {
     return function(subargs) {
       argCheck('between-fn', subargs, 'channel');
       var _c = subargs[0],
@@ -411,7 +473,12 @@ var OpsFilterTime = {
         return t >= _since && t < _until;
       });
     };
-  }
+  }).signature('(-> (| number string) (| number string))', 'function')
+    .describe(
+      'Creates a filter that, when applied to a channel, selects only ' +
+      'those data points timestamped on or after the first parameter ' +
+      'and before the second parameter.'
+    )
 };
 
 var OpsFilterLocation = {};
@@ -420,29 +487,45 @@ var OpsFilterRegion = {};
 var OpsReduce = {};
 
 var GensData = {
-  constant: function(args) {
+  constant: new FistFunction(function(args) {
     argCheck('constant', args, 'any');
     return function(t) {
       return args[0];
     };
-  },
-  choice: function(args) {
+  }).signature('any', 'function')
+    .describe(
+      'Creates a data generator that, when evaluated at a timestamp, ' +
+      'returns its parameter.'
+    ),
+  choice: new FistFunction(function(args) {
     return function(t) {
       return Random.choice(args);
     };
-  },
-  uniform: function(args) {
-    argCheck('uniform', args, '(+ number number)');
+  }).signature('(+ any)', 'function')
+    .describe(
+      'Creates a data generator that, when evaluated at a timestamp, ' +
+      'returns a value selected at random from its parameters.'
+    ),
+  uniform: new FistFunction(function(args) {
     return function(t) {
       return Random.uniform(args[0], args[1]);
     };
-  },
-  gaussian: function(args) {
-    argCheck('gaussian', args, '(+ number number)');
+  }).signature('(-> number number)', 'function')
+    .describe(
+      'With two parameters (a, b) creates a data generator that, when ' +
+      'evaluated at a timestamp, returns a uniform random value from ' +
+      'the interval [a, b).'
+    ),
+  gaussian: new FistFunction(function(args) {
     return function(t) {
       return args[0] + args[1] * Random.gaussian();
     };
-  }
+  }).signature('(-> number number)', 'function')
+    .describe(
+      'With two parameters (mu, sigma) creates a data generator that, when ' +
+      'evaluated at a timestamp, returns a random value from the Gaussian ' +
+      'distribution G(mu, sigma^2).'
+    ),
 };
 var GensChannel = {
   __exports: [
@@ -450,7 +533,7 @@ var GensChannel = {
     ['genUniform', 'gen-uniform'],
     ['genPoisson', 'gen-poisson']
   ],
-  genRegular: function(args) {
+  genRegular: new FistFunction(function(args) {
     argCheck('gen-regular', args, '(+ number number number)');
     return function(subargs) {
       argCheck('gen-regular-fn', subargs, 'function');
@@ -467,8 +550,13 @@ var GensChannel = {
       }
       return new DataChannel(_data);
     }
-  },
-  genUniform: function(args) {
+  }).signature('(-> number number number)', 'function')
+    .describe(
+      'With three parameters (start, end, n) creates a channel generator ' +
+      'that, when applied to a data generator, builds a channel having n ' +
+      'evenly spaced data points with timestamps on [start, end).'
+    ),
+  genUniform: new FistFunction(function(args) {
     argCheck('gen-uniform', args, '(+ number number number)');
     return function(subargs) {
       argCheck('gen-uniform-fn', subargs, 'function');
@@ -484,9 +572,14 @@ var GensChannel = {
       }
       return new DataChannel(_data);
     }
-  },
-  genPoisson: function(args) {
-    argCheck('gen-poisson', args, '(+ function number number number)');
+  }).signature('(-> number number number)', 'function')
+    .describe(
+      'With three parameters (start, end, n) creates a channel generator ' +
+      'that, when applied to a data generator, builds a channel having n ' +
+      'data points with timestamps randomly selected from [start, end).'
+    ),
+  genPoisson: new FistFunction(function(args) {
+    argCheck('gen-poisson', args, '(+ number number number)');
     return function(subargs) {
       argCheck('gen-poisson-fn', subargs, 'function');
       var _gen = subargs[0],
@@ -503,7 +596,13 @@ var GensChannel = {
       }
       return new DataChannel(_data);
     };
-  }
+  }).signature('(-> number number number)', 'function')
+    .describe(
+      'With three parameters (start, end, rate) creates a channel generator ' +
+      'that, when applied to a data generator, builds a channel having ' +
+      'roughly one data point every rate milliseconds with timestamp ' +
+      'on [start, end).'
+    )
 };
 
 var View = {
@@ -512,18 +611,32 @@ var View = {
     ['viewHistogram', 'view-histogram'],
     ['viewRegression', 'view-regression']
   ],
-  viewSparkline: function(args, sexps) {
+  viewSparkline: new FistFunction(function(args, sexps) {
     argCheck('view-sparkline', args, '(* channel)');
     this._viewInvoked('sparkline', args, sexps);
-  },
-  viewHistogram: function(args, sexps) {
+  }).signature('(+ channel)', 'view')
+    .describe(
+      'Displays its channels as sparklines (line charts).'
+    ),
+  viewHistogram: new FistFunction(function(args, sexps) {
     argCheck('view-histogram', args, '(+ channel (? number))');
     this._viewInvoked('histogram', args, sexps);
-  },
-  viewRegression: function(args, sexps) {
+  }).signature('channel', 'view')
+    .signature('(-> channel number', 'view')
+    .describe(
+      'Displays its channel as a histogram. If the second parameter is ' +
+      'provided, that is used as the histogram bucket width; otherwise, it ' +
+      'looks for a //* operation applied to its channel.'
+    ),
+  viewRegression: new FistFunction(function(args, sexps) {
     argCheck('view-regression', args, '(+ channel channel)');
     this._viewInvoked('regression', args, sexps);
-  }
+  }).signature('(-> channel channel)', 'view')
+    .describe(
+      'Displays its two channels as an XY plot, with the first channel ' +
+      'as the X value and the second as the Y value. Also displays the ' +
+      'line of best fit.'
+    )
 };
 
 var Display = {};
@@ -533,7 +646,6 @@ var LibFist = {
     fist.importModule(null, OpsArith);
     fist.importModule(null, OpsMath);
     fist.importModule(null, OpsString);
-    fist.importModule(null, OpsFunctional);
     fist.importModule(null, OpsChannel);
 
     fist.importModule(null, OpsFilterComparison);
