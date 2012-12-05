@@ -841,14 +841,14 @@ var FistUI = new Class({
     var type = this._fist.getType(name);
     var block = Element('div.block.' + type, {
       text: name,
-      draggable: true
+      draggable: true,
     });
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
       evt.dataTransfer.effectAllowed = 'move';
       evt.dataTransfer.setData('application/json', JSON.stringify({
         name: name,
-        type: type
+        type: type,
       }));
       this._dragBlock = block;
     }.bind(this), false);
@@ -857,6 +857,13 @@ var FistUI = new Class({
       block.removeClass('dragtarget');
       this._svgGraphWrapper.removeClass('droptarget');
     }.bind(this), false);
+    var tips = new Tips(block, {
+      className: 'fistdocs',
+      title: 'text',
+      text: function(element) {
+        return type;
+      }
+    });
     block.inject(this._palette);
   },
   onViewInvoked: function(name, channels, sexps) {
