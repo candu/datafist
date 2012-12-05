@@ -283,11 +283,11 @@ var OpsMath = {
 
 var OpsString = {};
 
-var OpsChannel = {
+var OpsTime = {
   __exports: [
     ['timeShift', 'time-shift'],
   ],
-  __fullName: 'Channel Operators',
+  __fullName: 'Time Operators',
   timeShift: new FistFunction(function(args) {
     var _dt = args[1];
     if (typeOf(_dt) === 'string') {
@@ -659,7 +659,7 @@ var LibFist = {
     fist.importModule(null, OpsArith);
     fist.importModule(null, OpsMath);
     //fist.importModule(null, OpsString);
-    fist.importModule(null, OpsChannel);
+    fist.importModule(null, OpsTime);
 
     fist.importModule(null, OpsFilterValue);
     fist.importModule(null, OpsFilterTime);
