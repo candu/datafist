@@ -843,8 +843,21 @@ var FistUI = new Class({
       text: name,
       draggable: true,
     });
+    block.tips = new Tips(block, {
+      className: 'fistdocs',
+      title: 'text',
+      text: function(element) {
+        if (type === 'function' || type === 'channel') {
+          var value = this._fist.execute(element.get('text'));
+          return value.describe();
+        } else {
+          return type;
+        }
+      }.bind(this)
+    });
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
+      block.tips.fireEvent('hide');
       evt.dataTransfer.effectAllowed = 'move';
       evt.dataTransfer.setData('application/json', JSON.stringify({
         name: name,
@@ -857,18 +870,6 @@ var FistUI = new Class({
       block.removeClass('dragtarget');
       this._svgGraphWrapper.removeClass('droptarget');
     }.bind(this), false);
-    var tips = new Tips(block, {
-      className: 'fistdocs',
-      title: 'text',
-      text: function(element) {
-        if (type === 'object') {
-          var fistFunction = this._fist.execute(element.get('text'));
-          return fistFunction.describe();
-        } else {
-          return type;
-        }
-      }.bind(this)
-    });
     block.inject(this._palette);
   },
   onViewInvoked: function(name, channels, sexps) {
