@@ -27,13 +27,14 @@ var FistFunction = new Class({
 });
 
 var DataChannel = new Class({
-  initialize: function(data) {
+  initialize: function(data, source) {
     this._data = Array.clone(data);
     this._data.sort(function(a, b) { return a.t - b.t; });
     this._index = {};
     for (var i = 0; i < this._data.length; i++) {
       this._index[this._data[i].t] = this._data[i].x;
     }
+    this._source = source;
   },
   at: function(t) {
     if (!this._index.hasOwnProperty(t)) {
@@ -46,6 +47,9 @@ var DataChannel = new Class({
     return Iterator(this._data.map(function(a) {
       return a.t;
     }));
+  },
+  describe: function() {
+    return 'imported from ' + this._source;
   }
 });
 
@@ -127,11 +131,13 @@ var Fist = new Class({
   },
   registerSymbol: function(name, value) {
     console.log('importing symbol ' + name);
+    console.log(value);
     this._symbolTable[name] = value;
+    console.log('added to symbol table!');
     this._symbolImported(name);
   },
-  importData: function(name, data) {
-    this.registerSymbol(name, new DataChannel(data));
+  importData: function(name, data, source) {
+    this.registerSymbol(name, new DataChannel(data, source));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...

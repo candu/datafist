@@ -743,7 +743,7 @@ var FistUI = new Class({
               Object.each(channels, function(data, suffix) {
                 var name = prefix + '-' + suffix;
                 name = name.toLowerCase().replace(/\s+/g, '-');
-                this._fist.importData(name, data);
+                this._fist.importData(name, data, file.name);
               }.bind(this));
               this._statusWrapper.set('class', 'ok');
               this._messageBox.set('text', 'import successful.');

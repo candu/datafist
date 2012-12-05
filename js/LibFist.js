@@ -71,8 +71,7 @@ var OpsArith = {
     ['mod', '%'],
     ['bucket', '//*']
   ],
-  add: function(args) {
-    argCheck('+', args, '(* (| number channel))');
+  add: new FistFunction(function(args) {
     var channels = [],
         numberSum = 0;
     for (var i = 0; i < args.length; i++) {
@@ -99,9 +98,10 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  },
-  multiply: function(args) {
-    argCheck('*', args, '(* (| number channel))');
+  }).signature('(+ number)', 'number')
+    .signature('(+ (| number channel))', 'channel')
+    .describe('Takes the sum of one or more numbers or channels.'),
+  multiply: new FistFunction(function(args) {
     var channels = [],
         numberProd = 1;
     for (var i = 0; i < args.length; i++) {
@@ -128,9 +128,10 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  },
-  subtract: function(args) {
-    argCheck('-', args, '(+ (| number channel) (? (| number channel)))');
+  }).signature('(+ number)', 'number')
+    .signature('(+ (| number channel))', 'channel')
+    .describe('Takes the product of one or more numbers or channels.'),
+  subtract: new FistFunction(function(args) {
     argTypes = args.map(typeOf);
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
@@ -140,32 +141,53 @@ var OpsArith = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a - b;
     });
-  },
+  }).signature('number', 'number')
+    .signature('channel', 'channel')
+    .signature('(-> number number)', 'number')
+    .signature('(-> (| number channel) (| number channel))', 'channel')
+    .describe(
+      'With one parameter, negates a number or channel. ' +
+      'With two parameters, subtracts the second number or channel from the first.'
+    ),
   divideFloat: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a / b;
     })
   }).signature('(-> number number)', 'number')
     .signature('(-> (| number channel) (| number channel))', 'channel')
-    .describe('Non-integer division.'),
-  divideInt: function(args) {
-    argCheck('//', args, '(+ (| number channel) (| number channel))');
+    .describe('Divides the first number or channel by the second.'),
+  divideInt: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b);
     });
-  },
-  mod: function(args) {
-    argCheck('%', args, '(+ (| number channel) number)');
+  }).signature('(-> number number)', 'number')
+    .signature('(-> (| number channel) (| number channel))', 'channel')
+    .describe(
+      'Divides the first number or channel by the second. ' +
+      'The resulting number or channel values are rounded down ' +
+      'to the nearest integer.'
+    ),
+  mod: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a % b;
     });
-  },
-  bucket: function(args) {
+  }).signature('(-> number number)', 'number')
+    .signature('(-> channel number)', 'channel')
+    .describe(
+      'Computes the first parameter modulo the second.'
+    ),
+  bucket: new FistFunction(function(args) {
     argCheck('//*', args, '(+ (| number channel) number)');
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b) * b;
     });
-  }
+  }).signature('(-> number number)', 'number')
+    .signature('(-> channel number)', 'channel')
+    .describe(
+      'Computes the highest integer multiple of the second parameter less ' +
+      'than the first parameter. For instance, (//* 19 5) is 15. Useful ' +
+      'for dividing data into equal-sized buckets (e.g. for histograms).'
+    )
 };
 
 var OpsMath = {
