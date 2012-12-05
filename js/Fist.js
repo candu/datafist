@@ -1,3 +1,31 @@
+var FistFunction = new Class({
+  initialize: function(fn) {
+    this._fn = fn;
+    this._signature = [];
+    this._description = null;
+  },
+  call: function(context, args, sexps) {
+    return this._fn.call(context, args, sexps);
+  },
+  signature: function(argsType, returnType) {
+    if (argsType === undefined) {
+      return this._signature;
+    }
+    if (returnType === undefined) {
+      returnType = 'void';
+    }
+    this._signature.push([argsType, returnType]);
+    return this;
+  },
+  describe: function(description) {
+    if (description === undefined) {
+      return this._description;
+    }
+    this._description = description;
+    return this;
+  }
+});
+
 var DataChannel = new Class({
   initialize: function(data) {
     this._data = Array.clone(data);
@@ -84,7 +112,8 @@ var Fist = new Class({
         return null;
     }
     var op = this.evaluate(sexp[0]);
-    if (typeOf(op) !== 'function') {
+    if (typeOf(op) !== 'function' &&
+        !(op instanceof FistFunction)) {
       throw new Error('expected operation, got ' + typeof(op));
     }
     var args = [];

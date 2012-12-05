@@ -861,8 +861,13 @@ var FistUI = new Class({
       className: 'fistdocs',
       title: 'text',
       text: function(element) {
-        return type;
-      }
+        if (type === 'object') {
+          var fistFunction = this._fist.execute(element.get('text'));
+          return fistFunction.describe();
+        } else {
+          return type;
+        }
+      }.bind(this)
     });
     block.inject(this._palette);
   },

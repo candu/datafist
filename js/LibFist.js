@@ -141,12 +141,13 @@ var OpsArith = {
       return a - b;
     });
   },
-  divideFloat: function(args) {
-    argCheck('/', args, '(+ (| number channel) (| number channel))');
+  divideFloat: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a / b;
-    });
-  },
+    })
+  }).signature('(-> number number)', 'number')
+    .signature('(-> (| number channel) (| number channel))', 'channel')
+    .describe('Non-integer division.'),
   divideInt: function(args) {
     argCheck('//', args, '(+ (| number channel) (| number channel))');
     return _binaryOp(args[0], args[1], function(a, b) {
