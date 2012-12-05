@@ -939,7 +939,7 @@ var FistUI = new Class({
   _showImportDialog: function(file, cols, callback) {
     // TODO: mustache templating here? move to separate ModalDialog handler?
     var modalDialog = $('modal');
-    $('prefix').set('value', '');
+    $('prefix').set('value', '').focus();
     $('prefix_row').removeClass('warning');
     $('tcols_row').removeClass('warning');
     $('xcols_row').removeClass('warning');
