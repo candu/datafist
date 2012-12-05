@@ -19,7 +19,22 @@ var SExp = {
         i++;
       } else {
         var old_i = i;
-        while (i < s.length && s[i] !== ' ' && s[i] !== ')') i++;
+        if (s[i] === '"') {
+          var escaped = false;
+          while (++i < s.length) {
+            if (s[i] === '\\') {
+              escaped = true;
+            } else {
+              if (s[i] === '"' && !escaped) {
+                ++i;
+                break;
+              }
+              escaped = false;
+            }
+          }
+        } else {
+          while (i < s.length && s[i] !== ' ' && s[i] !== ')') i++;
+        }
         sexp = s.substring(old_i, i);
         while (i < s.length && s[i] === ' ') i++;
       }

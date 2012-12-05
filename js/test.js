@@ -258,6 +258,13 @@ QUnit.test('SExp', function() {
   jsonEqual(SExp.parse('abcd'), 'abcd');
   parseThrows('a b', /parse failed/);
 
+  // string
+  jsonEqual(SExp.parse('"test"'), '"test"');
+  jsonEqual(SExp.parse('"a b"'), '"a b"');
+  jsonEqual(SExp.parse('("a b")'), ['"a b"']);
+  jsonEqual(SExp.parse('("a(b)")'), ['"a(b)"']);
+  jsonEqual(SExp.parse('("a\\"b\\"")'), ['"a\\"b\\""']);
+
   // list
   jsonEqual(SExp.parse('(a)'), ['a']);
   jsonEqual(SExp.parse('(a b)'), ['a', 'b']);
@@ -623,22 +630,32 @@ QUnit.test('GensChannel', function() {
   ok(error < limit);
 });
 
-QUnit.test('DataLoader', function() {
+QUnit.test('RowLoader', function() {
   function jsonEqual(a, b) {
     equal(JSON.stringify(a), JSON.stringify(b));
   }
 
   // empty data
-  var data = 't,x';
-  jsonEqual(DataLoader.load(data), {});
-
-  // invalid data
   var data = '';
-  throws(function() { DataLoader.load(data); }, DataImportError);
+  throws(function() { RowLoader.load(data); }, DataImportError);
+  var data = 't,x';
+  throws(function() { RowLoader.load(data); }, DataImportError);
+
+  // basic data
+  var data = 't,x\n1,2\n3,4';
+  jsonEqual(RowLoader.load(data), [{t: "1", x: "2"}, {t: "3", x: "4"}]);
+});
+
+QUnit.test('ChannelExtractor', function() {
+  function jsonEqual(a, b) {
+    equal(JSON.stringify(a), JSON.stringify(b));
+  }
 
   // missing data
-  var data = 't,a,b\n1986-07-31,42,1729\n1986-08-01,,6\n1986-08-02,73,';
-  jsonEqual(DataLoader.load(data), {
+  var data = RowLoader.load(
+    't,a,b\n1986-07-31,42,1729\n1986-08-01,,6\n1986-08-02,73,'
+  );
+  jsonEqual(ChannelExtractor.extract('((t) (a b))', data), {
     'a': [
       {t: 523177200000, x: 42},
       {t: 523350000000, x: 73}
@@ -650,13 +667,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // UNIX timestamped data (Epoch seconds)
-  var data = [
+  var data = RowLoader.load([
     't,x',
     '1354650000,3',
     '1354650060,2',
     '1354650120,1'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((t) (x))', data), {
     'x': [
       {t: 1354650000000, x: 3},
       {t: 1354650060000, x: 2},
@@ -665,13 +682,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // JS timestamped data (Epoch milliseconds)
-  var data = [
+  var data = RowLoader.load([
     't,x',
     '1354650180000,3',
     '1354650240000,2',
     '1354650300000,1'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((t) (x))', data), {
     'x': [
       {t: 1354650180000, x: 3},
       {t: 1354650240000, x: 2},
@@ -681,13 +698,13 @@ QUnit.test('DataLoader', function() {
 
 
   // simple counts
-  var data = [
+  var data = RowLoader.load([
     'date,caffeine,sweets,alcohol,supplements',
     '2012-01-16,0,1,2,0',
     '2012-01-17,1,2,4,0',
     '2012-01-18,1,1,4,1'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((date) (caffeine sweets alcohol supplements))', data), {
     'caffeine': [
       {t: 1326700800000, x: 0},
       {t: 1326787200000, x: 1},
@@ -711,13 +728,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // dollar format
-  var data = [
+  var data = RowLoader.load([
     'TYPE,DATE,USAGE,UNITS,COST,NOTES',
     'Natural gas usage,2012-10-31,1.02,therms,$0.97,',
     'Natural gas usage,2012-11-01,2.04,therms,$2.05,',
     'Natural gas usage,2012-11-02,1.02,therms,$1.03,'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((DATE) (USAGE COST))', data), {
     'USAGE': [
       {t: 1351666800000, x: 1.02},
       {t: 1351753200000, x: 2.04},
@@ -731,13 +748,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // split date/time columns
-  var data = [
+  var data = RowLoader.load([
     'TYPE,DATE,START TIME,END TIME,USAGE,UNITS,COST,NOTES',
     'Electric usage,2012-10-31,00:00,00:59,1.16,kWh,$0.15,',
     'Electric usage,2012-10-31,01:00,01:59,0.97,kWh,$0.12,',
     'Electric usage,2012-10-31,02:00,02:59,0.73,kWh,$0.09,',
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((DATE "START TIME") (USAGE COST))', data), {
     'USAGE': [
       {t: 1351666800000, x: 1.16},
       {t: 1351670400000, x: 0.97},
@@ -751,13 +768,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // reverse chronological order
-  var data = [
+  var data = RowLoader.load([
     'Date,Open,Close,Volume',
     '2012-11-30,27.26,28.00,126947100',
     '2012-11-29,26.50,27.32,88759700',
     '2012-11-28,25.94,26.36,49205600'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((Date) (Open Close Volume))', data), {
     'Open': [
       {t: 1354089600000, x: 25.94},
       {t: 1354176000000, x: 26.50},
@@ -776,13 +793,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // different date format, thousands separators
-  var data = [
+  var data = RowLoader.load([
     'Date,Close,Volume',
     '"Dec 3, 2012","1,409.46","517,130,581"',
     '"Nov 30, 2012","1,416.18","836,942,757"',
     '"Nov 29, 2012","1,415.95","509,860,077"'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((Date) (Close Volume))', data), {
     'Close': [
       {t: 1354176000000, x: 1415.95},
       {t: 1354262400000, x: 1416.18},
@@ -796,13 +813,13 @@ QUnit.test('DataLoader', function() {
   });
 
   // DMY format (new Date() won't parse this!)
-  var data = [
+  var data = RowLoader.load([
     'Time,Close',
     '03.12.2002 16:00:00.000,1.57100',
     '04.12.2002 16:00:00.000,1.57560',
     '05.12.2002 16:00:00.000,1.57300'
-  ].join('\n');
-  jsonEqual(DataLoader.load(data), {
+  ].join('\n'));
+  jsonEqual(ChannelExtractor.extract('((Time) (Close))', data), {
     'Close': [
       {t: 1038960000000, x: 1.57100},
       {t: 1039046400000, x: 1.57560},

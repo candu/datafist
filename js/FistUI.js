@@ -718,9 +718,32 @@ var FistUI = new Class({
             this._progressBar.set('value', loaded);
           }.bind(this))
           .load(function(file, data) {
-            console.log(file);
-            this._statusWrapper.set('class', 'ok');
-            this._messageBox.set('text', 'import finished.');
+            try {
+              this._messageBox.set('text', 'loading rows...');
+              var rows = RowLoader.load(data);
+              this._messageBox.set('text', 'identifying channels...');
+              // TODO: build a reasonable import dialog :)
+              var cols = Object.keys(rows[0]);
+              cols.sort();
+              var spec = window.prompt(
+                'available columns: ' + cols.join(', ')
+              );
+              if (spec === null) {
+                throw new DataImportError('import cancelled.');
+              }
+              this._messageBox.set('text', 'extracting channels...');
+              var channels = ChannelExtractor.extract(spec, rows);
+              this._messageBox.set('text', 'importing channels...');
+              this._statusWrapper.set('class', 'ok');
+              this._messageBox.set('text', 'import successful.');
+            } catch (e) {
+              console.log(e);
+              if (!(e instanceof DataImportError)) {
+                throw e;
+              }
+              this._statusWrapper.set('class', 'not-ok');
+              this._messageBox.set('text', e.toString());
+            }
           }.bind(this))
           .import();
       } catch (e) {
