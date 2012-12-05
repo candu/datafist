@@ -22,6 +22,64 @@ QUnit.test('Interval', function() {
   intervalCheck([1, 1], [1, 1], [1, 1]);
 });
 
+QUnit.test('TimeDelta', function() {
+  // basic
+  equal(TimeDelta.parse('millisecond'), 1);
+  equal(TimeDelta.parse('second'), 1000);
+  equal(TimeDelta.parse('minute'), 1000 * 60);
+  equal(TimeDelta.parse('hour'), 1000 * 60 * 60);
+  equal(TimeDelta.parse('day'), 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('week'), 1000 * 60 * 60 * 24 * 7);
+
+  // abbreviations
+  equal(TimeDelta.parse('ms'), 1);
+  equal(TimeDelta.parse('msec'), 1);
+  equal(TimeDelta.parse('s'), 1000);
+  equal(TimeDelta.parse('sec'), 1000);
+  equal(TimeDelta.parse('m'), 1000 * 60);
+  equal(TimeDelta.parse('min'), 1000 * 60);
+  equal(TimeDelta.parse('h'), 1000 * 60 * 60);
+  equal(TimeDelta.parse('hr'), 1000 * 60 * 60);
+  equal(TimeDelta.parse('d'), 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('w'), 1000 * 60 * 60 * 24 * 7);
+  equal(TimeDelta.parse('wk'), 1000 * 60 * 60 * 24 * 7);
+
+  // numbers
+  equal(TimeDelta.parse('2 ms'), 2);
+  equal(TimeDelta.parse('3 seconds'), 3 * 1000);
+  equal(TimeDelta.parse('4 min'), 4 * 1000 * 60);
+  equal(TimeDelta.parse('5 hours'), 5 * 1000 * 60 * 60);
+  equal(TimeDelta.parse('6 d'), 6 * 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('7 weeks'), 7 * 1000 * 60 * 60 * 24 * 7);
+
+  // singular
+  equal(TimeDelta.parse('1 millisecond'), 1);
+  equal(TimeDelta.parse('1 second'), 1000);
+  equal(TimeDelta.parse('1 minute'), 1000 * 60);
+  equal(TimeDelta.parse('1 hour'), 1000 * 60 * 60);
+  equal(TimeDelta.parse('1 day'), 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('1 week'), 1000 * 60 * 60 * 24 * 7);
+
+  // negative numbers
+  equal(TimeDelta.parse('-2 ms'), -2);
+  equal(TimeDelta.parse('-3 seconds'), -3 * 1000);
+  equal(TimeDelta.parse('-4 min'), -4 * 1000 * 60);
+  equal(TimeDelta.parse('-5 hours'), -5 * 1000 * 60 * 60);
+  equal(TimeDelta.parse('-6 d'), -6 * 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('-7 weeks'), -7 * 1000 * 60 * 60 * 24 * 7);
+
+  // no space
+  equal(TimeDelta.parse('2ms'), 2);
+  equal(TimeDelta.parse('3s'), 3 * 1000);
+  equal(TimeDelta.parse('4m'), 4 * 1000 * 60);
+  equal(TimeDelta.parse('5h'), 5 * 1000 * 60 * 60);
+  equal(TimeDelta.parse('6d'), 6 * 1000 * 60 * 60 * 24);
+  equal(TimeDelta.parse('7w'), 7 * 1000 * 60 * 60 * 24 * 7);
+
+  // floating point
+  equal(TimeDelta.parse('0.25s'), 0.25 * 1000);
+});
+
 QUnit.test('Iterator', function() {
   var it;
 
