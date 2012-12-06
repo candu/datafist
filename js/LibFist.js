@@ -287,7 +287,9 @@ var OpsTime = {
   __exports: [
     ['timeShift', 'time-shift'],
     ['timeBucketSum', 'time-bucket-sum'],
-    ['hourOfDay', 'hour-of-day']
+    ['timeIdentity', 'time-identity'],
+    ['hourOfDay', 'hour-of-day'],
+    ['dayOfWeek', 'day-of-week']
   ],
   __fullName: 'Time Operators',
   timeShift: new FistFunction(function(args) {
@@ -347,6 +349,19 @@ var OpsTime = {
       'With two parameters (c, dt), groups the data points of c into time ' +
       'buckets of width dt, then sums all values within each bucket.'
     ),
+  timeIdentity: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return t;
+      },
+      iter: function() {
+        return args[0].iter();
+      }
+    }
+  }).signature('channel', 'channel')
+    .describe(
+      'Creates a new channel whose values are equal to its timestamps.'
+    ),
   hourOfDay: new FistFunction(function(args) {
     return {
       at: function(t) {
@@ -358,8 +373,43 @@ var OpsTime = {
     }
   }).signature('channel', 'channel')
     .describe(
-      'Creates a new channel with values equal to the hour of day (0-24) ' +
-      'for its timestamps.'
+      'Creates a new channel whose values are the hours of day (0-24) ' +
+      'of its timestamps.'
+    ),
+  dayOfWeek: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return new Date(t).getDay();
+      },
+      iter: function() {
+        return args[0].iter();
+      }
+    }
+  }).signature('channel', 'channel')
+    .describe(
+      'Creates a new channel whose values are the days of week (0-6) ' +
+      'of its timestamps.'
+    )
+};
+
+var OpsJoin = {
+  __fullName: 'Join Operations',
+  join: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return args[0].at(t);
+      },
+      iter: function() {
+        return IntersectionIterator(
+          args.map(function(c) { return c.iter(); })
+        );
+      }
+    }
+  }).signature('(+ channel)', 'channel')
+    .describe(
+      'With parameters (c1, ..., cN), creates a new channel with values ' +
+      'from c1 and only those timestamps present in every channel ' +
+      'c1, ..., cN.'
     )
 };
 
@@ -706,6 +756,7 @@ var LibFist = {
     fist.importModule(null, OpsMath);
     //fist.importModule(null, OpsString);
     fist.importModule(null, OpsTime);
+    fist.importModule(null, OpsJoin);
 
     fist.importModule(null, OpsFilterValue);
     fist.importModule(null, OpsFilterTime);
