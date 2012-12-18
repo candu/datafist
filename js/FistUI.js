@@ -662,48 +662,38 @@ var FistUI = new Class({
     }.bind(this));
 
     this._fist = fist;
+
+    // set up root
     this._root = root;
-
-    this._dragBlock = null;
-
-    // set up status area
-    this._statusWrapper = this._root.getElement('#status_wrapper');
-    this._messageBox = this._root.getElement('#message');
-    this._importBox = this._root.getElement('#import');
-    this._filenameBox = this._root.getElement('#filename');
-    this._progressBar = this._root.getElement('#progress');
-
-    // set up palette
-    this._palette = this._root.getElement('#palette');
-    this._palette.addEventListener('dragenter', function(evt) {
+    this._dropOverlay = this._root.getElement('#drop_overlay');
+    this._root.addEventListener('dragenter', function(evt) {
       evt.stop();
       if (!evt.isFileDrag()) {
         return;
       }
-      this.addClass('droptarget');
-    }, false);
-    this._palette.addEventListener('dragover', function(evt) {
+      this._dropOverlay.addClass('droptarget');
+    }.bind(this), false);
+    this._dropOverlay.addEventListener('dragover', function(evt) {
       evt.stop();
       if (!evt.isFileDrag()) {
         return;
       }
       evt.dataTransfer.dropEffect = 'copy';
-      this.addClass('droptarget');
-      return false;
-    }, false);
-    this._palette.addEventListener('dragleave', function(evt) {
+      this._dropOverlay.addClass('droptarget');
+    }.bind(this), false);
+    this._dropOverlay.addEventListener('dragleave', function(evt) {
       evt.stop();
       if (!evt.isFileDrag()) {
         return;
       }
-      this.removeClass('droptarget');
-    }, false);
-    this._palette.addEventListener('drop', function(evt) {
+      this._dropOverlay.removeClass('droptarget');
+    }.bind(this), false);
+    this._dropOverlay.addEventListener('drop', function(evt) {
       evt.stop();
       if (!evt.isFileDrag()) {
         return;
       }
-      this._palette.removeClass('droptarget');
+      this._dropOverlay.removeClass('droptarget');
       try {
         FileImporter(evt.dataTransfer.files[0])
           .start(function(file, total) {
@@ -766,6 +756,18 @@ var FistUI = new Class({
         this._messageBox.set('text', e.toString());
       }
     }.bind(this), false);
+
+    this._dragBlock = null;
+
+    // set up status area
+    this._statusWrapper = this._root.getElement('#status_wrapper');
+    this._messageBox = this._root.getElement('#message');
+    this._importBox = this._root.getElement('#import');
+    this._filenameBox = this._root.getElement('#filename');
+    this._progressBar = this._root.getElement('#progress');
+
+    // set up palette
+    this._palette = this._root.getElement('#palette');
 
     // set up viewer
     this._viewer = this._root.getElement('#viewer');
