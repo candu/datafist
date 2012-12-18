@@ -1,6 +1,8 @@
+'use strict';
+
 var resizeTimer = null,
-    fist = null;
-    fistUI = null;
+    fist = null,
+    fistUI = null,
     loadStart = +(new Date());
 $(window).addEvent('domready', function() {
   fist = new Fist();

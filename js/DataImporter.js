@@ -1,3 +1,5 @@
+'use strict';
+
 var DataImportError = new Class({
   Extends: Error,
   initialize: function(msg) {
@@ -13,7 +15,7 @@ var RowLoader = {
     if (data.length === 0) {
       throw new DataImportError('empty data string');
     }
-    rows = d3.csv.parse(data);
+    var rows = d3.csv.parse(data);
     if (rows.length === 0) {
       throw new DataImportError('empty dataset');
     }

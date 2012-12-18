@@ -1,3 +1,5 @@
+'use strict';
+
 var FistFunction = new Class({
   initialize: function(fn) {
     this._fn = fn;

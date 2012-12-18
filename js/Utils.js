@@ -1,3 +1,5 @@
+'use strict';
+
 Object.isEmpty = function(obj) {
   for (var i in obj) {
     return false;

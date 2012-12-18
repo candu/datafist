@@ -1,3 +1,5 @@
+'use strict';
+
 function _caption(sexp) {
   var s = SExp.unparse(sexp);
   if (s.length > 30) {

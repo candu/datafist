@@ -1,3 +1,5 @@
+'use strict';
+
 var _unaryOp = function(a, op) {
   if (typeOf(a) === 'number') {
     return op(a);
@@ -133,7 +135,7 @@ var OpsArith = {
     .signature('(+ (| number channel))', 'channel')
     .describe('Takes the product of its parameters.'),
   subtract: new FistFunction(function(args) {
-    argTypes = args.map(typeOf);
+    var argTypes = args.map(typeOf);
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
         return -a;

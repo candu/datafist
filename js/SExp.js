@@ -1,8 +1,10 @@
+'use strict';
+
 var SExp = {
   _parseImpl: function(s, i) {
     function helper() {
       while (true) {
-        if (i >= s.length) throw new Error("parse failed");
+        if (i >= s.length) throw new Error('parse failed');
         if (s[i] !== ' ') break;
         i++;
       }
@@ -11,7 +13,7 @@ var SExp = {
         sexp = [];
         i++;
         while (true) {
-          if (i >= s.length) throw new Error("parse failed");
+          if (i >= s.length) throw new Error('parse failed');
           if (s[i] === ')') break;
           var result = helper();
           sexp.push(result.sexp);
@@ -45,7 +47,7 @@ var SExp = {
   parse: function(s) {
     s = s.trim();
     var result = this._parseImpl(s, 0);
-    if (result.pos !== s.length) throw new Error("parse failed");
+    if (result.pos !== s.length) throw new Error('parse failed');
     return result.sexp;
   },
   /**
@@ -74,7 +76,7 @@ var SExp = {
       while (s[pos] === ' ') pos++;
       sexps.push(result.sexp);
     }
-    if (pos !== s.length) throw new Error("parse failed");
+    if (pos !== s.length) throw new Error('parse failed');
     return sexps;
   },
   isList: function(sexp) {

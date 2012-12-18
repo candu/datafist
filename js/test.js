@@ -1,3 +1,5 @@
+'use strict';
+
 QUnit.test('Object', function() {
   equal(Object.isEmpty({}), true);
   equal(Object.isEmpty({a:{}}), false);
@@ -187,13 +189,13 @@ QUnit.test('MergeIterator', function() {
 
 QUnit.test('UnionIterator', function() {
   // empty
-  it = UnionIterator([]);
+  var it = UnionIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = UnionIterator([Iterator([])]);
+  var it = UnionIterator([Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  var it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
@@ -210,13 +212,13 @@ QUnit.test('UnionIterator', function() {
 
 QUnit.test('IntersectionIterator', function() {
   // empty
-  it = IntersectionIterator([]);
+  var it = IntersectionIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = IntersectionIterator([Iterator([])]);
+  var it = IntersectionIterator([Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = IntersectionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  var it = IntersectionIterator([Iterator([]), Iterator([]), Iterator([])]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 

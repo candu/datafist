@@ -1,3 +1,5 @@
+'use strict';
+
 var ViewGraphState = new Class({
   initialize: function() {
     this._dummyElem = new Element('div');

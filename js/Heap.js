@@ -1,3 +1,5 @@
+'use strict';
+
 function Heap(xs, cmp) {
   cmp = cmp || function(a, b) { return a - b; };
   var _size = xs.length;
@@ -44,7 +46,7 @@ function Heap(xs, cmp) {
     var i = _size++;
     xs[i] = x;
     while (i > 0) {
-      P = _parent(i);
+      var P = _parent(i);
       if (cmp(xs[P], xs[i]) < 0) {
         break;
       }

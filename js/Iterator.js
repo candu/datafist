@@ -1,3 +1,5 @@
+'use strict';
+
 var StopIteration = new Class({
   Extends: Error,
   toString: function() {
