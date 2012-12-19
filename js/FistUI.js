@@ -610,30 +610,22 @@ var ViewGraph = new Class({
 
     var gridPadding = 10,
         padding = 2,
-        x = gridPadding,
-        levelX = [];
-    for (var level = levels.length - 1; level >= 0; level--) {
-      levelX.unshift(x);
-      var maxNodeWidth = 0;
+        numLevels = levels.length;
+    for (var level = 0; level < numLevels; level++) {
+      var x = gridPadding;
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
         node.size = this._getTextSize(node.name);
         node.type = this._fist.getType(node.name);
-        maxNodeWidth = Math.max(maxNodeWidth, node.size.x);
-      }
-      x += maxNodeWidth + 2 * (padding + gridPadding);
-    }
-    for (var level = 0; level < levels.length; level++) {
-      for (var pos = 0; pos < levels[level].length; pos++) {
-        var node = levels[level][pos];
         node.index = this._state.addNode(
           node.name,
           node.type,
-          levelX[level] + 0.5,
-          pos * 40 + 10 + 0.5,
+          x,
+          (numLevels - level - 1) * 40 + 10 + 0.5,
           node.size.x + 2 * padding,
           node.size.y + 2 * padding
         );
+        x += node.size.x + 2 * padding + gridPadding;
         if (node.p !== null) {
           var parentNode = levels[level - 1][node.p];
           this._state.addEdge(node.index, parentNode.index);
