@@ -180,7 +180,6 @@ var OpsArith = {
       'Computes the first parameter modulo the second.'
     ),
   bucket: new FistFunction(function(args) {
-    argCheck('//*', args, '(+ (| number channel) number)');
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b) * b;
     });
@@ -196,7 +195,6 @@ var OpsArith = {
 var OpsMath = {
   __fullName: 'Math Operators',
   sqrt: new FistFunction(function(args) {
-    argCheck('sqrt', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.sqrt(a);
     });
@@ -206,7 +204,6 @@ var OpsMath = {
       'Takes the square root of a number or channel.'
     ),
   pow: new FistFunction(function(args) {
-    argCheck('pow', args, '(+ (| number channel) number)');
     return _binaryOp(args[0], function(a, b) {
       return Math.pow(a, b);
     });
@@ -216,7 +213,6 @@ var OpsMath = {
       'With two parameters (x, a), computes x^a.'
     ),
   exp: new FistFunction(function(args) {
-    argCheck('exp', args, '(+ (? number) (| number channel))');
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
         return Math.exp(a);
@@ -234,7 +230,6 @@ var OpsMath = {
       '(a, x), computes a^x.'
     ),
   log: new FistFunction(function(args) {
-    argCheck('log', args, '(+ (| number channel), (? number))');
     if (args.length === 1) {
       return _unaryOp(args[0], function(a) {
         return Math.log(a);
@@ -252,7 +247,6 @@ var OpsMath = {
       '(x, b), computes x log b.'
     ),
   floor: new FistFunction(function(args) {
-    argCheck('floor', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.floor(a);
     });
@@ -262,7 +256,6 @@ var OpsMath = {
       'Rounds its parameter down.'
     ),
   round: new FistFunction(function(args) {
-    argCheck('round', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.round(a);
     });
@@ -272,7 +265,6 @@ var OpsMath = {
       'Rounds its parameter to the nearest integer.'
     ),
   ceil: new FistFunction(function(args) {
-    argCheck('ceil', args, '(| number channel)');
     return _unaryOp(args[0], function(a) {
       return Math.ceil(a);
     });
@@ -427,9 +419,7 @@ var OpsFilterValue = {
   ],
   __fullName: 'Value Filters',
   lt: new FistFunction(function(args) {
-    argCheck('value-less-than', args, 'number');
     return function(subargs) {
-      argCheck('value-less-than-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -442,9 +432,7 @@ var OpsFilterValue = {
       'those data points less than its parameter.'
     ),
   lteq: new FistFunction(function(args) {
-    argCheck('value-at-most', args, 'number');
     return function(subargs) {
-      argCheck('value-at-most-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -457,9 +445,7 @@ var OpsFilterValue = {
       'those data points less than or equal to its parameter.'
     ),
   eq: new FistFunction(function(args) {
-    argCheck('value-equal-to', args, 'any');
     return function(subargs) {
-      argCheck('value-equal-to-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -473,9 +459,7 @@ var OpsFilterValue = {
       'those data points equal to its parameter.'
     ),
   neq: new FistFunction(function(args) {
-    argCheck('value-not-equal-to', args, 'any');
     return function(subargs) {
-      argCheck('value-not-equal-to-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -489,9 +473,7 @@ var OpsFilterValue = {
       'those data points not equal to its parameter.'
     ),
   gteq: new FistFunction(function(args) {
-    argCheck('value-more-than', args, 'number');
     return function(subargs) {
-      argCheck('value-more-than-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -504,9 +486,7 @@ var OpsFilterValue = {
       'those data points greater than or equal to its parameter.'
     ),
   gt: new FistFunction(function(args) {
-    argCheck('>=', args, 'number');
     return function(subargs) {
-      argCheck('>=-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -519,9 +499,7 @@ var OpsFilterValue = {
       'those data points greater than to its parameter.'
     ),
   valueBetween: new FistFunction(function(args) {
-    argCheck('value-between', args, '(+ number number)');
     return function(subargs) {
-      argCheck('value-between-fn', subargs, 'channel');
       var _c = subargs[0],
           _min = args[0],
           _max = args[1];
@@ -546,9 +524,7 @@ var OpsFilterTime = {
   ],
   __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
-    argCheck('since', args, '(| number date)');
     return function(subargs) {
-      argCheck('since-fn', subargs, 'channel');
       var _c = subargs[0],
           _since = +args[0];
       return _filterOp(_c, function(t) {
@@ -562,7 +538,6 @@ var OpsFilterTime = {
     ),
   until: new FistFunction(function(args) {
     return function(subargs) {
-      argCheck('until-fn', subargs, 'channel');
       var _c = subargs[0],
           _until = +args[0];
       return _filterOp(_c, function(t) {
@@ -576,7 +551,6 @@ var OpsFilterTime = {
     ),
   between: new FistFunction(function(args) {
     return function(subargs) {
-      argCheck('between-fn', subargs, 'channel');
       var _c = subargs[0],
           _since = +args[0],
           _until = +args[1];
@@ -600,7 +574,6 @@ var OpsReduce = {};
 var GensData = {
   __fullName: 'Data Generators',
   constant: new FistFunction(function(args) {
-    argCheck('constant', args, 'any');
     return function(t) {
       return args[0];
     };
@@ -647,9 +620,7 @@ var GensChannel = {
   ],
   __fullName: 'Channel Generators',
   genRegular: new FistFunction(function(args) {
-    argCheck('gen-regular', args, '(+ number number number)');
     return function(subargs) {
-      argCheck('gen-regular-fn', subargs, 'function');
       var _gen = subargs[0],
           _since = args[0],
           _until = args[1],
@@ -670,9 +641,7 @@ var GensChannel = {
       'evenly spaced data points with timestamps on [start, end).'
     ),
   genUniform: new FistFunction(function(args) {
-    argCheck('gen-uniform', args, '(+ number number number)');
     return function(subargs) {
-      argCheck('gen-uniform-fn', subargs, 'function');
       var _gen = subargs[0],
           _since = args[0],
           _until = args[1],
@@ -692,9 +661,7 @@ var GensChannel = {
       'data points with timestamps randomly selected from [start, end).'
     ),
   genPoisson: new FistFunction(function(args) {
-    argCheck('gen-poisson', args, '(+ number number number)');
     return function(subargs) {
-      argCheck('gen-poisson-fn', subargs, 'function');
       var _gen = subargs[0],
           _since = args[0],
           _until = args[1],
@@ -726,14 +693,12 @@ var View = {
   ],
   __fullName: 'Views',
   viewSparkline: new FistFunction(function(args, sexps) {
-    argCheck('view-sparkline', args, '(* channel)');
     this._viewInvoked('sparkline', args, sexps);
   }).signature('(+ channel)', 'view')
     .describe(
       'Displays its channels as sparklines (line charts).'
     ),
   viewHistogram: new FistFunction(function(args, sexps) {
-    argCheck('view-histogram', args, '(+ channel (? number))');
     this._viewInvoked('histogram', args, sexps);
   }).signature('channel', 'view')
     .signature('(-> channel number)', 'view')
@@ -743,7 +708,6 @@ var View = {
       'looks for a //* operation applied to its channel.'
     ),
   viewRegression: new FistFunction(function(args, sexps) {
-    argCheck('view-regression', args, '(+ channel channel)');
     this._viewInvoked('regression', args, sexps);
   }).signature('(-> channel channel)', 'view')
     .describe(
