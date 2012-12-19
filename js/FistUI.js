@@ -175,6 +175,8 @@ var ViewNode = new Class({
         }
       }.bind(this))
       .on('dblclick', function(d) {
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
         var name = window.prompt('edit node name:', d.name);
         if (name === null ||
             name.length === 0 ||
@@ -467,46 +469,11 @@ var ViewGraph = new Class({
         this._contextMenu.clearItems();
         if (targetNode === null) {
           this._contextMenu.addItem('add', 'add...');
-        } else {
-          this._contextMenu.addItem('edit', 'edit...');
         }
       }.bind(this),
       onHide: function() {
         this._contextMenu.menu.addClass('hidden');
         this._contextMenu.menu.setStyle('z-index', -2000);
-      }.bind(this),
-      onClick: function(menuEvt, menuItemEvt) {
-        var padding = 2;
-        switch (menuItemEvt.target.id) {
-          case 'add':
-            var name = window.prompt('enter node name:');
-            if (name === null || name.length === 0) {
-              return;
-            }
-            var svgPosition = $d3(this._svg).getPosition(),
-                x = menuEvt.page.x - svgPosition.x,
-                y = menuEvt.page.y - svgPosition.y;
-            this.addNode(name, x, y);
-            break;
-          case 'edit':
-            var targetNode = this._parentNode(menuEvt.target);
-            var name = window.prompt('edit node name:', targetNode.name);
-            if (name === null ||
-                name.length === 0 ||
-                name === targetNode.name) {
-              return;
-            }
-            var type = this._fist.getType(name),
-                svgPosition = $d3(this._svg).getPosition(),
-                textX = menuEvt.page.x - svgPosition.x,
-                textY = menuEvt.page.y - svgPosition.y,
-                blockDimensions = this._getBlockDimensions(textX, textY, name, padding);
-            targetNode.name = name;
-            targetNode.type = type;
-            Object.merge(targetNode, blockDimensions);
-            this._onNodeTextChanged(targetNode);
-            break;
-        }
       }.bind(this)
     });
   },
@@ -798,7 +765,17 @@ var FistUI = new Class({
       .append('svg:svg')
       .attr('id', 'view_graph')
       .attr('width', this._svgGraphWrapper.getWidth() - 2)
-      .attr('height', this._svgGraphWrapper.getHeight() - 2);
+      .attr('height', this._svgGraphWrapper.getHeight() - 2)
+      .on('dblclick', function(d) {
+        var name = window.prompt('enter node name:');
+        if (name === null || name.length === 0) {
+          return;
+        }
+        var svgPosition = $d3(this._viewGraph._svg).getPosition(),
+            x = d3.event.pageX - svgPosition.x,
+            y = d3.event.pageY - svgPosition.y;
+        this._viewGraph.addNode(name, x, y);
+      }.bind(this));
     this._svgGraphWrapper.addEventListener('dragenter', function(evt) {
       evt.stop();
       if (evt.isFileDrag()) {
