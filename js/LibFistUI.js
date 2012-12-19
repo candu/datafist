@@ -234,7 +234,7 @@ var SparklineView = {
             t = Interval.nice([+(scaleT.invert(x1)), +(scaleT.invert(x2))]);
         var filteredSexp = sexps.map(function(sexp) {
           var sexpF = _stripFilters(sexp, 'time-between');
-          return [['time-between', _format(t[0]), _format(t[1])], sexpF];
+          return ['time-between', sexpF, _format(t[0]), _format(t[1])];
         }.bind(this));
         filteredSexp.unshift('view-sparkline');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
@@ -559,7 +559,7 @@ var RegressionView = {
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
-            y2 = y1 + parseFloat(this._dragSelectionArea.attr('height'))
+            y2 = y1 + parseFloat(this._dragSelectionArea.attr('height')),
             y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]),
             sexpX = _stripFilters(sexps[0], 'value-between'),
             sexpY = _stripFilters(sexps[1], 'value-between');

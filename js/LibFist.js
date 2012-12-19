@@ -510,40 +510,34 @@ var OpsFilterTime = {
   ],
   __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _since = +args[0];
-      return _filterOp(_c, function(t) {
-        return t >= _since;
-      });
-    };
+    var _c = args[0],
+        _since = +args[1];
+    return _filterOp(_c, function(t) {
+      return t >= _since;
+    });
   }).signature('(| number string)', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points timestamped on or after its parameter.'
     ),
   until: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _until = +args[0];
-      return _filterOp(_c, function(t) {
-        return t < _until;
-      });
-    };
+    var _c = args[0],
+        _until = +args[1];
+    return _filterOp(_c, function(t) {
+      return t < _until;
+    });
   }).signature('(| number string)', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points timestamped before its parameter.'
     ),
   between: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _since = +args[0],
-          _until = +args[1];
-      return _filterOp(_c, function(t) {
-        return t >= _since && t < _until;
-      });
-    };
+    var _c = args[0],
+        _since = +args[1],
+        _until = +args[2];
+    return _filterOp(_c, function(t) {
+      return t >= _since && t < _until;
+    });
   }).signature('(-> (| number string) (| number string))', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +

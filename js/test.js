@@ -553,7 +553,7 @@ QUnit.test('OpsFilterValue', function() {
 QUnit.test('OpsFilterTime', function() {
   // since
   var c = fist.execute(
-    '((time-since 3) ((gen-regular 0 10 10) (constant 1)))'
+    '(time-since ((gen-regular 0 10 10) (constant 1)) 3)'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3) {
@@ -565,7 +565,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // until
   var c = fist.execute(
-    '((time-until 7) ((gen-regular 0 10 10) (constant 1)))'
+    '(time-until ((gen-regular 0 10 10) (constant 1)) 7)'
   );
   for (var t = 0; t < 10; t++) {
     if (t < 7) {
@@ -577,7 +577,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // between
   var c = fist.execute(
-    '((time-between 3 7) ((gen-regular 0 10 10) (constant 1)))'
+    '(time-between ((gen-regular 0 10 10) (constant 1)) 3 7)'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3 && t < 7) {
