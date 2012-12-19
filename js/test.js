@@ -491,7 +491,7 @@ QUnit.test('OpsChannel', function() {
   throws(function() { return it2.next(); }, StopIteration);
 });
 
-QUnit.test('OpsFilterComparison', function() {
+QUnit.test('OpsFilterValue', function() {
   // see http://en.wikipedia.org/wiki/Normal_distribution
   var FOUR_NINES_SIG = 3.89,
       TWO_DEV_PROB = 0.954499736104;
@@ -521,14 +521,14 @@ QUnit.test('OpsFilterComparison', function() {
     ok(error < limit);
   }
 
-  checkInequality('(< 1)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(<= 1)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(>= 5)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(> 5)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(value-less-than 1)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(value-at-most 1)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(value-at-least 5)', (1 - TWO_DEV_PROB) / 2);
+  checkInequality('(value-more-than 5)', (1 - TWO_DEV_PROB) / 2);
   checkInequality('(value-between 1 5)', TWO_DEV_PROB);
 
   var c = fist.execute(
-    '((= 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+    '((value-is 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
@@ -539,7 +539,7 @@ QUnit.test('OpsFilterComparison', function() {
   }
 
   var c = fist.execute(
-    '((!= 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+    '((value-is-not 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
@@ -553,7 +553,7 @@ QUnit.test('OpsFilterComparison', function() {
 QUnit.test('OpsFilterTime', function() {
   // since
   var c = fist.execute(
-    '((since 3) ((gen-regular 0 10 10) (constant 1)))'
+    '((time-since 3) ((gen-regular 0 10 10) (constant 1)))'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3) {
@@ -565,7 +565,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // until
   var c = fist.execute(
-    '((until 7) ((gen-regular 0 10 10) (constant 1)))'
+    '((time-until 7) ((gen-regular 0 10 10) (constant 1)))'
   );
   for (var t = 0; t < 10; t++) {
     if (t < 7) {
@@ -577,7 +577,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // between
   var c = fist.execute(
-    '((between 3 7) ((gen-regular 0 10 10) (constant 1)))'
+    '((time-between 3 7) ((gen-regular 0 10 10) (constant 1)))'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3 && t < 7) {
@@ -917,10 +917,10 @@ QUnit.test('Fist', function() {
   equal(fist.getType('((gen-regular 0 10 10) (constant 1))'), 'channel');
 
   // filters
-  equal(fist.getType('>'), 'function');
-  equal(fist.getType('(> 9000)'), 'function');
-  equal(fist.getType('(since 0)'), 'function');
-  equal(fist.getType('(between 6 101)'), 'function');
+  equal(fist.getType('value-more-than'), 'function');
+  equal(fist.getType('(value-more-than 9000)'), 'function');
+  equal(fist.getType('(time-since 0)'), 'function');
+  equal(fist.getType('(time-between 6 101)'), 'function');
 });
 
 QUnit.test('ViewGraphState', function() {

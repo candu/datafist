@@ -235,8 +235,8 @@ var SparklineView = {
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             t = Interval.nice([+(scaleT.invert(x1)), +(scaleT.invert(x2))]);
         var filteredSexp = sexps.map(function(sexp) {
-          var sexpF = _stripFilters(sexp, 'between');
-          return [['between', _format(t[0]), _format(t[1])], sexpF];
+          var sexpF = _stripFilters(sexp, 'time-between');
+          return [['time-between', _format(t[0]), _format(t[1])], sexpF];
         }.bind(this));
         filteredSexp.unshift('view-sparkline');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);

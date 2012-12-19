@@ -417,19 +417,19 @@ var OpsJoin = {
 
 var OpsFilterValue = {
   __exports: [
-    ['lt', '<'],
-    ['lteq', '<='],
-    ['eq', '='],
-    ['neq', '!='],
-    ['gteq', '>='],
-    ['gt', '>'],
+    ['lt', 'value-less-than'],
+    ['lteq', 'value-at-most'],
+    ['eq', 'value-is'],
+    ['neq', 'value-is-not'],
+    ['gteq', 'value-at-least'],
+    ['gt', 'value-more-than'],
     ['valueBetween', 'value-between']
   ],
   __fullName: 'Value Filters',
   lt: new FistFunction(function(args) {
-    argCheck('<', args, 'number');
+    argCheck('value-less-than', args, 'number');
     return function(subargs) {
-      argCheck('<-fn', subargs, 'channel');
+      argCheck('value-less-than-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -442,9 +442,9 @@ var OpsFilterValue = {
       'those data points less than its parameter.'
     ),
   lteq: new FistFunction(function(args) {
-    argCheck('<=', args, 'number');
+    argCheck('value-at-most', args, 'number');
     return function(subargs) {
-      argCheck('<=-fn', subargs, 'channel');
+      argCheck('value-at-most-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -457,9 +457,9 @@ var OpsFilterValue = {
       'those data points less than or equal to its parameter.'
     ),
   eq: new FistFunction(function(args) {
-    argCheck('=', args, 'any');
+    argCheck('value-equal-to', args, 'any');
     return function(subargs) {
-      argCheck('=-fn', subargs, 'channel');
+      argCheck('value-equal-to-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -473,9 +473,9 @@ var OpsFilterValue = {
       'those data points equal to its parameter.'
     ),
   neq: new FistFunction(function(args) {
-    argCheck('!=', args, 'any');
+    argCheck('value-not-equal-to', args, 'any');
     return function(subargs) {
-      argCheck('!=-fn', subargs, 'channel');
+      argCheck('value-not-equal-to-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -489,9 +489,9 @@ var OpsFilterValue = {
       'those data points not equal to its parameter.'
     ),
   gteq: new FistFunction(function(args) {
-    argCheck('>=', args, 'number');
+    argCheck('value-more-than', args, 'number');
     return function(subargs) {
-      argCheck('>=-fn', subargs, 'channel');
+      argCheck('value-more-than-fn', subargs, 'channel');
       var _c = subargs[0],
           _bound = args[0];
       return _filterOp(_c, function(t) {
@@ -539,6 +539,11 @@ var OpsFilterValue = {
 };
 
 var OpsFilterTime = {
+  __exports: [
+    ['until', 'time-until'],
+    ['since', 'time-since'],
+    ['between', 'time-between']
+  ],
   __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
     argCheck('since', args, '(| number date)');
