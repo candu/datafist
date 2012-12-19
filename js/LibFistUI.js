@@ -39,9 +39,7 @@ function _format(x) {
 
 function _stripFilters(sexp, filterName) {
   var cur = sexp;
-  while (SExp.isList(cur) &&
-         SExp.isList(cur[0]) &&
-         cur[0][0] === filterName) {
+  while (SExp.isList(cur) && cur[0] === filterName) {
     cur = cur[1];
   }
   return cur;
@@ -409,7 +407,7 @@ var HistogramView = {
             sexpX = _stripFilters(sexps[0], 'value-between');
         var filteredSexp = [
           'view-histogram',
-          [['value-between', _format(x[0]), _format(x[1])], sexpX]
+          ['value-between', sexpX, _format(x[0]), _format(x[1])]
         ];
         if (applyBuckets) {
           filteredSexp.push(String(bucketing));
@@ -567,8 +565,8 @@ var RegressionView = {
             sexpY = _stripFilters(sexps[1], 'value-between');
         var filteredSexp = [
           'view-regression',
-          [['value-between', _format(x[0]), _format(x[1])], sexpX],
-          [['value-between', _format(y[0]), _format(y[1])], sexpY]
+          ['value-between', sexpX, _format(x[0]), _format(x[1])],
+          ['value-between', sexpY, _format(y[0]), _format(y[1])]
         ]
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));

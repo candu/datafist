@@ -496,9 +496,9 @@ QUnit.test('OpsFilterValue', function() {
   var FOUR_NINES_SIG = 3.89,
       TWO_DEV_PROB = 0.954499736104;
 
-  function checkInequality(filter, p) {
+  function checkInequality(filter, args, p) {
     var c = fist.execute(
-      '(' + filter + ' ((gen-regular 0 1000 1000) (gaussian 3 1)))'
+      '(' + filter + ' ((gen-regular 0 1000 1000) (gaussian 3 1)) ' + args.join(' ') + ')'
     );
     var found = 0,
         N = 1000,
@@ -521,14 +521,14 @@ QUnit.test('OpsFilterValue', function() {
     ok(error < limit);
   }
 
-  checkInequality('(value-less-than 1)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(value-at-most 1)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(value-at-least 5)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(value-more-than 5)', (1 - TWO_DEV_PROB) / 2);
-  checkInequality('(value-between 1 5)', TWO_DEV_PROB);
+  checkInequality('value-less-than', [1], (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-at-most', [1], (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-at-least', [5], (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-more-than', [5], (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-between', [1, 5], TWO_DEV_PROB);
 
   var c = fist.execute(
-    '((value-is 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+    '(value-is (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))) 1)'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
@@ -539,7 +539,7 @@ QUnit.test('OpsFilterValue', function() {
   }
 
   var c = fist.execute(
-    '((value-is-not 1) (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))))'
+    '(value-is-not (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))) 1)'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {

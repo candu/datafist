@@ -419,95 +419,81 @@ var OpsFilterValue = {
   ],
   __fullName: 'Value Filters',
   lt: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        return _c.at(t) < _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      return _c.at(t) < _bound;
+    });
   }).signature('number', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points less than its parameter.'
     ),
   lteq: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        return _c.at(t) <= _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      return _c.at(t) <= _bound;
+    });
   }).signature('number', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points less than or equal to its parameter.'
     ),
   eq: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        // TODO: this won't work properly for dates or other objects
-        return _c.at(t) === _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      // TODO: this won't work properly for dates or other objects
+      return _c.at(t) === _bound;
+    });
   }).signature('any', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points equal to its parameter.'
     ),
   neq: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        // TODO: this won't work properly for dates or other objects
-        return _c.at(t) !== _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      // TODO: this won't work properly for dates or other objects
+      return _c.at(t) !== _bound;
+    });
   }).signature('any', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points not equal to its parameter.'
     ),
   gteq: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        return _c.at(t) >= _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      return _c.at(t) >= _bound;
+    });
   }).signature('number', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points greater than or equal to its parameter.'
     ),
   gt: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _bound = args[0];
-      return _filterOp(_c, function(t) {
-        return _c.at(t) > _bound;
-      });
-    }
+    var _c = args[0],
+        _bound = args[1];
+    return _filterOp(_c, function(t) {
+      return _c.at(t) > _bound;
+    });
   }).signature('number', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points greater than to its parameter.'
     ),
   valueBetween: new FistFunction(function(args) {
-    return function(subargs) {
-      var _c = subargs[0],
-          _min = args[0],
-          _max = args[1];
-      return _filterOp(_c, function(t) {
-        var x = _c.at(t);
-        return x >= _min && x < _max;
-      });
-    }
+    var _c = args[0],
+        _min = args[1],
+        _max = args[2];
+    return _filterOp(_c, function(t) {
+      var x = _c.at(t);
+      return x >= _min && x < _max;
+    });
   }).signature('(-> number number)', 'function')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
