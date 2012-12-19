@@ -459,23 +459,6 @@ var ViewGraph = new Class({
 
     this._tempText = this._tempTextGroup.append('svg:text')
       .attr('class', 'block');
-    this._contextMenu = new ContextMenu({
-      menu: 'contextmenu',
-      targets: '#svg_graph_wrapper',
-      onShow: function(menuEvt) {
-        this._contextMenu.menu.removeClass('hidden');
-        this._contextMenu.menu.setStyle('z-index', 2000);
-        var targetNode = this._parentNode(menuEvt.target);
-        this._contextMenu.clearItems();
-        if (targetNode === null) {
-          this._contextMenu.addItem('add', 'add...');
-        }
-      }.bind(this),
-      onHide: function() {
-        this._contextMenu.menu.addClass('hidden');
-        this._contextMenu.menu.setStyle('z-index', -2000);
-      }.bind(this)
-    });
   },
   nodeDragBehavior: function() {
     return this._nodeDragBehavior;
