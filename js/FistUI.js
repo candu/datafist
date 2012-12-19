@@ -174,6 +174,22 @@ var ViewNode = new Class({
           this._controls.attr('class', 'hidden');
         }
       }.bind(this))
+      .on('dblclick', function(d) {
+        var name = window.prompt('edit node name:', d.name);
+        if (name === null ||
+            name.length === 0 ||
+            name === d.name) {
+          return;
+        }
+        var type = this._fist.getType(name),
+            svgPosition = $d3(this._svg).getPosition(),
+            padding = 2,
+            blockDimensions = this._getBlockDimensions(d.x, d.y, name, padding);
+        d.name = name;
+        d.type = type;
+        Object.merge(d, blockDimensions);
+        this._onNodeTextChanged(d);
+      }.bind(graph))
       .call(graph.nodeDragBehavior());
 
     this._rect = this._g.append('svg:rect')
