@@ -600,20 +600,18 @@ var GensChannel = {
   ],
   __fullName: 'Channel Generators',
   genRegular: new FistFunction(function(args) {
-    return function(subargs) {
-      var _gen = subargs[0],
-          _since = args[0],
-          _until = args[1],
-          _n = args[2],
-          _dt = (_until - _since) / _n,
-          _t = _since,
-          _data = [];
-      for (var i = 0; i < _n; i++) {
-        _data.push({t: _t, x: _gen(_t)});
-        _t += _dt;
-      }
-      return new DataChannel(_data);
+    var _gen = args[0],
+        _since = args[1],
+        _until = args[2],
+        _n = args[3],
+        _dt = (_until - _since) / _n,
+        _t = _since,
+        _data = [];
+    for (var i = 0; i < _n; i++) {
+      _data.push({t: _t, x: _gen(_t)});
+      _t += _dt;
     }
+    return new DataChannel(_data);
   }).signature('(-> number number number)', 'function')
     .describe(
       'With three parameters (start, end, n) creates a channel generator ' +
@@ -621,19 +619,17 @@ var GensChannel = {
       'evenly spaced data points with timestamps on [start, end).'
     ),
   genUniform: new FistFunction(function(args) {
-    return function(subargs) {
-      var _gen = subargs[0],
-          _since = args[0],
-          _until = args[1],
-          _n = args[2],
-          _dts = Random.combination(_until - _since, _n),
-          _data = [];
-      for (var i = 0; i < _n; i++) {
-        var _t = _since + _dts[i];
-        _data.push({t: _t, x: _gen(_t)});
-      }
-      return new DataChannel(_data);
+    var _gen = args[0],
+        _since = args[1],
+        _until = args[2],
+        _n = args[3],
+        _dts = Random.combination(_until - _since, _n),
+        _data = [];
+    for (var i = 0; i < _n; i++) {
+      var _t = _since + _dts[i];
+      _data.push({t: _t, x: _gen(_t)});
     }
+    return new DataChannel(_data);
   }).signature('(-> number number number)', 'function')
     .describe(
       'With three parameters (start, end, n) creates a channel generator ' +
@@ -641,21 +637,19 @@ var GensChannel = {
       'data points with timestamps randomly selected from [start, end).'
     ),
   genPoisson: new FistFunction(function(args) {
-    return function(subargs) {
-      var _gen = subargs[0],
-          _since = args[0],
-          _until = args[1],
-          _rate = args[2],    // average wait (ms)
-          _data = [],
-          _t = _since;
-      while (_t < _until) {
-        _data.push({t: _t, x: _gen(_t)});
-        var _x = Math.max(1e-12, Math.random());
-        var _dt = Math.max(1, Math.round(_rate * -Math.log(_x)));
-        _t += _dt;
-      }
-      return new DataChannel(_data);
-    };
+    var _gen = args[0],
+        _since = args[1],
+        _until = args[2],
+        _rate = args[3],    // average wait (ms)
+        _data = [],
+        _t = _since;
+    while (_t < _until) {
+      _data.push({t: _t, x: _gen(_t)});
+      var _x = Math.max(1e-12, Math.random());
+      var _dt = Math.max(1, Math.round(_rate * -Math.log(_x)));
+      _t += _dt;
+    }
+    return new DataChannel(_data);
   }).signature('(-> number number number)', 'function')
     .describe(
       'With three parameters (start, end, rate) creates a channel generator ' +

@@ -399,31 +399,31 @@ QUnit.test('OpsArith', function() {
 
   // channel
   var c = fist.execute(
-    '(+ ((gen-regular 0 3 3) (constant 1)) ((gen-regular 0 3 3) (constant 2)))'
+    '(+ (gen-regular (constant 1) 0 3 3) (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
   var c = fist.execute(
-    '(- ((gen-regular 0 3 3) (constant 45)) ((gen-regular 0 3 3) (constant 3)))'
+    '(- (gen-regular (constant 45) 0 3 3) (gen-regular (constant 3) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
   var c = fist.execute(
-    '(* ((gen-regular 0 3 3) (constant 5)) ((gen-regular 0 3 3) (constant 7)))'
+    '(* (gen-regular (constant 5) 0 3 3) (gen-regular (constant 7) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 35);
   }
   var c = fist.execute(
-    '(/ ((gen-regular 0 3 3) (constant 19)) ((gen-regular 0 3 3) (constant 8)))'
+    '(/ (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
   var c = fist.execute(
-    '(// ((gen-regular 0 3 3) (constant 19)) ((gen-regular 0 3 3) (constant 8)))'
+    '(// (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
@@ -431,43 +431,43 @@ QUnit.test('OpsArith', function() {
 
   // mixed
   var c = fist.execute(
-    '(+ 35 ((gen-regular 0 3 3) (constant 2)) 4 ((gen-regular 0 3 3) (constant 1)))'
+    '(+ 35 (gen-regular (constant 1) 0 3 3) 4 (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
   var c = fist.execute(
-    '(- 10 ((gen-regular 0 3 3) (constant 2)))'
+    '(- 10 (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 8);
   }
   var c = fist.execute(
-    '(* ((gen-regular 0 3 3) (constant 2)) 73)'
+    '(* (gen-regular (constant 2) 0 3 3) 73)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 146);
   }
   var c = fist.execute(
-    '(/ ((gen-regular 0 3 3) (constant 19)) 8)'
+    '(/ (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
   var c = fist.execute(
-    '(// ((gen-regular 0 3 3) (constant 19)) 8)'
+    '(// (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
   }
   var c = fist.execute(
-    '(% ((gen-regular 0 3 3) (constant 19)) 8)'
+    '(% (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
   var c = fist.execute(
-    '(//* ((gen-regular 0 3 3) (constant 19)) 8)'
+    '(//* (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 16);
@@ -477,7 +477,7 @@ QUnit.test('OpsArith', function() {
 QUnit.test('OpsChannel', function() {
   // simultaneous iteration
   var c = fist.execute(
-    '(time-shift ((gen-regular 0 3 3) (constant 42)) -7)'
+    '(time-shift (gen-regular (constant 42) 0 3 3) -7)'
   );
   var it1 = c.iter(),
       it2 = c.iter();
@@ -498,7 +498,7 @@ QUnit.test('OpsFilterValue', function() {
 
   function checkInequality(filter, args, p) {
     var c = fist.execute(
-      '(' + filter + ' ((gen-regular 0 1000 1000) (gaussian 3 1)) ' + args.join(' ') + ')'
+      '(' + filter + ' (gen-regular (gaussian 3 1) 0 1000 1000) ' + args.join(' ') + ')'
     );
     var found = 0,
         N = 1000,
@@ -528,7 +528,7 @@ QUnit.test('OpsFilterValue', function() {
   checkInequality('value-between', [1, 5], TWO_DEV_PROB);
 
   var c = fist.execute(
-    '(value-is (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))) 1)'
+    '(value-is (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
@@ -539,7 +539,7 @@ QUnit.test('OpsFilterValue', function() {
   }
 
   var c = fist.execute(
-    '(value-is-not (+ ((gen-regular 0 10 10) (constant 1)) ((gen-regular 0 10 5) (constant 1))) 1)'
+    '(value-is-not (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
   );
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
@@ -553,7 +553,7 @@ QUnit.test('OpsFilterValue', function() {
 QUnit.test('OpsFilterTime', function() {
   // since
   var c = fist.execute(
-    '(time-since ((gen-regular 0 10 10) (constant 1)) 3)'
+    '(time-since (gen-regular (constant 1) 0 10 10) 3)'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3) {
@@ -565,7 +565,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // until
   var c = fist.execute(
-    '(time-until ((gen-regular 0 10 10) (constant 1)) 7)'
+    '(time-until (gen-regular (constant 1) 0 10 10) 7)'
   );
   for (var t = 0; t < 10; t++) {
     if (t < 7) {
@@ -577,7 +577,7 @@ QUnit.test('OpsFilterTime', function() {
 
   // between
   var c = fist.execute(
-    '(time-between ((gen-regular 0 10 10) (constant 1)) 3 7)'
+    '(time-between (gen-regular (constant 1) 0 10 10) 3 7)'
   );
   for (var t = 0; t < 10; t++) {
     if (t >= 3 && t < 7) {
@@ -641,19 +641,14 @@ QUnit.test('GensData', function() {
 // TODO: test iteration
 QUnit.test('GensChannel', function() {
   var FOUR_NINES_SIG = 3.89;
-  var constant = fist.execute('(constant 42)');
 
-  var regular = fist.execute('(gen-regular 0 60 10)');
-  ok(regular instanceof Function);
-  var c = regular.call(fist, [constant]);
+  var c = fist.execute('(gen-regular (constant 42) 0 60 10)');
   for (var t = 0; t < 60; t += 6) {
     equal(c.at(t), 42);
   }
 
-  var uniform = fist.execute('(gen-uniform 0 60 10)');
-  ok(uniform instanceof Function);
-  var c = uniform.call(fist, [constant]);
-  var pointsFound = 0;
+  var c = fist.execute('(gen-uniform (constant 42) 0 60 10)'),
+      pointsFound = 0;
   for (var t = 0; t < 60; t++) {
     if (c.at(t) === 42) {
       pointsFound++;
@@ -661,10 +656,8 @@ QUnit.test('GensChannel', function() {
   }
   equal(pointsFound, 10);
 
-  var poisson = fist.execute('(gen-poisson 0 10000 10)');
-  ok(poisson instanceof Function);
-  var c = poisson.call(fist, [constant]);
-  var N = 10000,
+  var c = fist.execute('(gen-poisson (constant 42) 0 10000 10)'),
+      N = 10000,
       rate = 10,
       pointsFound = 0;
   for (var t = 0; t < N; t++) {
@@ -914,13 +907,11 @@ QUnit.test('Fist', function() {
   equal(fist.getType('view-sparkline'), 'function');
 
   // channels
-  equal(fist.getType('((gen-regular 0 10 10) (constant 1))'), 'channel');
+  equal(fist.getType('(gen-regular (constant 1) 0 10 10)'), 'channel');
 
   // filters
   equal(fist.getType('value-more-than'), 'function');
-  equal(fist.getType('(value-more-than 9000)'), 'function');
-  equal(fist.getType('(time-since 0)'), 'function');
-  equal(fist.getType('(time-between 6 101)'), 'function');
+  equal(fist.getType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
 });
 
 QUnit.test('ViewGraphState', function() {
