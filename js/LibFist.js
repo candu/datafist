@@ -618,12 +618,12 @@ var GensChannel = {
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "rate")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "rate")) channel)')
     .describe(
-      'With three parameters (start, end, rate) creates a channel generator ' +
+      'With three parameters (since, until, rate) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having ' +
       'roughly one data point every rate milliseconds with timestamp ' +
-      'on [start, end).'
+      'on [since, until).'
     )
 };
 
