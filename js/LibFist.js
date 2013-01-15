@@ -134,7 +134,7 @@ var OpsArith = {
   }).type('(fn (name (+ channel?) "xs") (max (ref "xs")))')
     .describe('Takes the product of its parameters.'),
   subtract: new FistFunction(function(args) {
-    if (args.length === 1) {
+    if (args.b === undefined) {
       return _unaryOp(args.a, function(a) {
         return -a;
       });
@@ -142,7 +142,7 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return a - b;
     });
-  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
+  }).type('(fn (-> (name channel? "a") (name (? channel?) "b")) (max (ref "a") (ref "b")))')
     .describe(
       'With one parameter, negates that parameter. ' +
       'With two parameters, subtracts the second parameter from the first.'
@@ -202,7 +202,7 @@ var OpsMath = {
       'With two parameters (x, a), computes x^a.'
     ),
   exp: new FistFunction(function(args) {
-    if (args.length === 1) {
+    if (args.a === undefined) {
       return _unaryOp(args.x, function(x) {
         return Math.exp(x);
       });
@@ -210,13 +210,13 @@ var OpsMath = {
     return _binaryOp(args.x, args.a, function(x, a) {
       return Math.pow(a, x);
     });
-  }).type('(fn (-> (name channel? "x") (name (? number) "a") (ref "x"))')
+  }).type('(fn (-> (name channel? "x") (name (? number) "a")) (ref "x"))')
     .describe(
       'With one parameter x, computes e^x. With two parameters ' +
-      '(a, x), computes a^x.'
+      '(x, a), computes a^x.'
     ),
   log: new FistFunction(function(args) {
-    if (args.length === 1) {
+    if (args.b === undefined) {
       return _unaryOp(args.x, function(x) {
         return Math.log(x);
       });
@@ -233,7 +233,7 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.floor(x);
     });
-  }).type('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (name channel? "x") (ref "x"))')
     .describe(
       'Rounds its parameter down.'
     ),
@@ -241,7 +241,7 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.round(x);
     });
-  }).type('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (name channel? "x") (ref "x"))')
     .describe(
       'Rounds its parameter to the nearest integer.'
     ),
@@ -249,7 +249,7 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.ceil(x);
     });
-  }).type('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (name channel? "x") (ref "x"))')
     .describe(
       'Rounds its parameter up.'
     )

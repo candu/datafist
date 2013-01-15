@@ -389,6 +389,7 @@ QUnit.test('OpsArith', function() {
   // number
   equal(fist.execute('(+ 1 2)'), 3);
   equal(fist.execute('(+ 1 2 3)'), 6);
+  equal(fist.execute('(- 73)'), -73);
   equal(fist.execute('(- 45 3)'), 42);
   equal(fist.execute('(* 2 3 5 7)'), 210);
   equal(fist.execute('(/ 19 8)'), 2.375);
@@ -475,7 +476,29 @@ QUnit.test('OpsArith', function() {
 });
 
 QUnit.test('OpsMath', function() {
-  // TODO: write this
+  var EPSILON = 1e-6;
+  function epsilonEqual(a, b) {
+    ok(Math.abs(a - b) < EPSILON);
+  }
+
+  // number
+  equal(fist.execute('(sqrt 289)'), 17);
+  equal(fist.execute('(pow 2 8)'), 256);
+  epsilonEqual(fist.execute('(exp 0)'), 1);
+  epsilonEqual(fist.execute('(exp 1)'), Math.E);
+  equal(fist.execute('(exp 3 4)'), 64);
+  epsilonEqual(fist.execute('(log 1)'), 0);
+  epsilonEqual(fist.execute('(log 2.7182818)'), 1);
+  equal(fist.execute('(log 64 4)'), 3);
+  equal(fist.execute('(floor 2)'), 2);
+  equal(fist.execute('(floor 2.3)'), 2);
+  equal(fist.execute('(floor 2.7)'), 2);
+  equal(fist.execute('(round 2)'), 2);
+  equal(fist.execute('(round 2.3)'), 2);
+  equal(fist.execute('(round 2.7)'), 3);
+  equal(fist.execute('(ceil 2)'), 2);
+  equal(fist.execute('(ceil 2.3)'), 3);
+  equal(fist.execute('(ceil 2.7)'), 3);
 });
 
 QUnit.test('OpsTime', function() {
