@@ -3,20 +3,17 @@
 var FistFunction = new Class({
   initialize: function(fn) {
     this._fn = fn;
-    this._signature = [];
+    this._type = null;
     this._description = null;
   },
   call: function(context, args, sexps) {
     return this._fn.call(context, args, sexps);
   },
-  signature: function(argsType, returnType) {
-    if (argsType === undefined) {
-      return this._signature;
+  type: function(type) {
+    if (type === undefined) {
+      return this._type;
     }
-    if (returnType === undefined) {
-      returnType = 'void';
-    }
-    this._signature.push([argsType, returnType]);
+    this._type = type;
     return this;
   },
   describe: function(description) {
@@ -121,10 +118,11 @@ var Fist = new Class({
         this.registerSymbol(name, value);
         return null;
     }
-    var op = this.evaluate(sexp[0]);
-    if (typeOf(op) !== 'function' &&
+    var op = this.evaluate(sexp[0]),
+        opType = typeOf(op);
+    if (opType !== 'function' &&
         !(op instanceof FistFunction)) {
-      throw new Error('expected operation, got ' + typeof(op));
+      throw new Error('expected operation, got ' + opType);
     }
     var args = [];
     for (var i = 1; i < sexp.length; i++) {
@@ -177,27 +175,175 @@ var Fist = new Class({
       }
     }
   },
-  getType: function(command) {
-    try {
-      // TODO: better typing
-      var value = this.execute(command),
+  _maxType: function(types) {
+    var maxType = 'number';
+    types.each(function(type) {
+      if (type instanceof Array) {
+        type = this._maxType(type);
+      }
+      switch (type) {
+        case 'number':
+          break;
+        case 'channel':
+          maxType = 'channel';
+          break;
+        default:
+          throw new Error('invalid type argument to max: ' + type);
+      }
+    }.bind(this));
+    return maxType;
+  },
+  _resolveTypeRefs: function(returnType, boundTypes) {
+    if (SExp.isAtom(returnType)) {
+      return returnType;
+    }
+    switch (returnType[0]) {
+      case 'max':
+        var subTypes = [];
+        for (var i = 1; i < returnType.length; i++) {
+          subTypes.push(this._resolveTypeRefs(returnType[i], boundTypes));
+        }
+        return this._maxType(subTypes);
+      case 'ref':
+        var refName = returnType[1],
+            refType = boundTypes[refName];
+        if (refName === undefined) {
+          throw new Error('no type bound for name: ' + refName);
+        }
+        return refType;
+      default:
+        throw new Error('unrecognized return type operator: ' + returnType[0]);
+    }
+  },
+  _applyTypes: function(opType, argTypes) {
+    var paramsType = opType[1],
+        returnType = opType[2],
+        boundTypes = {},
+        i = 0;
+    var match = function(type) {
+      console.log(SExp.unparse(type), i, argTypes[i]);
+      if (SExp.isAtom(type)) {
+        if (i >= argTypes.length) {
+          return null;
+        }
+        switch (type) {
+          case 'channel?':
+            return match(['|', 'number', 'channel']);
+          case 'time':
+          case 'timedelta':
+            return match(['|', 'number', 'string']);
+          case 'number':
+          case 'string':
+          case 'channel':
+            if (argTypes[i] === type) {
+              i++;
+              return type;
+            }
+            return null;
+          default:
+            throw new Error('unrecognized atomic type: ' + type);
+        }
+      }
+      switch (type[0]) {
+        case 'name':
+          var subType = match(type[1]),
+              name = type[2];
+          boundTypes[name] = subType;
+          return subType;
+        case '->':
+          var thenType = [];
+          for (var j = 1; j < type.length; j++) {
+            var subType = match(type[j]);
+            if (subType === null) {
+              return null;
+            }
+            thenType.push(subType);
+          }
+          return thenType;
+        case '|':
+          for (var j = 1; j < type.length; j++) {
+            var old_i = i,
+                subType = match(type[j]);
+            if (subType !== null) {
+              return subType;
+            }
+            i = old_i;
+          }
+          return null;
+        case '?':
+          var old_i = i,
+              subType = match(type[1]);
+          if (subType === null) {
+            i = old_i;
+            return undefined;
+          }
+          return subType;
+        case '+':
+          var variadicType = [];
+          while (true) {
+            var old_i = i,
+                subType = match(type[1]);
+            if (subType === null) {
+              i = old_i;
+              break;
+            }
+            variadicType.push(subType);
+          }
+          if (variadicType.length === 0) {
+            return null;
+          }
+          return variadicType;
+        default:
+          throw new Error('unrecognized param type operator: ' + type[0]);
+      }
+    };
+    var matchedType = match(paramsType);
+    if (matchedType === null || i !== argTypes.length) {
+      return null;
+    }
+    return this._resolveTypeRefs(returnType, boundTypes);
+  },
+  inferType: function(sexp) {
+    if (SExp.isAtom(sexp)) {
+      var value = this.evaluateAtom(sexp),
           type = typeOf(value);
-      if (type === 'object') {
-        if (value instanceof FistFunction) {
-          return 'function';
-        }
-        if (value.at !== undefined && value.iter !== undefined) {
-          return 'channel';
-        }
-        if (value.render !== undefined) {
-          return 'view';
-        }
-        return 'object';
+      switch (type) {
+        case 'object':
+          if (value instanceof FistFunction) {
+            return value.type();
+          }
+          if (value.at !== undefined && value.iter !== undefined) {
+            return 'channel';
+          }
+          throw new Error('object of unrecognized type');
+        case 'number':
+        case 'string':
+          return type;
+        default:
+          throw new Error('value of unrecognized type: ' + type);
       }
-      if (type === 'array') {
-        return 'data';
-      }
-      return type;
+    }
+    if (sexp.length === 0) {
+      throw new Error('expected operation');
+    }
+    // TODO: handle define
+    var opType = SExp.parse(this.inferType(sexp[0]));
+    if (!SExp.isList(opType) || opType.length !== 3 || opType[0] !== 'fn') {
+      throw new Error('expected valid fn type, got ' + opType);
+    }
+    var argTypes = [];
+    for (var i = 1; i < sexp.length; i++) {
+      argTypes.push(this.inferType(sexp[i]));
+    }
+    return this._applyType(opType, argTypes);
+  },
+  getType: function(command) {
+    var sexps = SExp.parseMany(command);
+    if (sexps.length === 0) {
+      return null;
+    }
+    try {
+      return this.inferType(sexps[0]);
     } catch (e) {
       console.log(e);
       return null;

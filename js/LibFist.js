@@ -101,7 +101,7 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  }).signature('(fn (+ (name channel? "x")) (max (ref "x"))')
+  }).type('(fn (name (+ channel?) "x") (max (ref "x")))')
     .describe('Takes the sum of its parameters.'),
   multiply: new FistFunction(function(args) {
     var channels = [],
@@ -130,7 +130,7 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  }).signature('(fn (+ (name channel? "x")) (max (ref "x"))')
+  }).type('(fn (name (+ channel?) "x") (max (ref "x")))')
     .describe('Takes the product of its parameters.'),
   subtract: new FistFunction(function(args) {
     var argTypes = args.map(typeOf);
@@ -142,7 +142,7 @@ var OpsArith = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a - b;
     });
-  }).signature('(fn (-> (name channel? "a") (? (name channel? "b"))) (max (ref "a") (ref "b")))')
+  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
     .describe(
       'With one parameter, negates that parameter. ' +
       'With two parameters, subtracts the second parameter from the first.'
@@ -151,13 +151,13 @@ var OpsArith = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a / b;
     })
-  }).signature('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
+  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
     .describe('Divides the first parameter by the second.'),
   divideInt: new FistFunction(function(args) {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b);
     });
-  }).signature('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
+  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
     .describe(
       'Divides the first parameter by the second. ' +
       'The resulting number or channel values are rounded down ' +
@@ -167,7 +167,7 @@ var OpsArith = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return a % b;
     });
-  }).signature('(fn (-> (name channel? "a") (name number "b")) (max (ref "a") (ref "b")))')
+  }).type('(fn (-> (name channel? "a") (name number "b")) (max (ref "a") (ref "b")))')
     .describe(
       'Computes the first parameter modulo the second.'
     ),
@@ -175,7 +175,7 @@ var OpsArith = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.floor(a / b) * b;
     });
-  }).signature('(fn (-> (name channel? "a") (name number "b")) (ref "a"))')
+  }).type('(fn (-> (name channel? "a") (name number "b")) (ref "a"))')
     .describe(
       'Computes the highest integer multiple of the second parameter less ' +
       'than the first parameter. For instance, (//* 19 5) is 15. Useful ' +
@@ -189,7 +189,7 @@ var OpsMath = {
     return _unaryOp(args[0], function(a) {
       return Math.sqrt(a);
     });
-  }).signature('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Takes the square root of a number or channel.'
     ),
@@ -197,7 +197,7 @@ var OpsMath = {
     return _binaryOp(args[0], function(a, b) {
       return Math.pow(a, b);
     });
-  }).signature('(fn (-> (name channel? "a") (name number "b")) (ref "a"))')
+  }).type('(fn (-> (name channel? "x") (name number "a")) (ref "x"))')
     .describe(
       'With two parameters (x, a), computes x^a.'
     ),
@@ -210,7 +210,7 @@ var OpsMath = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.pow(a, b);
     });
-  }).signature('(fn (-> (? (name number "a")) (name channel? "b")) (ref "b"))')
+  }).type('(fn (-> (name channel? "x") (name (? number) "a") (ref "x"))')
     .describe(
       'With one parameter x, computes e^x. With two parameters ' +
       '(a, x), computes a^x.'
@@ -224,7 +224,7 @@ var OpsMath = {
     return _binaryOp(args[0], args[1], function(a, b) {
       return Math.log(a) / Math.log(b);
     });
-  }).signature('(fn (-> (name channel? "a") (? (name number "b"))) (ref "a"))')
+  }).type('(fn (-> (name channel? "a") (name (? number) "b")) (ref "a"))')
     .describe(
       'With one parameter x, computes ln x. With two parameters ' +
       '(x, b), computes x log b.'
@@ -233,7 +233,7 @@ var OpsMath = {
     return _unaryOp(args[0], function(a) {
       return Math.floor(a);
     });
-  }).signature('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Rounds its parameter down.'
     ),
@@ -241,7 +241,7 @@ var OpsMath = {
     return _unaryOp(args[0], function(a) {
       return Math.round(a);
     });
-  }).signature('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Rounds its parameter to the nearest integer.'
     ),
@@ -249,7 +249,7 @@ var OpsMath = {
     return _unaryOp(args[0], function(a) {
       return Math.ceil(a);
     });
-  }).signature('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Rounds its parameter up.'
     )
@@ -287,7 +287,7 @@ var OpsTime = {
         };
       }
     };
-  }).signature('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
+  }).type('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
     .describe(
       'With two parameters (c, dt), time-shifts c by dt milliseconds. ' +
       'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
@@ -318,7 +318,7 @@ var OpsTime = {
       }
     }
     return new DataChannel(_data);
-  }).signature('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
+  }).type('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
     .describe(
       'With two parameters (c, dt), groups the data points of c into time ' +
       'buckets of width dt, then sums all values within each bucket.'
@@ -332,7 +332,7 @@ var OpsTime = {
         return args[0].iter();
       }
     }
-  }).signature('(fn (name channel "c") channel)')
+  }).type('(fn (name channel "c") channel)')
     .describe(
       'Creates a new channel whose values are equal to its timestamps.'
     ),
@@ -345,7 +345,7 @@ var OpsTime = {
         return args[0].iter();
       }
     }
-  }).signature('(fn (name channel "c") channel)')
+  }).type('(fn (name channel "c") channel)')
     .describe(
       'Creates a new channel whose values are the hours of day (0-24) ' +
       'of its timestamps.'
@@ -359,7 +359,7 @@ var OpsTime = {
         return args[0].iter();
       }
     }
-  }).signature('(fn (name channel "c") channel)')
+  }).type('(fn (name channel "c") channel)')
     .describe(
       'Creates a new channel whose values are the days of week (0-6) ' +
       'of its timestamps.'
@@ -379,8 +379,7 @@ var OpsJoin = {
         );
       }
     }
-  })
-  }).signature('(fn (+ (name channel "c")) channel)')
+  }).type('(fn (name (+ channel) "c") channel)')
     .describe(
       'With parameters (c1, ..., cN), creates a new channel with values ' +
       'from c1 and only those timestamps present in every channel ' +
@@ -405,7 +404,7 @@ var OpsFilterValue = {
     return _filterOp(_c, function(t) {
       return _c.at(t) < _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points less than its parameter.'
@@ -416,7 +415,7 @@ var OpsFilterValue = {
     return _filterOp(_c, function(t) {
       return _c.at(t) <= _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points less than or equal to its parameter.'
@@ -428,7 +427,7 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return _c.at(t) === _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points equal to its parameter.'
@@ -440,7 +439,7 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return _c.at(t) !== _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points not equal to its parameter.'
@@ -451,7 +450,7 @@ var OpsFilterValue = {
     return _filterOp(_c, function(t) {
       return _c.at(t) >= _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points greater than or equal to its parameter.'
@@ -462,7 +461,7 @@ var OpsFilterValue = {
     return _filterOp(_c, function(t) {
       return _c.at(t) > _bound;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points greater than to its parameter.'
@@ -475,7 +474,7 @@ var OpsFilterValue = {
       var x = _c.at(t);
       return x >= _min && x < _max;
     });
-  }).signature('(fn (-> (name channel "c") (name number "x1") (name number "x2")) channel)')
+  }).type('(fn (-> (name channel "c") (name number "x1") (name number "x2")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points between the first parameter (inclusive) and the ' +
@@ -496,7 +495,7 @@ var OpsFilterTime = {
     return _filterOp(_c, function(t) {
       return t >= _since;
     });
-  }).signature('(fn (-> (name channel "c") (name time "t")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "t")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points timestamped on or after its parameter.'
@@ -507,7 +506,7 @@ var OpsFilterTime = {
     return _filterOp(_c, function(t) {
       return t < _until;
     });
-  }).signature('(fn (-> (name channel "c") (name time "t")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "t")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points timestamped before its parameter.'
@@ -519,7 +518,7 @@ var OpsFilterTime = {
     return _filterOp(_c, function(t) {
       return t >= _since && t < _until;
     });
-  }).signature('(fn (-> (name channel "c") (name time "t1") (name time "t2")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "t1") (name time "t2")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
       'those data points timestamped on or after the first parameter ' +
@@ -538,8 +537,7 @@ var GensData = {
     return function(t) {
       return args[0];
     };
-  }).signature('(fn (name number "x") (fn number number))')
-  }).signature('any', 'function')
+  }).type('(fn (name number "x") (fn number number))')
     .describe(
       'Creates a data generator that, when evaluated at a timestamp, ' +
       'returns its parameter.'
@@ -548,7 +546,7 @@ var GensData = {
     return function(t) {
       return Random.choice(args);
     };
-  }).signature('(fn (+ (name number "x")) (fn number number))')
+  }).type('(fn (name (+ number) "x") (fn number number))')
     .describe(
       'Creates a data generator that, when evaluated at a timestamp, ' +
       'returns a value selected at random from its parameters.'
@@ -557,7 +555,7 @@ var GensData = {
     return function(t) {
       return Random.uniform(args[0], args[1]);
     };
-  }).signature('(fn (+ (name number "a") (name number "b")) (fn number number))')
+  }).type('(fn (-> (name number "a") (name number "b")) (fn number number))')
     .describe(
       'With two parameters (a, b) creates a data generator that, when ' +
       'evaluated at a timestamp, returns a uniform random value from ' +
@@ -567,7 +565,7 @@ var GensData = {
     return function(t) {
       return args[0] + args[1] * Random.gaussian();
     };
-  }).signature('(fn (+ (name number "mu") (name number "sigma")) (fn number number))')
+  }).type('(fn (-> (name number "mu") (name number "sigma")) (fn number number))')
     .describe(
       'With two parameters (mu, sigma) creates a data generator that, when ' +
       'evaluated at a timestamp, returns a random value from the Gaussian ' +
@@ -594,7 +592,7 @@ var GensChannel = {
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).signature('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
     .describe(
       'With three parameters (start, end, n) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having n ' +
@@ -612,7 +610,7 @@ var GensChannel = {
       _data.push({t: _t, x: _gen(_t)});
     }
     return new DataChannel(_data);
-  }).signature('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
     .describe(
       'With three parameters (start, end, n) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having n ' +
@@ -632,7 +630,7 @@ var GensChannel = {
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).signature('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "rate")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "rate")) channel)')
     .describe(
       'With three parameters (start, end, rate) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having ' +
@@ -650,14 +648,13 @@ var View = {
   __fullName: 'Views',
   viewSparkline: new FistFunction(function(args, sexps) {
     this._viewInvoked('sparkline', args, sexps);
-  }).signature('(fn (+ (name channel "c")) view)')
-  }).signature('(+ channel)', 'view')
+  }).type('(fn (name (+ channel) "c")) view)')
     .describe(
       'Displays its channels as sparklines (line charts).'
     ),
   viewHistogram: new FistFunction(function(args, sexps) {
     this._viewInvoked('histogram', args, sexps);
-  }).signature('(fn (-> (name channel "c") (? (name number "bucket"))) view)')
+  }).type('(fn (-> (name channel "c") (name (? number) "bucket"))) view)')
     .describe(
       'Displays its channel as a histogram. If the second parameter is ' +
       'provided, that is used as the histogram bucket width; otherwise, it ' +
@@ -665,7 +662,7 @@ var View = {
     ),
   viewRegression: new FistFunction(function(args, sexps) {
     this._viewInvoked('regression', args, sexps);
-  }).signature('(fn (-> (name channel "x") (name channel "y")) view)')
+  }).type('(fn (-> (name channel "x") (name channel "y")) view)')
     .describe(
       'Displays its two channels as an XY plot, with the first channel ' +
       'as the X value and the second as the Y value. Also displays the ' +

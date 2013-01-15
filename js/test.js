@@ -892,8 +892,7 @@ QUnit.test('ChannelExtractor', function() {
 });
 
 QUnit.test('Fist', function() {
-  // TODO: fix this when I actually implement proper typing :)
-
+  /*
   // atoms
   equal(fist.getType('42'), 'number');
   equal(fist.getType('3.14'), 'number');
@@ -904,14 +903,107 @@ QUnit.test('Fist', function() {
   equal(fist.getType('blargh'), null);
 
   // views
-  equal(fist.getType('view-sparkline'), 'function');
+  equal(fist.getType(
+    '(view-sparkline (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
+  ), 'view');
 
   // channels
   equal(fist.getType('(gen-regular (constant 1) 0 10 10)'), 'channel');
+  equal(fist.getType(
+    '(/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10))'
+  ), 'channel');
 
   // filters
-  equal(fist.getType('value-more-than'), 'function');
   equal(fist.getType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
+  */
+
+  // _applyTypes
+  equal(fist._applyTypes(
+    SExp.parse('(fn number string)'),
+    ['number']
+  ), 'string');
+  equal(fist._applyTypes(
+    SExp.parse('(fn number string)'),
+    ['channel']
+  ), null);
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number number) number)'),
+    ['number']
+  ), null);
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number number) number)'),
+    ['number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number number) number)'),
+    ['number', 'string']
+  ), null);
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number (? number)) number)'),
+    ['number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number (? number)) number)'),
+    ['number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> number (? number)) number)'),
+    ['number', 'string']
+  ), null);
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (+ number) number)'),
+    []
+  ), null);
+  equal(fist._applyTypes(
+    SExp.parse('(fn (+ number) number)'),
+    ['number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (+ number) number)'),
+    ['number', 'number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (+ number) number)'),
+    ['number', 'number', 'string']
+  ), null);
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
+    ['number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
+    ['channel', 'number']
+  ), 'channel');
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
+    ['number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
+    ['number', 'channel']
+  ), 'channel');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
+    ['channel', 'number']
+  ), 'channel');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
+    ['channel', 'channel']
+  ), 'channel');
+
+  equal(fist._applyTypes(
+    SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
+    ['number', 'number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
+    ['number', 'number', 'channel']
+  ), 'channel');
 });
 
 QUnit.test('ViewGraphState', function() {
