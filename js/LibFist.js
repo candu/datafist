@@ -75,11 +75,12 @@ var OpsArith = {
   ],
   __fullName: 'Arithmetic Operators',
   add: new FistFunction(function(args) {
+    console.log(args);
     var channels = [],
         numberSum = 0;
-    for (var i = 0; i < args.length; i++) {
-      var arg = args[i];
-      var argType = typeOf(arg);
+    for (var i = 0; i < args.xs.length; i++) {
+      var arg = args.xs[i],
+          argType = fist.evaluateType(args.__sexps.xs[i]);
       if (argType === 'number') {
         numberSum += arg;
       } else {
@@ -101,14 +102,14 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  }).type('(fn (name (+ channel?) "x") (max (ref "x")))')
+  }).type('(fn (name (+ channel?) "xs") (max (ref "xs")))')
     .describe('Takes the sum of its parameters.'),
   multiply: new FistFunction(function(args) {
     var channels = [],
         numberProd = 1;
-    for (var i = 0; i < args.length; i++) {
-      var arg = args[i];
-      var argType = typeOf(arg);
+    for (var i = 0; i < args.xs.length; i++) {
+      var arg = args.xs[i],
+          argType = fist.evaluateType(args.__sexps.xs[i]);
       if (argType === 'number') {
         numberProd *= arg;
       } else {
@@ -130,16 +131,15 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  }).type('(fn (name (+ channel?) "x") (max (ref "x")))')
+  }).type('(fn (name (+ channel?) "xs") (max (ref "xs")))')
     .describe('Takes the product of its parameters.'),
   subtract: new FistFunction(function(args) {
-    var argTypes = args.map(typeOf);
     if (args.length === 1) {
-      return _unaryOp(args[0], function(a) {
+      return _unaryOp(args.a, function(a) {
         return -a;
       });
     }
-    return _binaryOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args.a, args.b, function(a, b) {
       return a - b;
     });
   }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
@@ -148,13 +148,13 @@ var OpsArith = {
       'With two parameters, subtracts the second parameter from the first.'
     ),
   divideFloat: new FistFunction(function(args) {
-    return _binaryOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args.a, args.b, function(a, b) {
       return a / b;
     })
   }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
     .describe('Divides the first parameter by the second.'),
   divideInt: new FistFunction(function(args) {
-    return _binaryOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args.a, args.b, function(a, b) {
       return Math.floor(a / b);
     });
   }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
@@ -164,7 +164,7 @@ var OpsArith = {
       'to the nearest integer.'
     ),
   mod: new FistFunction(function(args) {
-    return _binaryOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args.a, args.b, function(a, b) {
       return a % b;
     });
   }).type('(fn (-> (name channel? "a") (name number "b")) (max (ref "a") (ref "b")))')
@@ -172,7 +172,7 @@ var OpsArith = {
       'Computes the first parameter modulo the second.'
     ),
   bucket: new FistFunction(function(args) {
-    return _binaryOp(args[0], args[1], function(a, b) {
+    return _binaryOp(args.a, args.b, function(a, b) {
       return Math.floor(a / b) * b;
     });
   }).type('(fn (-> (name channel? "a") (name number "b")) (ref "a"))')

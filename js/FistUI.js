@@ -183,7 +183,7 @@ var ViewNode = new Class({
             name === d.name) {
           return;
         }
-        var type = this._fist.getType(name),
+        var type = this._fist.executeType(name),
             svgPosition = $d3(this._svg).getPosition(),
             padding = 2,
             blockDimensions = this._getBlockDimensions(d.x, d.y, name, padding);
@@ -470,7 +470,7 @@ var ViewGraph = new Class({
     return this._edgeDragBehavior;
   },
   addNode: function(name, x, y) {
-    var type = this._fist.getType(name),
+    var type = this._fist.executeType(name),
         padding = 2,
         blockDimensions = this._getBlockDimensions(x, y, name, padding);
     this._state.addNode(
@@ -582,7 +582,7 @@ var ViewGraph = new Class({
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
         node.size = this._getTextSize(node.name);
-        node.type = this._fist.getType(node.name);
+        node.type = this._fist.executeType(node.name);
         node.index = this._state.addNode(
           node.name,
           node.type,
@@ -813,7 +813,7 @@ var FistUI = new Class({
     }.bind(this));
   },
   onSymbolImport: function(name, moduleName) {
-    var type = this._fist.getType(name);
+    var type = this._fist.executeType(name);
     var block = Element('div.block.' + type, {
       text: name,
       draggable: true,

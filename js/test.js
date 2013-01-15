@@ -892,28 +892,32 @@ QUnit.test('ChannelExtractor', function() {
 });
 
 QUnit.test('Fist', function() {
+  function jsonEqual(a, b) {
+    equal(JSON.stringify(a), JSON.stringify(b));
+  }
+
   // atoms
-  equal(fist.getType('42'), 'number');
-  equal(fist.getType('3.14'), 'number');
-  equal(fist.getType('6.18e-1'), 'number');
-  equal(fist.getType('"foo"'), 'string');
+  equal(fist.executeType('42'), 'number');
+  equal(fist.executeType('3.14'), 'number');
+  equal(fist.executeType('6.18e-1'), 'number');
+  equal(fist.executeType('"foo"'), 'string');
 
   // invalid atoms
-  equal(fist.getType('blargh'), null);
+  equal(fist.executeType('blargh'), null);
 
   // views
-  equal(fist.getType(
+  equal(fist.executeType(
     '(view-sparkline (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
   ), 'view');
 
   // channels
-  equal(fist.getType('(gen-regular (constant 1) 0 10 10)'), 'channel');
-  equal(fist.getType(
+  equal(fist.executeType('(gen-regular (constant 1) 0 10 10)'), 'channel');
+  equal(fist.executeType(
     '(/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10))'
   ), 'channel');
 
   // filters
-  equal(fist.getType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
+  equal(fist.executeType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
 
   // _applyTypes
   equal(fist._applyTypes(
@@ -1002,6 +1006,12 @@ QUnit.test('Fist', function() {
     SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
     ['number', 'number', 'channel']
   ), 'channel');
+
+  // _bindArgs
+  jsonEqual(fist._bindArgs(
+    SExp.parse('(name number "a")'),
+    ['42']
+  ), {__sexps: {a: '42'}, a: 42});
 });
 
 QUnit.test('ViewGraphState', function() {
