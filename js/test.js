@@ -474,7 +474,11 @@ QUnit.test('OpsArith', function() {
   }
 });
 
-QUnit.test('OpsChannel', function() {
+QUnit.test('OpsMath', function() {
+  // TODO: write this
+});
+
+QUnit.test('OpsTime', function() {
   // simultaneous iteration
   var c = fist.execute(
     '(time-shift (gen-regular (constant 42) 0 3 3) -7)'
@@ -1010,7 +1014,7 @@ QUnit.test('Fist', function() {
   // _bindArgs
   jsonEqual(fist._bindArgs(
     SExp.parse('(name number "a")'),
-    ['42']
+    SExp.parse('(42)')
   ), {__sexps: {a: '42'}, a: 42});
 });
 

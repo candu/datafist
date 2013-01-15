@@ -109,7 +109,7 @@ var Fist = new Class({
         if (i >= sexps.length) {
           return null;
         }
-        return sexps[i++];
+        return i++;
       }
       switch (type[0]) {
         case 'name':
@@ -161,7 +161,7 @@ var Fist = new Class({
           }
           return value;
         case 'fn':
-          return sexps[i++];
+          return i++;
         default:
           throw new Error('unrecognized param type operator: ' + type[0]);
       }
@@ -170,15 +170,19 @@ var Fist = new Class({
     var args = {__sexps: {}};
     Object.each(boundValues, function(value, name) {
       if (value === undefined) {
+        args.__sexps[name] = undefined;
         args[name] = undefined;
       } else if (value instanceof Array) {
-        args[name] = value.map(function(sexp) {
+        args.__sexps[name] = value.map(function(index) {
+          return sexps[index];
+        });
+        args[name] = args.__sexps[name].map(function(sexp) {
           return this.evaluate(sexp);
         }.bind(this));
       } else {
-        args[name] = this.evaluate(value);
+        args.__sexps[name] = sexps[value];
+        args[name] = this.evaluate(args.__sexps[name]);
       }
-      args.__sexps[name] = value;
     }.bind(this));
     return args;
   },

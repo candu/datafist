@@ -186,16 +186,16 @@ var OpsArith = {
 var OpsMath = {
   __fullName: 'Math Operators',
   sqrt: new FistFunction(function(args) {
-    return _unaryOp(args[0], function(a) {
-      return Math.sqrt(a);
+    return _unaryOp(args.x, function(x) {
+      return Math.sqrt(x);
     });
-  }).type('(fn (-> (name channel? "a")) (ref "a"))')
+  }).type('(fn (-> (name channel? "x")) (ref "x"))')
     .describe(
       'Takes the square root of a number or channel.'
     ),
   pow: new FistFunction(function(args) {
-    return _binaryOp(args[0], function(a, b) {
-      return Math.pow(a, b);
+    return _binaryOp(args.x, args.a, function(x, a) {
+      return Math.pow(x, a);
     });
   }).type('(fn (-> (name channel? "x") (name number "a")) (ref "x"))')
     .describe(
@@ -203,12 +203,12 @@ var OpsMath = {
     ),
   exp: new FistFunction(function(args) {
     if (args.length === 1) {
-      return _unaryOp(args[0], function(a) {
-        return Math.exp(a);
+      return _unaryOp(args.x, function(x) {
+        return Math.exp(x);
       });
     }
-    return _binaryOp(args[0], args[1], function(a, b) {
-      return Math.pow(a, b);
+    return _binaryOp(args.x, args.a, function(x, a) {
+      return Math.pow(a, x);
     });
   }).type('(fn (-> (name channel? "x") (name (? number) "a") (ref "x"))')
     .describe(
@@ -217,37 +217,37 @@ var OpsMath = {
     ),
   log: new FistFunction(function(args) {
     if (args.length === 1) {
-      return _unaryOp(args[0], function(a) {
-        return Math.log(a);
+      return _unaryOp(args.x, function(x) {
+        return Math.log(x);
       });
     }
-    return _binaryOp(args[0], args[1], function(a, b) {
-      return Math.log(a) / Math.log(b);
+    return _binaryOp(args.x, args.b, function(x, b) {
+      return Math.log(x) / Math.log(b);
     });
-  }).type('(fn (-> (name channel? "a") (name (? number) "b")) (ref "a"))')
+  }).type('(fn (-> (name channel? "x") (name (? number) "b")) (ref "a"))')
     .describe(
       'With one parameter x, computes ln x. With two parameters ' +
       '(x, b), computes x log b.'
     ),
   floor: new FistFunction(function(args) {
-    return _unaryOp(args[0], function(a) {
-      return Math.floor(a);
+    return _unaryOp(args.x, function(x) {
+      return Math.floor(x);
     });
   }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Rounds its parameter down.'
     ),
   round: new FistFunction(function(args) {
-    return _unaryOp(args[0], function(a) {
-      return Math.round(a);
+    return _unaryOp(args.x, function(x) {
+      return Math.round(x);
     });
   }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
       'Rounds its parameter to the nearest integer.'
     ),
   ceil: new FistFunction(function(args) {
-    return _unaryOp(args[0], function(a) {
-      return Math.ceil(a);
+    return _unaryOp(args.x, function(x) {
+      return Math.ceil(x);
     });
   }).type('(fn (-> (name channel? "a")) (ref "a"))')
     .describe(
@@ -267,16 +267,16 @@ var OpsTime = {
   ],
   __fullName: 'Time Operators',
   timeShift: new FistFunction(function(args) {
-    var _dt = args[1];
+    var _dt = args.dt;
     if (typeOf(_dt) === 'string') {
       _dt = TimeDelta.parse(_dt);
     }
     return {
       at: function(t) {
-        return args[0].at(t - _dt);
+        return args.c.at(t - _dt);
       },
       iter: function() {
-        var _iter = args[0].iter();
+        var _iter = args.c.iter();
         return {
           next: function() {
             return _iter.next() + _dt;
@@ -535,7 +535,7 @@ var GensData = {
   __fullName: 'Data Generators',
   constant: new FistFunction(function(args) {
     return function(t) {
-      return args[0];
+      return args.x;
     };
   }).type('(fn (name number "x") (fn number number))')
     .describe(
@@ -544,26 +544,26 @@ var GensData = {
     ),
   choice: new FistFunction(function(args) {
     return function(t) {
-      return Random.choice(args);
+      return Random.choice(args.xs);
     };
-  }).type('(fn (name (+ number) "x") (fn number number))')
+  }).type('(fn (name (+ number) "xs") (fn number number))')
     .describe(
       'Creates a data generator that, when evaluated at a timestamp, ' +
       'returns a value selected at random from its parameters.'
     ),
   uniform: new FistFunction(function(args) {
     return function(t) {
-      return Random.uniform(args[0], args[1]);
+      return Random.uniform(args.min, args.max);
     };
-  }).type('(fn (-> (name number "a") (name number "b")) (fn number number))')
+  }).type('(fn (-> (name number "min") (name number "max")) (fn number number))')
     .describe(
-      'With two parameters (a, b) creates a data generator that, when ' +
+      'With two parameters (min, max) creates a data generator that, when ' +
       'evaluated at a timestamp, returns a uniform random value from ' +
-      'the interval [a, b).'
+      'the interval [min, max).'
     ),
   gaussian: new FistFunction(function(args) {
     return function(t) {
-      return args[0] + args[1] * Random.gaussian();
+      return args.mu + args.sigma * Random.gaussian();
     };
   }).type('(fn (-> (name number "mu") (name number "sigma")) (fn number number))')
     .describe(
@@ -580,53 +580,41 @@ var GensChannel = {
   ],
   __fullName: 'Channel Generators',
   genRegular: new FistFunction(function(args) {
-    var _gen = args[0],
-        _since = args[1],
-        _until = args[2],
-        _n = args[3],
-        _dt = (_until - _since) / _n,
-        _t = _since,
+    var _dt = (args.until - args.since) / args.n,
+        _t = args.since,
         _data = [];
-    for (var i = 0; i < _n; i++) {
-      _data.push({t: _t, x: _gen(_t)});
+    for (var i = 0; i < args.n; i++) {
+      _data.push({t: _t, x: args.gen(_t)});
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "n")) channel)')
     .describe(
-      'With three parameters (start, end, n) creates a channel generator ' +
+      'With three parameters (since, until, n) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having n ' +
-      'evenly spaced data points with timestamps on [start, end).'
+      'evenly spaced data points with timestamps on [since, until).'
     ),
   genUniform: new FistFunction(function(args) {
-    var _gen = args[0],
-        _since = args[1],
-        _until = args[2],
-        _n = args[3],
-        _dts = Random.combination(_until - _since, _n),
+    var _dts = Random.combination(args.until - args.since, args.n),
         _data = [];
-    for (var i = 0; i < _n; i++) {
-      var _t = _since + _dts[i];
-      _data.push({t: _t, x: _gen(_t)});
+    for (var i = 0; i < args.n; i++) {
+      var _t = args.since + _dts[i];
+      _data.push({t: _t, x: args.gen(_t)});
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "start") (name number "end") (name number "n")) channel)')
+  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "n")) channel)')
     .describe(
-      'With three parameters (start, end, n) creates a channel generator ' +
+      'With three parameters (since, until, n) creates a channel generator ' +
       'that, when applied to a data generator, builds a channel having n ' +
-      'data points with timestamps randomly selected from [start, end).'
+      'data points with timestamps randomly selected from [since, until).'
     ),
   genPoisson: new FistFunction(function(args) {
-    var _gen = args[0],
-        _since = args[1],
-        _until = args[2],
-        _rate = args[3],    // average wait (ms)
-        _data = [],
-        _t = _since;
-    while (_t < _until) {
-      _data.push({t: _t, x: _gen(_t)});
-      var _x = Math.max(1e-12, Math.random());
-      var _dt = Math.max(1, Math.round(_rate * -Math.log(_x)));
+    var _t = args.since,
+        _data = [];
+    while (_t < args.until) {
+      _data.push({t: _t, x: args.gen(_t)});
+      var _x = Math.max(1e-12, Math.random()),
+          _dt = Math.max(1, Math.round(args.rate * -Math.log(_x)));
       _t += _dt;
     }
     return new DataChannel(_data);
