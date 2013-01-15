@@ -473,39 +473,31 @@ var OpsFilterTime = {
   ],
   __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
-    var _c = args[0],
-        _since = +args[1];
-    return _filterOp(_c, function(t) {
-      return t >= _since;
+    return _filterOp(args.c, function(t) {
+      return t >= args.since;
     });
-  }).type('(fn (-> (name channel "c") (name time "t")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "since")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
-      'those data points timestamped on or after its parameter.'
+      'data points since the given time.'
     ),
   until: new FistFunction(function(args) {
-    var _c = args[0],
-        _until = +args[1];
-    return _filterOp(_c, function(t) {
-      return t < _until;
+    return _filterOp(args.c, function(t) {
+      return t < args.until;
     });
-  }).type('(fn (-> (name channel "c") (name time "t")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "until")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
-      'those data points timestamped before its parameter.'
+      'data points until the given time.'
     ),
   between: new FistFunction(function(args) {
-    var _c = args[0],
-        _since = +args[1],
-        _until = +args[2];
-    return _filterOp(_c, function(t) {
-      return t >= _since && t < _until;
+    return _filterOp(args.c, function(t) {
+      return t >= args.since && t < args.until;
     });
-  }).type('(fn (-> (name channel "c") (name time "t1") (name time "t2")) channel)')
+  }).type('(fn (-> (name channel "c") (name time "since") (name time "until")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
-      'those data points timestamped on or after the first parameter ' +
-      'and before the second parameter.'
+      'those data points between the given times.'
     )
 };
 
