@@ -294,17 +294,16 @@ var OpsTime = {
       'whereas (time-shift c "-1 minute") shifts c back one minute.'
     ),
   timeBucketSum: new FistFunction(function(args) {
-    var _data = [],
-        _c = args[0],
-        _it = _c.iter(),
-        _dt = args[1];
+    var _iter = args.c.iter(),
+        _dt = args.dt,
+        _data = [];
     if (typeOf(_dt) === 'string') {
       _dt = TimeDelta.parse(_dt);
     }
     while (true) {
       try {
-        var t = _it.next(),
-            x = args[0].at(t);
+        var t = _iter.next(),
+            x = args.c.at(t);
         t = Math.floor(t / _dt) * _dt;
         if (_data.length === 0 || t > _data[_data.length - 1].t) {
           _data.push({t: t, x: 0});
@@ -329,7 +328,7 @@ var OpsTime = {
         return t;
       },
       iter: function() {
-        return args[0].iter();
+        return args.c.iter();
       }
     }
   }).type('(fn (name channel "c") channel)')
@@ -342,7 +341,7 @@ var OpsTime = {
         return new Date(t).getHours();
       },
       iter: function() {
-        return args[0].iter();
+        return args.c.iter();
       }
     }
   }).type('(fn (name channel "c") channel)')
@@ -356,7 +355,7 @@ var OpsTime = {
         return new Date(t).getDay();
       },
       iter: function() {
-        return args[0].iter();
+        return args.c.iter();
       }
     }
   }).type('(fn (name channel "c") channel)')
@@ -371,15 +370,15 @@ var OpsJoin = {
   join: new FistFunction(function(args) {
     return {
       at: function(t) {
-        return args[0].at(t);
+        return args.cs[0].at(t);
       },
       iter: function() {
         return IntersectionIterator(
-          args.map(function(c) { return c.iter(); })
+          args.cs.map(function(c) { return c.iter(); })
         );
       }
     }
-  }).type('(fn (name (+ channel) "c") channel)')
+  }).type('(fn (name (+ channel) "cs") channel)')
     .describe(
       'With parameters (c1, ..., cN), creates a new channel with values ' +
       'from c1 and only those timestamps present in every channel ' +
@@ -399,10 +398,8 @@ var OpsFilterValue = {
   ],
   __fullName: 'Value Filters',
   lt: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
-      return _c.at(t) < _bound;
+    return _filterOp(args.c, function(t) {
+      return args.c.at(t) < args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -410,10 +407,8 @@ var OpsFilterValue = {
       'those data points less than its parameter.'
     ),
   lteq: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
-      return _c.at(t) <= _bound;
+    return _filterOp(args.c, function(t) {
+      return args.c.at(t) <= args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -421,11 +416,9 @@ var OpsFilterValue = {
       'those data points less than or equal to its parameter.'
     ),
   eq: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
+    return _filterOp(args.c, function(t) {
       // TODO: this won't work properly for dates or other objects
-      return _c.at(t) === _bound;
+      return args.c.at(t) === args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -433,11 +426,9 @@ var OpsFilterValue = {
       'those data points equal to its parameter.'
     ),
   neq: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
+    return _filterOp(args.c, function(t) {
       // TODO: this won't work properly for dates or other objects
-      return _c.at(t) !== _bound;
+      return args.c.at(t) !== args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -445,10 +436,8 @@ var OpsFilterValue = {
       'those data points not equal to its parameter.'
     ),
   gteq: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
-      return _c.at(t) >= _bound;
+    return _filterOp(args.c, function(t) {
+      return args.c.at(t) >= args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -456,10 +445,8 @@ var OpsFilterValue = {
       'those data points greater than or equal to its parameter.'
     ),
   gt: new FistFunction(function(args) {
-    var _c = args[0],
-        _bound = args[1];
-    return _filterOp(_c, function(t) {
-      return _c.at(t) > _bound;
+    return _filterOp(args.c, function(t) {
+      return args.c.at(t) > args.x;
     });
   }).type('(fn (-> (name channel "c") (name number "x")) channel)')
     .describe(
@@ -467,18 +454,14 @@ var OpsFilterValue = {
       'those data points greater than to its parameter.'
     ),
   valueBetween: new FistFunction(function(args) {
-    var _c = args[0],
-        _min = args[1],
-        _max = args[2];
-    return _filterOp(_c, function(t) {
-      var x = _c.at(t);
-      return x >= _min && x < _max;
+    return _filterOp(args.c, function(t) {
+      var x = args.c.at(t);
+      return x >= args.x1 && x < args.x2;
     });
   }).type('(fn (-> (name channel "c") (name number "x1") (name number "x2")) channel)')
     .describe(
       'Creates a filter that, when applied to a channel, selects only ' +
-      'those data points between the first parameter (inclusive) and the ' +
-      'second parameter (exclusive).'
+      'those data points with values on [x1, x2).'
     )
 };
 
