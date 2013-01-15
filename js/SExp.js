@@ -84,5 +84,8 @@ var SExp = {
   },
   isAtom: function(sexp) {
     return !this.isList(sexp);
-  }
+  },
+  equal: function(sexp1, sexp2) {
+    return this.unparse(sexp1) === this.unparse(sexp2);
+  },
 };

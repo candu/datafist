@@ -892,7 +892,6 @@ QUnit.test('ChannelExtractor', function() {
 });
 
 QUnit.test('Fist', function() {
-  /*
   // atoms
   equal(fist.getType('42'), 'number');
   equal(fist.getType('3.14'), 'number');
@@ -915,7 +914,6 @@ QUnit.test('Fist', function() {
 
   // filters
   equal(fist.getType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
-  */
 
   // _applyTypes
   equal(fist._applyTypes(

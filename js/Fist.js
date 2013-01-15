@@ -211,6 +211,8 @@ var Fist = new Class({
           throw new Error('no type bound for name: ' + refName);
         }
         return refType;
+      case 'fn':
+        return returnType;
       default:
         throw new Error('unrecognized return type operator: ' + returnType[0]);
     }
@@ -221,7 +223,6 @@ var Fist = new Class({
         boundTypes = {},
         i = 0;
     var match = function(type) {
-      console.log(SExp.unparse(type), i, argTypes[i]);
       if (SExp.isAtom(type)) {
         if (i >= argTypes.length) {
           return null;
@@ -235,6 +236,7 @@ var Fist = new Class({
           case 'number':
           case 'string':
           case 'channel':
+          case 'view':
             if (argTypes[i] === type) {
               i++;
               return type;
@@ -293,6 +295,12 @@ var Fist = new Class({
             return null;
           }
           return variadicType;
+        case 'fn':
+          if (SExp.equal(argTypes[i], type)) {
+            i++;
+            return type;
+          }
+          return null;
         default:
           throw new Error('unrecognized param type operator: ' + type[0]);
       }
@@ -335,7 +343,7 @@ var Fist = new Class({
     for (var i = 1; i < sexp.length; i++) {
       argTypes.push(this.inferType(sexp[i]));
     }
-    return this._applyType(opType, argTypes);
+    return this._applyTypes(opType, argTypes);
   },
   getType: function(command) {
     var sexps = SExp.parseMany(command);

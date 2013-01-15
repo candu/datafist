@@ -648,13 +648,13 @@ var View = {
   __fullName: 'Views',
   viewSparkline: new FistFunction(function(args, sexps) {
     this._viewInvoked('sparkline', args, sexps);
-  }).type('(fn (name (+ channel) "c")) view)')
+  }).type('(fn (name (+ channel) "c") view)')
     .describe(
       'Displays its channels as sparklines (line charts).'
     ),
   viewHistogram: new FistFunction(function(args, sexps) {
     this._viewInvoked('histogram', args, sexps);
-  }).type('(fn (-> (name channel "c") (name (? number) "bucket"))) view)')
+  }).type('(fn (-> (name channel "c") (name (? number) "bucket")) view)')
     .describe(
       'Displays its channel as a histogram. If the second parameter is ' +
       'provided, that is used as the histogram bucket width; otherwise, it ' +
