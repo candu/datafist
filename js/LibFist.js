@@ -75,7 +75,6 @@ var OpsArith = {
   ],
   __fullName: 'Arithmetic Operators',
   add: new FistFunction(function(args) {
-    console.log(args);
     var channels = [],
         numberSum = 0;
     for (var i = 0; i < args.xs.length; i++) {
