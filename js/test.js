@@ -1034,6 +1034,27 @@ QUnit.test('Fist', function() {
     ['number', 'number', 'channel']
   ), 'channel');
 
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
+    []
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
+    ['number']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
+    ['string']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
+    ['number', 'string']
+  ), 'number');
+  equal(fist._applyTypes(
+    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
+    ['string', 'number']
+  ), null);
+
   // _bindArgs
   jsonEqual(fist._bindArgs(
     SExp.parse('(name number "a")'),
