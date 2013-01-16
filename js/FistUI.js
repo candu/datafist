@@ -895,9 +895,12 @@ var FistUI = new Class({
   },
   dynamicResize: function() {
     var contentSize = this._content.getSize();
-    this._svgExecuteWrapper.setStyle('height', contentSize.y - 10);
+    this._svgExecuteWrapper
+      .setStyle('width', contentSize.x - 8)
+      .setStyle('height', contentSize.y - 8);
     this._viewExecuteSVG
-      .attr('height', this._svgExecuteWrapper.getHeight() - 2);
+      .attr('width', this._svgExecuteWrapper.getWidth() - 2)
+      .attr('height', this._svgExecuteWrapper.getHeight() - 2)
     try {
       this._fist.execute(this._repl.get('text'));
     } catch (e) {
