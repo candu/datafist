@@ -28,10 +28,6 @@ function $d3(selection) {
   return $(selection[0][0]);
 }
 
-function argCheck(name, args, pattern) {
-  // TODO: implement this
-}
-
 var Random = {
   uniform: function(min, max) {
     return min + (max - min) * Math.random();

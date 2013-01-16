@@ -609,22 +609,22 @@ var View = {
     ['viewRegression', 'view-regression']
   ],
   __fullName: 'Views',
-  viewSparkline: new FistFunction(function(args, sexps) {
-    this._viewInvoked('sparkline', args, sexps);
-  }).type('(fn (name (+ channel) "c") view)')
+  viewSparkline: new FistFunction(function(args) {
+    this._viewInvoked('sparkline', args);
+  }).type('(fn (name (+ channel) "cs") view)')
     .describe(
       'Displays its channels as sparklines (line charts).'
     ),
-  viewHistogram: new FistFunction(function(args, sexps) {
-    this._viewInvoked('histogram', args, sexps);
+  viewHistogram: new FistFunction(function(args) {
+    this._viewInvoked('histogram', args);
   }).type('(fn (-> (name channel "c") (name (? number) "bucket")) view)')
     .describe(
       'Displays its channel as a histogram. If the second parameter is ' +
       'provided, that is used as the histogram bucket width; otherwise, it ' +
       'looks for a //* operation applied to its channel.'
     ),
-  viewRegression: new FistFunction(function(args, sexps) {
-    this._viewInvoked('regression', args, sexps);
+  viewRegression: new FistFunction(function(args) {
+    this._viewInvoked('regression', args);
   }).type('(fn (-> (name channel "x") (name channel "y")) view)')
     .describe(
       'Displays its two channels as an XY plot, with the first channel ' +

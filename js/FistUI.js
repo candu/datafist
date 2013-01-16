@@ -183,7 +183,7 @@ var ViewNode = new Class({
             name === d.name) {
           return;
         }
-        var type = this._fist.executeType(name),
+        var type = this._fist.blockType(name),
             svgPosition = $d3(this._svg).getPosition(),
             padding = 2,
             blockDimensions = this._getBlockDimensions(d.x, d.y, name, padding);
@@ -470,7 +470,7 @@ var ViewGraph = new Class({
     return this._edgeDragBehavior;
   },
   addNode: function(name, x, y) {
-    var type = this._fist.executeType(name),
+    var type = this._fist.blockType(name),
         padding = 2,
         blockDimensions = this._getBlockDimensions(x, y, name, padding);
     this._state.addNode(
@@ -582,7 +582,7 @@ var ViewGraph = new Class({
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
         node.size = this._getTextSize(node.name);
-        node.type = this._fist.executeType(node.name);
+        node.type = this._fist.blockType(node.name);
         node.index = this._state.addNode(
           node.name,
           node.type,
@@ -808,12 +808,13 @@ var FistUI = new Class({
     fist.listen('moduleimport', function(moduleName) {
       this.onModuleImport(moduleName);
     }.bind(this));
-    fist.listen('viewinvoked', function(name, channels, sexps) {
-      this.onViewInvoked(name, channels, sexps);
+    fist.listen('viewinvoked', function(name, args) {
+      this.onViewInvoked(name, args);
     }.bind(this));
   },
   onSymbolImport: function(name, moduleName) {
-    var type = this._fist.executeType(name);
+    var type = this._fist.blockType(name),
+        sexp = SExp.parse(type);
     var block = Element('div.block.' + type, {
       text: name,
       draggable: true,
@@ -879,14 +880,14 @@ var FistUI = new Class({
     });
     moduleGroup.adopt(moduleHeader, moduleContents).inject(this._palette);
   },
-  onViewInvoked: function(name, channels, sexps) {
+  onViewInvoked: function(name, args) {
     console.log('rendering view ' + name);
     $d3(this._viewExecuteSVG).empty();
     var view = this._viewTable[name];
     if (view === undefined) {
       throw new Error('unrecognized view: ' + name);
     }
-    view.render(channels, this._viewExecuteSVG, sexps);
+    view.render(this._viewExecuteSVG, args);
   },
   importView: function(name, view) {
     console.log('importing view ' + name);

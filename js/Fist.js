@@ -63,8 +63,8 @@ var Fist = new Class({
   _moduleImported: function(moduleName) {
     this._dummyElem.fireEvent('moduleimport', [moduleName]);
   },
-  _viewInvoked: function(name, channels, sexps) {
-    this._dummyElem.fireEvent('viewinvoked', [name, channels, sexps]);
+  _viewInvoked: function(name, args) {
+    this._dummyElem.fireEvent('viewinvoked', [name, args]);
   },
   listen: function(type, callback) {
     switch (type) {
@@ -101,7 +101,6 @@ var Fist = new Class({
     throw new Error('unrecognized atom: ' + atom);
   },
   _bindArgs: function(paramsType, sexps) {
-    console.log('_bindArgs', SExp.unparse(paramsType), SExp.unparse(sexps));
     var boundValues = {},
         i = 0;
     var match = function(type) {
@@ -438,5 +437,19 @@ var Fist = new Class({
       console.log(e);
       return null;
     }
+  },
+  blockType: function(name) {
+    var type = this.executeType(name);
+    if (type === null) {
+      return null;
+    }
+    var sexp = SExp.parse(type);
+    if (SExp.isAtom(sexp)) {
+      return sexp;
+    }
+    if (sexp[0] === 'fn') {
+      return 'function';
+    }
+    return null;
   }
 });

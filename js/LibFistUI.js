@@ -46,17 +46,19 @@ function _stripFilters(sexp, filterName) {
 }
 
 var SparklineView = {
-  render: function(channels, view, sexps) {
+  render: function(view, args) {
     // TODO: verify that there's at least one channel
 
     var w = view.attr('width'),
         h = view.attr('height'),
         axisH = 20,
-        axisW = 60;
+        axisW = 60,
+        channels = args.cs,
+        sexps = args.__sexps.cs;
 
     // extract data from channels
-    var n = channels.length;
-    var cds = [];
+    var n = channels.length,
+        cds = [];
     for (var i = 0; i < n; i++) {
       cds.push([]);
       var it = channels[i].iter();
@@ -244,20 +246,20 @@ var SparklineView = {
 };
 
 var HistogramView = {
-  render: function(channels, view, sexps) {
+  render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
         axisH = 20,
         axisW = 60;
 
     var data = [],
-        it = channels[0].iter(),
-        bucketing = channels[1] || _getBucketing(sexps[0]),
-        applyBuckets = channels[1] !== undefined;
+        it = args.c.iter(),
+        bucketing = args.bucket || _getBucketing(args.__sexps.c),
+        applyBuckets = args.bucket !== undefined;
     while (true) {
       try {
         var t = it.next(),
-            x = channels[0].at(t);
+            x = args.c.at(t);
         if (applyBuckets) {
           x = Math.floor(x / bucketing) * bucketing;
         }
@@ -360,7 +362,7 @@ var HistogramView = {
       .attr('x', histW - 8)
       .attr('y', 8)
       .attr('text-anchor', 'end')
-      .text(_caption(sexps[0]));
+      .text(_caption(args.__sexps.c));
 
     // value-filtering hit area
     // TODO: merge this with time-filtering code from SparklineView
@@ -404,7 +406,7 @@ var HistogramView = {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
-            sexpX = _stripFilters(sexps[0], 'value-between');
+            sexpX = _stripFilters(args.__sexps.c, 'value-between');
         var filteredSexp = [
           'view-histogram',
           ['value-between', sexpX, _format(x[0]), _format(x[1])]
@@ -418,7 +420,7 @@ var HistogramView = {
 };
 
 var RegressionView = {
-  render: function(channels, view, sexps) {
+  render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
         axisH = 20,
@@ -426,12 +428,12 @@ var RegressionView = {
 
     // extract data from channels
     var data = [];
-    var it = IntersectionIterator([channels[0].iter(), channels[1].iter()]);
+    var it = IntersectionIterator([args.x.iter(), args.y.iter()]);
     while (true) {
       try {
         var t = it.next(),
-            x = channels[0].at(t),
-            y = channels[1].at(t);
+            x = args.x.at(t),
+            y = args.y.at(t);
         data.push({x: x, y: y});
       } catch(e) {
         if (!(e instanceof StopIteration)) {
@@ -505,13 +507,13 @@ var RegressionView = {
       .attr('x', plotW - 8)
       .attr('y', plotH - 8)
       .attr('text-anchor', 'end')
-      .text(_caption(sexps[0]));
+      .text(_caption(args.__sexps.x));
     g.append('svg:text')
       .attr('class', 'regression caption')
       .attr('x', 8)
       .attr('y', 8)
       .attr('dy', '.71em')
-      .text(_caption(sexps[1]));
+      .text(_caption(args.__sexps.y));
 
     // region-filtering hit area
     // TODO: merge this with time-filtering code from SparklineView
@@ -561,8 +563,8 @@ var RegressionView = {
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
             y2 = y1 + parseFloat(this._dragSelectionArea.attr('height')),
             y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]),
-            sexpX = _stripFilters(sexps[0], 'value-between'),
-            sexpY = _stripFilters(sexps[1], 'value-between');
+            sexpX = _stripFilters(args.__sexps.x, 'value-between'),
+            sexpY = _stripFilters(args.__sexps.y, 'value-between');
         var filteredSexp = [
           'view-regression',
           ['value-between', sexpX, _format(x[0]), _format(x[1])],
