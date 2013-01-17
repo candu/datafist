@@ -398,14 +398,15 @@ var OpsTime = {
 
 var OpsSmooth = {
   __exports: [
-    'rollingAverage', 'rolling-average',
-    'slidingWindow', 'sliding-window'
+    ['rollingAverage', 'rolling-average'],
+    ['slidingWindow', 'sliding-window']
   ],
   __fullName: 'Smoothing Operations',
   rollingAverage: new FistFunction(function(args) {
     // TODO: implement this
+    return args.c;
   }).type('(fn (-> (name channel "c") (name timedelta "halfLife")) channel)')
-    .description(
+    .describe(
       'With two parameters (c, halfLife), applies a rolling average to c ' +
       'that decays by 50% over the period given by halfLife.'
     ),
@@ -413,7 +414,7 @@ var OpsSmooth = {
     // TODO: implement this
     return args.c;
   }).type('(fn (-> (name channel "c") (name number "n")) channel)')
-    .description(
+    .describe(
       'With two parameters (c, n), applies a sliding window average to c ' +
       'that uses the last n data points.'
     )
