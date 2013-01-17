@@ -259,7 +259,7 @@ var OpsString = {};
 var OpsTime = {
   __exports: [
     ['timeShift', 'time-shift'],
-    ['timeBucketSum', 'time-bucket-sum'],
+    ['timeBucket', 'time-bucket'],
     ['timeIdentity', 'time-identity'],
     ['hourOfDay', 'hour-of-day'],
     ['dayOfWeek', 'day-of-week']
@@ -292,22 +292,51 @@ var OpsTime = {
       'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
       'whereas (time-shift c "-1 minute") shifts c back one minute.'
     ),
-  timeBucketSum: new FistFunction(function(args) {
+  _count: function(xs) {
+    return xs.length;
+  },
+  _sum: function(xs) {
+    var x = 0;
+    for (var i = 0; i < xs.length; i++) {
+      x += xs[i];
+    }
+    return x;
+  },
+  _avg: function(xs) {
+    return this._sum(xs) / this._count(xs);
+  },
+  timeBucket: new FistFunction(function(args) {
     var _iter = args.c.iter(),
         _dt = args.dt,
-        _data = [];
+        _data = [],
+        _reduce = null;
+    switch (args.reduce) {
+      case 'count':
+        _reduce = this._count;
+        break;
+      case 'sum':
+        _reduce = this._sum;
+        break;
+      case 'avg':
+      case 'average':
+        _reduce = this._avg;
+        break;
+      default:
+        throw new Error('unrecognized reduce operation: ' + args.reduce);
+    }
     if (typeOf(_dt) === 'string') {
       _dt = TimeDelta.parse(_dt);
     }
     while (true) {
       try {
         var t = _iter.next(),
-            x = args.c.at(t);
+            x = args.c.at(t),
+            n = _data.length;
         t = Math.floor(t / _dt) * _dt;
-        if (_data.length === 0 || t > _data[_data.length - 1].t) {
-          _data.push({t: t, x: 0});
+        if (n === 0 || t > _data[n - 1].t) {
+          _data.push({t: t, xs: []});
         }
-        _data[_data.length - 1].x += x;
+        _data[n - 1].xs.push(x);
       } catch (e) {
         if (!(e instanceof StopIteration)) {
           throw e;
@@ -315,11 +344,15 @@ var OpsTime = {
         break;
       }
     }
+    _data = _data.map(function(bucket) {
+      return {t: bucket.t, x: _reduce(bucket.xs)};
+    });
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
+  }).type('(fn (-> (name channel "c") (name string "reduce") (name timedelta "dt")) channel)')
     .describe(
-      'With two parameters (c, dt), groups the data points of c into time ' +
-      'buckets of width dt, then sums all values within each bucket.'
+      'With two parameters (c, reduce, dt), groups the data points of c ' +
+      'into time buckets of width dt, then applies the given reducing ' +
+      'operation to each bucket.'
     ),
   timeIdentity: new FistFunction(function(args) {
     return {
@@ -503,8 +536,6 @@ var OpsFilterTime = {
 var OpsFilterLocation = {};
 var OpsFilterRegion = {};
 
-var OpsReduce = {};
-
 var GensData = {
   __fullName: 'Data Generators',
   constant: new FistFunction(function(args) {
@@ -648,8 +679,6 @@ var LibFist = {
     fist.importModule(null, OpsFilterTime);
     //fist.importModule(null, OpsFilterLocation);
     //fist.importModule(null, OpsFilterRegion);
-
-    //fist.importModule(null, OpsReduce);
 
     fist.importModule(null, GensData);
     fist.importModule(null, GensChannel);
