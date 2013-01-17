@@ -635,20 +635,43 @@ var Status = new Class({
 });
 
 var FistUI = new Class({
+  _runViewGraph: function(options) {
+    options = options || {};
+    var rebuild = options.rebuild || true;
+    if (rebuild) {
+      this._repl.set('text', this._viewGraphState.toFist());
+    }
+    var fistExpression = this._repl.get('text');
+    console.log(fistExpression);
+    if (fistExpression === '') {
+      this._status.OK('view graph is empty.');
+      return;
+    }
+    try {
+      this._status.working('type-checking view graph...');
+      var fistType = this._fist.blockType(fistExpression);
+      if (fistType === null) {
+        // TODO: identify *what* is invalid about it
+        this._status.notOK('view graph is invalid!');
+        return;
+      }
+      if (fistType !== 'view') {
+        this._status.OK('view graph describes a ' + fistType + ', not a view.');
+        return;
+      }
+      this._status.working('rendering view...');
+      this._fist.execute(fistExpression);
+      this._status.OK('rendered view graph successfully.');
+    } catch (e) {
+      console.log(e);
+      this._status.notOK(e);
+    }
+  },
   initialize: function(fist, root) {
     this._viewTable = {};
     this._viewGraphState = new ViewGraphState();
     this._viewGraphState.listen('fistmodified', function() {
-      this._repl.set('text', this._viewGraphState.toFist());
-      console.log(this._repl.get('text'));
-      try {
-        this._status.working('running view graph...');
-        this._fist.execute(this._repl.get('text'));
-        this._status.OK('ran view graph successfully.');
-      } catch (e) {
-        console.log(e);
-        this._status.notOK(e);
-      }
+      this._runViewGraph();
     }.bind(this));
 
     this._fist = fist;
@@ -839,7 +862,7 @@ var FistUI = new Class({
       title: 'text',
       text: function(element) {
         if (type === 'function' || type === 'channel') {
-          var value = this._fist.execute(element.get('text'));
+          var value = this._fist.evaluateAtom(element.get('text'));
           if (value.describe === undefined) {
             return type;
           }
@@ -920,7 +943,7 @@ var FistUI = new Class({
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2)
     try {
-      this._fist.execute(this._repl.get('text'));
+      this._runViewGraph({rebuild: false});
     } catch (e) {
       console.log(e);
     }

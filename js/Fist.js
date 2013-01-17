@@ -438,8 +438,8 @@ var Fist = new Class({
       return null;
     }
   },
-  blockType: function(name) {
-    var type = this.executeType(name);
+  blockType: function(command) {
+    var type = this.executeType(command);
     if (type === null) {
       return null;
     }
