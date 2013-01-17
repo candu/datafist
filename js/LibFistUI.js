@@ -144,6 +144,7 @@ var LineView = {
     var scaleT = d3.time.scale()
       .domain([ctMin, ctMax])
       .range([0, channelW]);
+    AutoNice.time(scaleT);
     var axisT = d3.svg.axis()
       .scale(scaleT)
       .ticks(_numTicks(channelW))
