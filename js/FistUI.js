@@ -601,6 +601,39 @@ var ViewGraph = new Class({
   }
 });
 
+var Status = new Class({
+  initialize: function(statusWrapper) {
+    this._statusWrapper = statusWrapper;
+    this._messageBox = this._statusWrapper.getElement('#message');
+    this._importBox = this._statusWrapper.getElement('#import');
+    this._filenameBox = this._statusWrapper.getElement('#filename');
+    this._progressBar = this._statusWrapper.getElement('#progress');
+  },
+  _msg: function(cls, msg) {
+    this._statusWrapper.set('class', cls);
+    this._messageBox.set('text', msg);
+  },
+  OK: function(msg) {
+    this._msg('ok', msg);
+  },
+  working: function(msg) {
+    this._msg('working', msg);
+  },
+  notOK: function(err) {
+    this._msg('not-ok', err.toString());
+  },
+  progressStart: function(file, total) {
+    this._filenameBox.set('text', file.name);
+    this._progressBar.set('value', 0);
+    this._progressBar.set('max', total);
+    this._importBox.removeClass('hidden');
+  },
+  progress: function(file, loaded) {
+    this._progressBar.set('value', loaded);
+
+  }
+});
+
 var FistUI = new Class({
   initialize: function(fist, root) {
     this._viewTable = {};
@@ -609,15 +642,12 @@ var FistUI = new Class({
       this._repl.set('text', this._viewGraphState.toFist());
       console.log(this._repl.get('text'));
       try {
-        this._statusWrapper.set('class', 'working');
-        this._messageBox.set('text', 'running view graph...');
+        this._status.working('running view graph...');
         this._fist.execute(this._repl.get('text'));
-        this._statusWrapper.set('class', 'ok');
-        this._messageBox.set('text', 'ran view graph successfully.');
+        this._status.OK('ran view graph successfully.');
       } catch (e) {
         console.log(e);
-        this._statusWrapper.set('class', 'not-ok');
-        this._messageBox.set('text', e.toString());
+        this._status.notOK(e);
       }
     }.bind(this));
 
@@ -654,32 +684,27 @@ var FistUI = new Class({
         return;
       }
       this._dropOverlay.removeClass('droptarget');
+      var trapDataImportError = function(e) {
+        console.log(e);
+        if (!(e instanceof DataImportError)) {
+          throw e;
+        }
+        this._status.notOK(e);
+      }.bind(this);
       try {
         FileImporter(evt.dataTransfer.files[0])
           .start(function(file, total) {
-            this._statusWrapper.set('class', 'working');
-            this._messageBox.set('text', 'importing data...');
-            this._filenameBox.set('text', file.name);
-            this._progressBar.set('value', 0);
-            this._progressBar.set('max', total);
-            this._importBox.removeClass('hidden');
+            this._status.working('importing data...');
+            this._status.progressStart(file, total);
           }.bind(this))
           .progress(function(file, loaded) {
-            this._progressBar.set('value', loaded);
+            this._status.progress(file, loaded);
           }.bind(this))
           .load(function(file, data) {
-            var trapDataImportError = function(e) {
-              console.log(e);
-              if (!(e instanceof DataImportError)) {
-                throw e;
-              }
-              this._statusWrapper.set('class', 'not-ok');
-              this._messageBox.set('text', e.toString());
-            }.bind(this);
             try {
-              this._messageBox.set('text', 'loading rows...');
+              this._status.working('loading rows...');
               var rows = RowLoader.load(data);
-              this._messageBox.set('text', 'identifying channels...');
+              this._status.working('identifying channels...');
               var columns = Object.keys(rows[0]);
               columns.sort();
               this._showImportDialog(file, columns, function(tcols, xcols, prefix) {
@@ -688,16 +713,15 @@ var FistUI = new Class({
                     // user cancelled
                     throw new DataImportError('import cancelled.');
                   }
-                  this._messageBox.set('text', 'extracting channels...');
+                  this._status.working('extracting channels...');
                   var channels = ChannelExtractor.extract(tcols, xcols, rows);
-                  this._messageBox.set('text', 'importing channels...');
+                  this._status.working('importing channels...');
                   Object.each(channels, function(data, suffix) {
                     var name = prefix + '-' + suffix;
                     name = name.toLowerCase().replace(/\s+/g, '-');
                     this._fist.importData(name, data, file.name);
                   }.bind(this));
-                  this._statusWrapper.set('class', 'ok');
-                  this._messageBox.set('text', 'import successful.');
+                  this._status.OK('import successful.');
                 } catch (e) {
                   trapDataImportError(e);
                 }
@@ -708,23 +732,14 @@ var FistUI = new Class({
           }.bind(this))
           .import();
       } catch (e) {
-        console.log(e);
-        if (!(e instanceof DataImportError)) {
-          throw e;
-        }
-        this._statusWrapper.set('class', 'not-ok');
-        this._messageBox.set('text', e.toString());
+        trapDataImportError(e);
       }
     }.bind(this), false);
 
     this._dragBlock = null;
 
     // set up status area
-    this._statusWrapper = this._root.getElement('#status_wrapper');
-    this._messageBox = this._root.getElement('#message');
-    this._importBox = this._root.getElement('#import');
-    this._filenameBox = this._root.getElement('#filename');
-    this._progressBar = this._root.getElement('#progress');
+    this._status = new Status(this._root.getElement('#status_wrapper'));
 
     // set up palette
     this._palette = this._root.getElement('#palette');
@@ -910,10 +925,10 @@ var FistUI = new Class({
       console.log(e);
     }
   },
-  loaded: function(loadStart) {
-    var loadTime = +(new Date()) - loadStart;
-    this._statusWrapper.set('class', 'ok');
-    this._messageBox.set('text', 'fist v0.1: loaded in ' + loadTime + ' ms');
+  loaded: function(version, loadStart) {
+    var loadTime = +(new Date()) - loadStart,
+        msg = 'datafist version ' + version + ': loaded in ' + loadTime + ' ms';
+    this._status.OK(msg);
   },
   _showImportDialog: function(file, cols, callback) {
     // TODO: mustache templating here? move to separate ModalDialog handler?
