@@ -16,14 +16,21 @@ text.caption {
 g.axis {
   font-family: "Helvetica Neue", sans-serif;
   font-size: 80%;
-  line {
+  line.range {
     stroke-width: 1px;
-    stroke: #ddd;
+    stroke: #aaa;
   }
   path {
     fill: none;
     stroke: none;
     stroke-width: 1.5px;
+  }
+  g.projection {
+    line {
+      stroke-width: 1px;
+      stroke: #000;
+      opacity: 0.2;
+    }
   }
 }
 

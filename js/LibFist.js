@@ -603,16 +603,16 @@ var GensChannel = {
 
 var View = {
   __exports: [
-    ['viewSparkline', 'view-sparkline'],
+    ['viewLine', 'view-line'],
     ['viewHistogram', 'view-histogram'],
-    ['viewRegression', 'view-regression']
+    ['viewPlot', 'view-plot']
   ],
   __fullName: 'Views',
-  viewSparkline: new FistFunction(function(args) {
-    this._viewInvoked('sparkline', args);
+  viewLine: new FistFunction(function(args) {
+    this._viewInvoked('line', args);
   }).type('(fn (name (+ channel) "cs") view)')
     .describe(
-      'Displays its channels as sparklines (line charts).'
+      'Displays its channels as line charts.'
     ),
   viewHistogram: new FistFunction(function(args) {
     this._viewInvoked('histogram', args);
@@ -622,8 +622,8 @@ var View = {
       'provided, that is used as the histogram bucket width; otherwise, it ' +
       'looks for a //* operation applied to its channel.'
     ),
-  viewRegression: new FistFunction(function(args) {
-    this._viewInvoked('regression', args);
+  viewPlot: new FistFunction(function(args) {
+    this._viewInvoked('plot', args);
   }).type('(fn (-> (name channel "x") (name channel "y")) view)')
     .describe(
       'Displays its two channels as an XY plot, with the first channel ' +

@@ -1,5 +1,9 @@
 'use strict';
 
+function _numTicks(px) {
+  return Math.max(3, Math.min(7, Math.floor(px / 100)));
+}
+
 function _caption(sexp) {
   var s = SExp.unparse(sexp);
   if (s.length > 30) {
@@ -45,7 +49,7 @@ function _stripFilters(sexp, filterName) {
   return cur;
 }
 
-var SparklineView = {
+var LineView = {
   render: function(view, args) {
     // TODO: verify that there's at least one channel
 
@@ -113,19 +117,23 @@ var SparklineView = {
     });
 
     // create w/h scales for all channels
-    var cxs = cds.map(function(cd, i) {
-      var cxMin = d3.min(cd, function(a) {
+    var xbounds = cds.map(function(cd) {
+      var xmin = d3.min(cd, function(a) {
         return a.x;
       }) || 0;
-      var cxMax = d3.max(cd, function(a) {
+      var xmax = d3.max(cd, function(a) {
         return a.x;
       }) || 0;
-      if (cxMax === cxMin) {
-        cxMin--;
-        cxMax++;
+      if (xmax === xmin) {
+        xmin--;
+        xmax++;
       }
+      return {min: xmin, max: xmax};
+    });
+    var cxs = cds.map(function(cd, i) {
       return d3.scale.linear()
-        .domain([cxMin, cxMax])
+        .domain([xbounds[i].min, xbounds[i].max])
+        .nice()
         .range([channelH - axisH / 2, axisH / 2]);
     });
 
@@ -138,25 +146,43 @@ var SparklineView = {
       .range([0, channelW]);
     var axisT = d3.svg.axis()
       .scale(scaleT)
-      .ticks(10)
-      .tickSize(-channelH * n);
+      .ticks(_numTicks(channelW))
+      .tickSize(0);
     view.append('svg:g')
       .attr('class', 'axis')
       .attr('transform', 'translate(' + axisW + ', ' + (channelH * n) + ')')
       .call(axisT);
     for (var i = 0; i < n; i++) {
+      var scaleX = cxs[i];
       var axisX = d3.svg.axis()
-        .scale(cxs[i])
+        .scale(scaleX)
         .orient('left')
-        .ticks(5)
-        .tickSize(-channelW);
-      view.append('svg:g')
+        .ticks(_numTicks(channelH))
+        .tickSize(0);
+      var axisGroupX = view.append('svg:g')
         .attr('class', 'channel axis')
         .attr('transform', 'translate(' + axisW + ', ' + (channelH * i) + ')')
         .call(axisX);
+      axisGroupX.append('svg:line')
+        .attr('class', 'range')
+        .attr('x1', 0)
+        .attr('y1', scaleX(xbounds[i].min))
+        .attr('x2', 0)
+        .attr('y2', scaleX(xbounds[i].max));
+
+      // projection ticks
+      var projX = axisGroupX.append('svg:g')
+        .attr('class', 'projection');
+      projX.selectAll('line')
+        .data(cds[i])
+        .enter().append('svg:line')
+          .attr('x1', 2)
+          .attr('y1', function (d) { return scaleX(d.x); })
+          .attr('x2', 8)
+          .attr('y2', function (d) { return scaleX(d.x); });
     }
 
-    // sparklines
+    // lines
     for (var i = 0; i < n; i++) {
       var line = d3.svg.line()
         .x(function(d) { return ct(d.t); })
@@ -238,7 +264,7 @@ var SparklineView = {
           var sexpF = _stripFilters(sexp, 'time-between');
           return ['time-between', sexpF, _format(t[0]), _format(t[1])];
         }.bind(this));
-        filteredSexp.unshift('view-sparkline');
+        filteredSexp.unshift('view-line');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this));
   }
@@ -316,7 +342,7 @@ var HistogramView = {
     var axisX = d3.svg.axis()
       .scale(scaleX)
       .ticks(10)
-      .tickSize(-histH);
+      .tickSize(0);
     view.append('svg:g')
       .attr('class', 'axis')
       .attr('transform', 'translate(' + axisW + ', ' + (histH + axisH) + ')')
@@ -325,7 +351,7 @@ var HistogramView = {
       .scale(scaleFreq)
       .orient('left')
       .ticks(10)
-      .tickSize(-histW);
+      .tickSize(0);
     view.append('svg:g')
       .attr('class', 'axis')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')')
@@ -419,7 +445,7 @@ var HistogramView = {
   }
 };
 
-var RegressionView = {
+var PlotView = {
   render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
@@ -464,9 +490,11 @@ var RegressionView = {
         plotW = w - 2 * axisW;
     var scaleX = d3.scale.linear()
       .domain([xmin, xmax])
+      .nice()
       .range([0, plotW]);
     var scaleY = d3.scale.linear()
       .domain([ymin, ymax])
+      .nice()
       .range([plotH, 0]);
 
     // color scale!
@@ -475,21 +503,53 @@ var RegressionView = {
     // axes
     var axisX = d3.svg.axis()
       .scale(scaleX)
-      .ticks(10)
-      .tickSize(-plotH);
-    view.append('svg:g')
+      .ticks(_numTicks(plotW))
+      .tickSize(0);
+    var axisGroupX = view.append('svg:g')
       .attr('class', 'axis')
       .attr('transform', 'translate(' + axisW + ', ' + (plotH + axisH) + ')')
       .call(axisX);
+    axisGroupX.append('svg:line')
+      .attr('class', 'range')
+      .attr('x1', scaleX(xmin))
+      .attr('y1', 0)
+      .attr('x2', scaleX(xmax))
+      .attr('y2', 0);
     var axisY = d3.svg.axis()
       .scale(scaleY)
       .orient('left')
-      .ticks(10)
-      .tickSize(-plotW);
-    view.append('svg:g')
+      .ticks(_numTicks(plotH))
+      .tickSize(0);
+    var axisGroupY = view.append('svg:g')
       .attr('class', 'axis')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')')
       .call(axisY);
+    axisGroupY.append('svg:line')
+      .attr('class', 'range')
+      .attr('x1', 0)
+      .attr('y1', scaleY(ymin))
+      .attr('x2', 0)
+      .attr('y2', scaleY(ymax));
+
+    // projection ticks
+    var projX = axisGroupX.append('svg:g')
+      .attr('class', 'projection');
+    projX.selectAll('line')
+      .data(data)
+      .enter().append('svg:line')
+        .attr('x1', function (d) { return scaleX(d.x); })
+        .attr('y1', -2)
+        .attr('x2', function (d) { return scaleX(d.x); })
+        .attr('y2', -8);
+    var projY = axisGroupY.append('svg:g')
+      .attr('class', 'projection');
+    projY.selectAll('line')
+      .data(data)
+      .enter().append('svg:line')
+        .attr('x1', 2)
+        .attr('y1', function (d) { return scaleY(d.y); })
+        .attr('x2', 8)
+        .attr('y2', function (d) { return scaleY(d.y); });
 
     // plot
     var g = view.append('svg:g')
@@ -499,17 +559,17 @@ var RegressionView = {
       .enter().append('svg:circle')
         .attr('cx', function (d) { return scaleX(d.x); })
         .attr('cy', function (d) { return scaleY(d.y); })
-        .attr('r', 4)
+        .attr('r', 3)
         .attr('fill', d3.rgb(cc(0)).brighter(0.5))
         .attr('stroke', d3.rgb(cc(0)).darker(0.5))
     g.append('svg:text')
-      .attr('class', 'regression caption')
+      .attr('class', 'plot caption')
       .attr('x', plotW - 8)
       .attr('y', plotH - 8)
       .attr('text-anchor', 'end')
       .text(_caption(args.__sexps.x));
     g.append('svg:text')
-      .attr('class', 'regression caption')
+      .attr('class', 'plot caption')
       .attr('x', 8)
       .attr('y', 8)
       .attr('dy', '.71em')
@@ -525,7 +585,7 @@ var RegressionView = {
             y = d3.event.sourceEvent.pageY - dragPos.y;
         this._selectionStart = {x: x, y: y};
         this._dragSelectionArea
-          .attr('class', 'regression selection-area')
+          .attr('class', 'plot selection-area')
           .attr('x', this._selectionStart.x)
           .attr('y', this._selectionStart.y)
           .attr('width', 0)
@@ -538,7 +598,7 @@ var RegressionView = {
         x = Math.max(0, Math.min(x, plotW));
         y = Math.max(0, Math.min(y, plotH));
         this._dragSelectionArea
-          .attr('class', 'regression selection-area')
+          .attr('class', 'plot selection-area')
           .attr('x', Math.min(x, this._selectionStart.x))
           .attr('y', Math.min(y, this._selectionStart.y))
           .attr('width', Math.abs(x - this._selectionStart.x))
@@ -548,7 +608,7 @@ var RegressionView = {
     this._dragGroup = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
     this._dragHitArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'regression hit-area')
+      .attr('class', 'plot hit-area')
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', plotW)
@@ -566,7 +626,7 @@ var RegressionView = {
             sexpX = _stripFilters(args.__sexps.x, 'value-between'),
             sexpY = _stripFilters(args.__sexps.y, 'value-between');
         var filteredSexp = [
-          'view-regression',
+          'view-plot',
           ['value-between', sexpX, _format(x[0]), _format(x[1])],
           ['value-between', sexpY, _format(y[0]), _format(y[1])]
         ]
@@ -577,8 +637,8 @@ var RegressionView = {
 
 var LibFistUI = {
   import: function(fistUI) {
-    fistUI.importView('sparkline', SparklineView);
+    fistUI.importView('line', LineView);
     fistUI.importView('histogram', HistogramView);
-    fistUI.importView('regression', RegressionView);
+    fistUI.importView('plot', PlotView);
   }
 };
