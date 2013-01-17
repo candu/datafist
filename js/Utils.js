@@ -137,6 +137,16 @@ var Interval = {
   }
 };
 
+var Time = {
+  get: function(x) {
+    // TODO: think about timezone handling?
+    if (typeOf(x) === 'string') {
+      return +(new Date(x));
+    }
+    return x;
+  }
+};
+
 var TimeDelta = {
   _regex: /^(-?\d+(\.\d+)?([eE][-+]?\d+)?)?\s*(\w+)$/,
   _unit: function(s) {

@@ -571,8 +571,9 @@ var OpsFilterTime = {
   ],
   __fullName: 'Time Filters',
   since: new FistFunction(function(args) {
+    var _since = Time.get(args.since);
     return _filterOp(args.c, function(t) {
-      return t >= args.since;
+      return t >= _since;
     });
   }).type('(fn (-> (name channel "c") (name time "since")) channel)')
     .describe(
@@ -580,8 +581,9 @@ var OpsFilterTime = {
       'data points since the given time.'
     ),
   until: new FistFunction(function(args) {
+    var _until = Time.get(args.until);
     return _filterOp(args.c, function(t) {
-      return t < args.until;
+      return t < _until;
     });
   }).type('(fn (-> (name channel "c") (name time "until")) channel)')
     .describe(
@@ -589,8 +591,10 @@ var OpsFilterTime = {
       'data points until the given time.'
     ),
   between: new FistFunction(function(args) {
+    var _since = Time.get(args.since),
+        _until = Time.get(args.until);
     return _filterOp(args.c, function(t) {
-      return t >= args.since && t < args.until;
+      return t >= _since && t < _until;
     });
   }).type('(fn (-> (name channel "c") (name time "since") (name time "until")) channel)')
     .describe(
