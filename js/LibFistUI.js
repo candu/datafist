@@ -352,7 +352,7 @@ var HistogramView = {
     // axes
     var axisX = d3.svg.axis()
       .scale(scaleX)
-      .ticks(10)
+      .ticks(_numTicks(histW))
       .tickSize(0);
     view.append('svg:g')
       .attr('class', 'axis')
@@ -361,7 +361,7 @@ var HistogramView = {
     var axisFreq = d3.svg.axis()
       .scale(scaleFreq)
       .orient('left')
-      .ticks(10)
+      .ticks(_numTicks(histH))
       .tickSize(0);
     view.append('svg:g')
       .attr('class', 'axis')
@@ -437,6 +437,16 @@ var HistogramView = {
       .attr('width', histW)
       .attr('height', histH)
       .call(dragBehavior);
+
+    var dragSelectionBehavior = d3.behavior.drag()
+      .on('drag', function(d) {
+        var x = parseFloat(this._dragSelectionArea.attr('x')),
+            w = parseFloat(this._dragSelectionArea.attr('width'));
+        x += d3.event.dx;
+        x = Math.max(0, Math.min(x, histW - w));
+        this._dragSelectionArea.attr('x', x);
+      }.bind(this));
+
     this._dragSelectionArea = this._dragGroup.append('svg:rect')
       .attr('class', 'hidden')
       .on('click', function(d) {
@@ -452,7 +462,8 @@ var HistogramView = {
           filteredSexp.push(String(bucketing));
         }
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
-      }.bind(this));
+      }.bind(this))
+      .call(dragSelectionBehavior);
   }
 };
 
@@ -625,6 +636,21 @@ var PlotView = {
       .attr('width', plotW)
       .attr('height', plotH)
       .call(dragBehavior);
+
+    var dragSelectionBehavior = d3.behavior.drag()
+      .on('drag', function(d) {
+        var x = parseFloat(this._dragSelectionArea.attr('x')),
+            y = parseFloat(this._dragSelectionArea.attr('y')),
+            w = parseFloat(this._dragSelectionArea.attr('width')),
+            h = parseFloat(this._dragSelectionArea.attr('height'));
+        x += d3.event.dx;
+        y += d3.event.dy;
+        x = Math.max(0, Math.min(x, plotW - w));
+        y = Math.max(0, Math.min(y, plotH - h));
+        this._dragSelectionArea.attr('x', x);
+        this._dragSelectionArea.attr('y', y);
+      }.bind(this));
+
     this._dragSelectionArea = this._dragGroup.append('svg:rect')
       .attr('class', 'hidden')
       .on('click', function(d) {
@@ -642,7 +668,8 @@ var PlotView = {
           ['value-between', sexpY, _format(y[0]), _format(y[1])]
         ]
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
-      }.bind(this));
+      }.bind(this))
+      .call(dragSelectionBehavior);
   }
 };
 
