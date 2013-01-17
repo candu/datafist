@@ -934,7 +934,7 @@ QUnit.test('Fist', function() {
 
   // views
   equal(fist.executeType(
-    '(view-sparkline (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
+    '(view-line (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
   ), 'view');
 
   // channels
