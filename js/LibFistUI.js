@@ -255,6 +255,16 @@ var LineView = {
       .attr('width', channelW)
       .attr('height', channelH * n)
       .call(dragBehavior);
+
+    var dragSelectionBehavior = d3.behavior.drag()
+      .on('drag', function(d) {
+        var x = parseFloat(this._dragSelectionArea.attr('x')),
+            w = parseFloat(this._dragSelectionArea.attr('width'));
+        x += d3.event.dx;
+        x = Math.max(0, Math.min(x, channelW - w));
+        this._dragSelectionArea.attr('x', x);
+      }.bind(this));
+
     this._dragSelectionArea = this._dragGroup.append('svg:rect')
       .attr('class', 'hidden')
       .on('click', function(d) {
@@ -267,9 +277,9 @@ var LineView = {
         }.bind(this));
         filteredSexp.unshift('view-line');
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
-      }.bind(this));
+      }.bind(this))
+      .call(dragSelectionBehavior);
   }
-  // TODO: update height automatically on window resize?
 };
 
 var HistogramView = {
