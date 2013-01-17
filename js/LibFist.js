@@ -302,7 +302,7 @@ var OpsTime = {
     }
     return x;
   },
-  _avg: function(xs) {
+  _average: function(xs) {
     return this._sum(xs) / this._count(xs);
   },
   timeBucket: new FistFunction(function(args) {
@@ -317,9 +317,8 @@ var OpsTime = {
       case 'sum':
         _reduce = this._sum;
         break;
-      case 'avg':
       case 'average':
-        _reduce = this._avg;
+        _reduce = this._average;
         break;
       default:
         throw new Error('unrecognized reduce operation: ' + args.reduce);
@@ -350,7 +349,7 @@ var OpsTime = {
     return new DataChannel(_data);
   }).type('(fn (-> (name channel "c") (name string "reduce") (name timedelta "dt")) channel)')
     .describe(
-      'With two parameters (c, reduce, dt), groups the data points of c ' +
+      'With three parameters (c, reduce, dt), groups the data points of c ' +
       'into time buckets of width dt, then applies the given reducing ' +
       'operation to each bucket.'
     ),
@@ -394,6 +393,29 @@ var OpsTime = {
     .describe(
       'Creates a new channel whose values are the days of week (0-6) ' +
       'of its timestamps.'
+    )
+};
+
+var OpsSmooth = {
+  __exports: [
+    'rollingAverage', 'rolling-average',
+    'slidingWindow', 'sliding-window'
+  ],
+  __fullName: 'Smoothing Operations',
+  rollingAverage: new FistFunction(function(args) {
+    // TODO: implement this
+  }).type('(fn (-> (name channel "c") (name timedelta "halfLife")) channel)')
+    .description(
+      'With two parameters (c, halfLife), applies a rolling average to c ' +
+      'that decays by 50% over the period given by halfLife.'
+    ),
+  slidingWindow: new FistFunction(function(args) {
+    // TODO: implement this
+    return args.c;
+  }).type('(fn (-> (name channel "c") (name number "n")) channel)')
+    .description(
+      'With two parameters (c, n), applies a sliding window average to c ' +
+      'that uses the last n data points.'
     )
 };
 
@@ -673,6 +695,7 @@ var LibFist = {
     fist.importModule(null, OpsMath);
     //fist.importModule(null, OpsString);
     fist.importModule(null, OpsTime);
+    fist.importModule(null, OpsSmooth);
     fist.importModule(null, OpsJoin);
 
     fist.importModule(null, OpsFilterValue);
