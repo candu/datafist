@@ -266,10 +266,7 @@ var OpsTime = {
   ],
   __fullName: 'Time Operators',
   timeShift: new FistFunction(function(args) {
-    var _dt = args.dt;
-    if (typeOf(_dt) === 'string') {
-      _dt = TimeDelta.parse(_dt);
-    }
+    var _dt = TimeDelta.get(args.dt);
     return {
       at: function(t) {
         return args.c.at(t - _dt);
@@ -307,7 +304,7 @@ var OpsTime = {
   },
   timeBucket: new FistFunction(function(args) {
     var _iter = args.c.iter(),
-        _dt = args.dt,
+        _dt = TimeDelta.get(args.dt),
         _data = [],
         _reduce = null;
     switch (args.reduce) {
@@ -322,9 +319,6 @@ var OpsTime = {
         break;
       default:
         throw new Error('unrecognized reduce operation: ' + args.reduce);
-    }
-    if (typeOf(_dt) === 'string') {
-      _dt = TimeDelta.parse(_dt);
     }
     while (true) {
       try {
@@ -403,20 +397,69 @@ var OpsSmooth = {
   ],
   __fullName: 'Smoothing Operations',
   rollingAverage: new FistFunction(function(args) {
-    // TODO: implement this
-    return args.c;
+    var _iter = args.c.iter(),
+        _halfLife = TimeDelta.get(args.halfLife),
+        _data = [];
+    while (true) {
+      try {
+        var t = _iter.next(),
+            x = args.c.at(t),
+            n = _data.length;
+        if (n > 0) {
+          var dt = t - _data[n - 1].t,
+              beta = Math.pow(0.5, dt / _halfLife),
+              mu = _data[n - 1].x;
+          x = beta * mu + (1 - beta) * x;
+        }
+        _data.push({t: t, x: x});
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    return new DataChannel(_data);
   }).type('(fn (-> (name channel "c") (name timedelta "halfLife")) channel)')
     .describe(
       'With two parameters (c, halfLife), applies a rolling average to c ' +
       'that decays by 50% over the period given by halfLife.'
     ),
   slidingWindow: new FistFunction(function(args) {
-    // TODO: implement this
-    return args.c;
-  }).type('(fn (-> (name channel "c") (name number "n")) channel)')
+    var _iter = args.c.iter(),
+        _data = [],
+        _buf = new Array(args.windowSize),
+        _i = 0,
+        _n = 0,
+        _sum = 0;
+    while (true) {
+      try {
+        var t = _iter.next(),
+            x = args.c.at(t);
+        _i++;
+        if (_i === args.windowSize) {
+          _i = 0;
+        }
+        if (_buf[_i] === undefined) {
+          _sum += x;
+          _n++;
+        } else {
+          _sum += x - _buf[_i];
+        }
+        _buf[_i] = x;
+        _data.push({t: t, x: _sum / _n});
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    return new DataChannel(_data);
+  }).type('(fn (-> (name channel "c") (name number "windowSize")) channel)')
     .describe(
-      'With two parameters (c, n), applies a sliding window average to c ' +
-      'that uses the last n data points.'
+      'With two parameters (c, windowSize), applies a sliding window ' +
+      'average to c that uses the last windowSize data points.'
     )
 };
 

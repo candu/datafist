@@ -825,6 +825,9 @@ var FistUI = new Class({
       text: function(element) {
         if (type === 'function' || type === 'channel') {
           var value = this._fist.execute(element.get('text'));
+          if (value.describe === undefined) {
+            return type;
+          }
           return value.describe();
         } else {
           return type;

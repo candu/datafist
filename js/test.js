@@ -518,6 +518,39 @@ QUnit.test('OpsTime', function() {
   throws(function() { return it2.next(); }, StopIteration);
 });
 
+QUnit.test('OpsSmooth', function() {
+  var EPSILON = 1e-6;
+  function epsilonEqual(a, b) {
+    ok(Math.abs(a - b) < EPSILON);
+  }
+
+  var data = [
+    {t: 0, x: 2},
+    {t: 1, x: 0},
+    {t: 3, x: 5}
+  ];
+  var c = OpsSmooth.rollingAverage.call(fist, {
+    c: new DataChannel(data),
+    halfLife: 1
+  });
+  epsilonEqual(c.at(0), 2);
+  epsilonEqual(c.at(1), 1);
+  epsilonEqual(c.at(3), 4);
+
+  var data = [
+    {t: 0, x: 2},
+    {t: 1, x: 4},
+    {t: 3, x: 5}
+  ];
+  var c = OpsSmooth.slidingWindow.call(fist, {
+    c: new DataChannel(data),
+    windowSize: 2
+  });
+  epsilonEqual(c.at(0), 2);
+  epsilonEqual(c.at(1), 3);
+  epsilonEqual(c.at(3), 4.5);
+});
+
 QUnit.test('OpsFilterValue', function() {
   // see http://en.wikipedia.org/wiki/Normal_distribution
   var FOUR_NINES_SIG = 3.89,

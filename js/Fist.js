@@ -6,8 +6,8 @@ var FistFunction = new Class({
     this._type = null;
     this._description = null;
   },
-  call: function(context, args, sexps) {
-    return this._fn.call(context, args, sexps);
+  call: function(context, args) {
+    return this._fn.call(context, args);
   },
   type: function(type) {
     if (type === undefined) {
@@ -33,7 +33,7 @@ var DataChannel = new Class({
     for (var i = 0; i < this._data.length; i++) {
       this._index[this._data[i].t] = this._data[i].x;
     }
-    this._source = source;
+    this._source = source || 'Fist command line';
   },
   at: function(t) {
     if (!this._index.hasOwnProperty(t)) {

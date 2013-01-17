@@ -29,7 +29,7 @@ function $d3(selection) {
 }
 
 /**
- * Auto-nicing function for d3.time.scale(); this decides which of the default
+ * Auto-nicing for d3.time.scale(); this decides which of the default
  * time nicing intervals are best for the given domain.
  *
  * Since d3.time.scale().nice() doesn't pass on the current domain to its
@@ -193,5 +193,11 @@ var TimeDelta = {
       return unit;
     }
     return parseFloat(match[1]) * unit;
+  },
+  get: function(x) {
+    if (typeOf(x) === 'string') {
+      return this.parse(x);
+    }
+    return x;
   }
 };
