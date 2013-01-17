@@ -73,7 +73,7 @@ var OpsArith = {
     ['mod', '%'],
     ['bucket', '//*']
   ],
-  __fullName: 'Arithmetic Operators',
+  __fullName: 'Arithmetic Operations',
   add: new FistFunction(function(args) {
     var channels = [],
         numberSum = 0;
@@ -183,7 +183,7 @@ var OpsArith = {
 };
 
 var OpsMath = {
-  __fullName: 'Math Operators',
+  __fullName: 'Math Operations',
   sqrt: new FistFunction(function(args) {
     return _unaryOp(args.x, function(x) {
       return Math.sqrt(x);
@@ -264,7 +264,7 @@ var OpsTime = {
     ['hourOfDay', 'hour-of-day'],
     ['dayOfWeek', 'day-of-week']
   ],
-  __fullName: 'Time Operators',
+  __fullName: 'Time Operations',
   timeShift: new FistFunction(function(args) {
     var _dt = TimeDelta.get(args.dt);
     return {
@@ -732,8 +732,6 @@ var View = {
       'line of best fit.'
     )
 };
-
-var Display = {};
 
 var LibFist = {
   import: function(fist) {
