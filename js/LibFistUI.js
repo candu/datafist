@@ -49,6 +49,24 @@ function _stripFilters(sexp, filterName) {
   return cur;
 }
 
+function _getFiltering(sexp, filterName) {
+  if (sexp[0] === filterName) {
+    return {min: parseFloat(sexp[2]), max: parseFloat(sexp[3])};
+  }
+  return undefined;
+}
+
+function _fixBound(bound) {
+  if (!isFinite(bound.min) || !isFinite(bound.max)) {
+    bound.min = 0;
+    bound.max = 0;
+  }
+  if (bound.min === bound.max) {
+    bound.min--;
+    bound.max++;
+  }
+}
+
 var LineView = {
   render: function(view, args) {
     // TODO: verify that there's at least one channel
@@ -62,15 +80,27 @@ var LineView = {
 
     // extract data from channels
     var n = channels.length,
-        cds = [];
+        cds = [],
+        tbound = {min: Infinity, max: -Infinity},
+        xbounds = [];
     for (var i = 0; i < n; i++) {
       cds.push([]);
+      var filtering = _getFiltering(sexps[i], 'time-between');
+      if (filtering !== undefined) {
+        tbound.min = Math.min(filtering.min, tbound.min);
+        tbound.max = Math.max(filtering.max, tbound.max);
+      }
+      var xbound = {min: Infinity, max: -Infinity};
       var it = channels[i].iter();
       while (true) {
         try {
           var t = it.next(),
               x = channels[i].at(t);
           cds[i].push({t: t, x: x});
+          tbound.min = Math.min(t, tbound.min);
+          tbound.max = Math.max(t, tbound.max);
+          xbound.min = Math.min(x, xbound.min);
+          xbound.max = Math.max(x, xbound.max);
         } catch (e) {
           if (!(e instanceof StopIteration)) {
             throw e;
@@ -78,29 +108,17 @@ var LineView = {
           break;
         }
       }
+      _fixBound(xbound);
+      xbounds.push(xbound);
     }
-
-    // get bounds
-    var ctMin = d3.min(cds.map(function(cd) {
-      return d3.min(cd, function(a) {
-        return a.t;
-      });
-    })) || 0;
-    var ctMax = d3.max(cds.map(function(cd) {
-      return d3.max(cd, function(a) {
-        return a.t;
-      });
-    })) || 0;
-    if (ctMax === ctMin) {
-      ctMin--;
-      ctMax++;
-    }
+    _fixBound(tbound);
 
     var channelH = (h - axisH) / n,
         channelW = w - axisW;
-    var ct = d3.scale.linear()
-      .domain([ctMin, ctMax])
+    var ct = d3.time.scale()
+      .domain([tbound.min, tbound.max])
       .range([0, channelW]);
+    AutoNice.time(ct);
 
     // filter out sub-pixel time increments
     cds = cds.map(function(cd) {
@@ -116,20 +134,6 @@ var LineView = {
       return filtered;
     });
 
-    // create w/h scales for all channels
-    var xbounds = cds.map(function(cd) {
-      var xmin = d3.min(cd, function(a) {
-        return a.x;
-      }) || 0;
-      var xmax = d3.max(cd, function(a) {
-        return a.x;
-      }) || 0;
-      if (xmax === xmin) {
-        xmin--;
-        xmax++;
-      }
-      return {min: xmin, max: xmax};
-    });
     var cxs = cds.map(function(cd, i) {
       return d3.scale.linear()
         .domain([xbounds[i].min, xbounds[i].max])
@@ -141,12 +145,8 @@ var LineView = {
     var cc = d3.scale.category10();
 
     // axes
-    var scaleT = d3.time.scale()
-      .domain([ctMin, ctMax])
-      .range([0, channelW]);
-    AutoNice.time(scaleT);
     var axisT = d3.svg.axis()
-      .scale(scaleT)
+      .scale(ct)
       .ticks(_numTicks(channelW))
       .tickSize(0);
     view.append('svg:g')
@@ -270,7 +270,9 @@ var LineView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            t = Interval.nice([+(scaleT.invert(x1)), +(scaleT.invert(x2))]);
+            tRaw = [+(ct.invert(x1)), +(ct.invert(x2))],
+            t = Interval.nice(tRaw);
+        console.log(tRaw, t);
         var filteredSexp = sexps.map(function(sexp) {
           var sexpF = _stripFilters(sexp, 'time-between');
           return ['time-between', sexpF, _format(t[0]), _format(t[1])];
