@@ -14,7 +14,7 @@ function _caption(sexp) {
 
 function _getBucketing(sexp) {
   if (SExp.isAtom(sexp)) {
-    return null;
+    return undefined;
   }
   if (sexp[0] === '//*') {
     return parseFloat(sexp[2]);
@@ -25,7 +25,7 @@ function _getBucketing(sexp) {
       return bucketing;
     }
   }
-  return null;
+  return undefined;
 }
 
 function _format(x) {
@@ -283,24 +283,27 @@ var LineView = {
 };
 
 var HistogramView = {
-  render: function(view, args) {
-    var w = view.attr('width'),
-        h = view.attr('height'),
-        axisH = 20,
-        axisW = 60;
-
-    var data = [],
-        it = args.c.iter(),
-        bucketing = args.bucket || _getBucketing(args.__sexps.c),
-        applyBuckets = args.bucket !== undefined;
+  _getData: function(c, groupBy, bucketing) {
+    var it = c.iter(),
+        data = [];
+    if (groupBy !== undefined) {
+      it = IntersectionIterator([it, groupBy.iter()]);
+    }
     while (true) {
       try {
         var t = it.next(),
-            x = args.c.at(t);
-        if (applyBuckets) {
-          x = Math.floor(x / bucketing) * bucketing;
+            x = c.at(t),
+            g;
+        if (groupBy === undefined) {
+          g = x;
+          x = 1;
+        } else {
+          g = groupBy.at(t);
         }
-        data.push(x);
+        if (bucketing !== undefined) {
+          g = Math.floor(g / bucketing) * bucketing;
+        }
+        data.push({g: g, x: x});
       } catch (e) {
         if (!(e instanceof StopIteration)) {
           throw e;
@@ -308,22 +311,42 @@ var HistogramView = {
         break;
       }
     }
-
-    data.sort();
+    data.sort(function(d1, d2) { return d1.g - d2.g; });
+    return data;
+  },
+  _getHist: function(data) {
     var hist = [],
-        last = -1;
-    for (var i = 0; i < data.length; i++) {
-      if (last === -1 || data[i] !== hist[last].x) {
-        hist.push({x: data[i], freq: 0});
-        last++;
+        n = 0;
+    data.each(function(d) {
+      if (n === 0 || d.g > hist[n - 1].x) {
+        hist.push({x: d.g, freq: 0});
+        n++;
       }
-      hist[last].freq++;
-    }
+      hist[n - 1].freq += d.x;
+    });
+    return hist;
+  },
+  render: function(view, args) {
+    var w = view.attr('width'),
+        h = view.attr('height'),
+        axisH = 20,
+        axisW = 60;
 
-    var xs = hist.map(function(p) { return p.x; }),
+    var bucketing = args.bucket;
+    if (bucketing === undefined) {
+      if (args.groupBy === undefined) {
+        bucketing = _getBucketing(args.__sexps.c);
+      } else {
+        bucketing = _getBucketing(args.__sexps.groupBy);
+      }
+    }
+    var data = this._getData(args.c, args.groupBy, bucketing),
+        hist = this._getHist(data),
+        xs = hist.map(function(p) { return p.x; }),
         xmin = d3.min(xs) || 0,
         xmax = d3.max(xs) || 0,
-        freqs = hist.map(function(p) { return p.freq; });
+        freqs = hist.map(function(p) { return p.freq; }),
+        applyBuckets = args.bucket !== undefined;
     if (xmin === xmax) {
       xmin--;
       xmax++;
@@ -331,11 +354,11 @@ var HistogramView = {
 
     var histH = h - 2 * axisH,
         histW = w - 2 * axisW;
-    if (bucketing !== null) {
+    if (bucketing !== undefined) {
       var buckets = Math.round((xmax - xmin) / bucketing),
           bucketW = histW / (buckets + 1);
       if (bucketW < 3) {
-        bucketing = null;
+        bucketing = undefined;
       } else {
         xmax += bucketing;
       }
@@ -368,11 +391,10 @@ var HistogramView = {
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')')
       .call(axisFreq);
 
-
     // histogram
     var g = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
-    if (bucketing === null) {
+    if (bucketing === undefined) {
       var opacity = Math.max(0.2, 1 / Math.log(Math.max(2, data.length)));
       g.selectAll('line')
         .data(hist)
@@ -452,16 +474,25 @@ var HistogramView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
-            sexpX = _stripFilters(args.__sexps.c, 'value-between');
-        var filteredSexp = [
-          'view-histogram',
-          ['value-between', sexpX, _format(x[0]), _format(x[1])]
-        ];
-        if (applyBuckets) {
-          filteredSexp.push(String(bucketing));
+            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
+        if (args.groupBy === undefined) {
+          var sexpX = _stripFilters(args.__sexps.c, 'value-between');
+          var filteredSExp = [
+            'view-histogram',
+            ['value-between', sexpX, _format(x[0]), _format(x[1])]
+          ];
+        } else {
+          var sexpX = _stripFilters(args.__sexps.groupBy, 'value-between');
+          var filteredSExp = [
+            'view-histogram',
+            args.__sexps.c,
+            ['value-between', sexpX, _format(x[0]), _format(x[1])]
+          ];
         }
-        $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
+        if (args.bucket !== undefined) {
+          filteredSExp.push(args.__sexps.bucket);
+        }
+        $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
       }.bind(this))
       .call(dragSelectionBehavior);
   }

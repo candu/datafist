@@ -101,6 +101,9 @@ var Fist = new Class({
     throw new Error('unrecognized atom: ' + atom);
   },
   _bindArgs: function(paramsType, sexps) {
+    var sexpTypes = sexps.map(function(sexp) {
+      return this.evaluateType(sexp);
+    }.bind(this));
     var boundValues = {},
         i = 0;
     var match = function(type) {
@@ -108,7 +111,23 @@ var Fist = new Class({
         if (i >= sexps.length) {
           return null;
         }
-        return i++;
+        switch (type) {
+          case 'channel?':
+            return match(['|', 'number', 'channel']);
+          case 'time':
+          case 'timedelta':
+            return match(['|', 'number', 'string']);
+          case 'number':
+          case 'string':
+          case 'channel':
+          case 'view':
+            if (sexpTypes[i] === type) {
+              return i++;
+            }
+            return null;
+          default:
+            throw new Error('unrecognized atomic type: ' + type);
+        }
       }
       switch (type[0]) {
         case 'name':
@@ -160,7 +179,10 @@ var Fist = new Class({
           }
           return value;
         case 'fn':
-          return i++;
+          if (SExp.equal(sexpTypes[i], type)) {
+            return i++;
+          }
+          return null;
         default:
           throw new Error('unrecognized param type operator: ' + type[0]);
       }

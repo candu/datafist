@@ -952,10 +952,6 @@ QUnit.test('ChannelExtractor', function() {
 });
 
 QUnit.test('Fist', function() {
-  function jsonEqual(a, b) {
-    equal(JSON.stringify(a), JSON.stringify(b));
-  }
-
   // atoms
   equal(fist.executeType('42'), 'number');
   equal(fist.executeType('3.14'), 'number');
@@ -1089,10 +1085,24 @@ QUnit.test('Fist', function() {
   ), null);
 
   // _bindArgs
-  jsonEqual(fist._bindArgs(
+  var args = fist._bindArgs(
     SExp.parse('(name number "a")'),
     SExp.parse('(42)')
-  ), {__sexps: {a: '42'}, a: 42});
+  );
+  equal(args.__sexps.a, '42');
+  equal(args.a, 42);
+
+  fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
+  var args = fist._bindArgs(
+    SExp.parse('(-> (name channel "c1") (name (? channel) "c2") (name (? number) "n"))'),
+    SExp.parse('(c1 42)')
+  );
+  equal(args.__sexps.c1, 'c1');
+  equal(args.__sexps.c2, undefined);
+  equal(args.__sexps.n, '42');
+  equal(args.c1, fist.execute('c1'));
+  equal(args.c2, undefined);
+  equal(args.n, 42);
 });
 
 QUnit.test('ViewGraphState', function() {

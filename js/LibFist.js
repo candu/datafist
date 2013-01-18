@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: update describe() blurbs
+
 var _unaryOp = function(a, op) {
   if (typeOf(a) === 'number') {
     return op(a);
@@ -306,7 +308,8 @@ var OpsTime = {
     var _iter = args.c.iter(),
         _dt = TimeDelta.get(args.dt),
         _data = [],
-        _reduce = null;
+        _reduce = null,
+        _n = 0;
     switch (args.reduce) {
       case 'count':
         _reduce = this._count;
@@ -323,13 +326,13 @@ var OpsTime = {
     while (true) {
       try {
         var t = _iter.next(),
-            x = args.c.at(t),
-            n = _data.length;
+            x = args.c.at(t);
         t = Math.floor(t / _dt) * _dt;
-        if (n === 0 || t > _data[n - 1].t) {
+        if (_n === 0 || t > _data[_n - 1].t) {
           _data.push({t: t, xs: []});
+          _n++;
         }
-        _data[n - 1].xs.push(x);
+        _data[_n - 1].xs.push(x);
       } catch (e) {
         if (!(e instanceof StopIteration)) {
           throw e;
@@ -717,7 +720,7 @@ var View = {
     ),
   viewHistogram: new FistFunction(function(args) {
     this._viewInvoked('histogram', args);
-  }).type('(fn (-> (name channel "c") (name (? number) "bucket")) view)')
+  }).type('(fn (-> (name channel "c") (name (? channel) "groupBy") (name (? number) "bucket")) view)')
     .describe(
       'Displays its channel as a histogram. If the second parameter is ' +
       'provided, that is used as the histogram bucket width; otherwise, it ' +
