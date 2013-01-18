@@ -501,6 +501,23 @@ var HistogramView = {
 };
 
 var PlotView = {
+  _drawRegressionLine: function(data, g) {
+    if (data.length <= 5) {
+      return;
+    }
+    var regress = Stats.linregress(data);
+    if (regress.R <= 0.1) {
+      return;
+    }
+    g.append('svg:line')
+      .attr('id', 'foo')
+      .attr('class', 'plot regression')
+      .attr('x1', scaleX(xbound.min))
+      .attr('y1', scaleY(regress.L(xbound.min)))
+      .attr('x2', scaleX(xbound.max))
+      .attr('y2', scaleY(regress.L(xbound.max)))
+      .attr('opacity', Math.abs(regress.R));
+  },
   render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
@@ -525,30 +542,28 @@ var PlotView = {
     }
 
     // get bounds
-    var xs = data.map(function(p) { return p.x; }),
-        xmin = d3.min(xs) || 0,
-        xmax = d3.max(xs) || 0,
-        ys = data.map(function(p) { return p.y; }),
-        ymin = d3.min(ys) || 0,
-        ymax = d3.max(ys) || 0;
-    if (xmin === xmax) {
-      xmin--;
-      xmax++;
+    var xfiltering = _getFiltering(args.__sexps.x, 'value-between'),
+        xbound = xfiltering || {min: Infinity, max: -Infinity},
+        yfiltering = _getFiltering(args.__sexps.y, 'value-between'),
+        ybound = yfiltering || {min: Infinity, max: -Infinity};
+    for (var i = 0; i < data.length; i++) {
+      xbound.min = Math.min(data[i].x, xbound.min);
+      xbound.max = Math.max(data[i].x, xbound.max);
+      ybound.min = Math.min(data[i].y, ybound.min);
+      ybound.max = Math.max(data[i].y, ybound.max);
     }
-    if (ymin === ymax) {
-      ymin--;
-      ymax++;
-    }
+    _fixBound(xbound);
+    _fixBound(ybound);
 
     // create scales
     var plotH = h - 2 * axisH,
         plotW = w - 2 * axisW;
     var scaleX = d3.scale.linear()
-      .domain([xmin, xmax])
+      .domain([xbound.min, xbound.max])
       .nice()
       .range([0, plotW]);
     var scaleY = d3.scale.linear()
-      .domain([ymin, ymax])
+      .domain([ybound.min, ybound.max])
       .nice()
       .range([plotH, 0]);
 
@@ -566,9 +581,9 @@ var PlotView = {
       .call(axisX);
     axisGroupX.append('svg:line')
       .attr('class', 'range')
-      .attr('x1', scaleX(xmin))
+      .attr('x1', scaleX(xbound.min))
       .attr('y1', 0)
-      .attr('x2', scaleX(xmax))
+      .attr('x2', scaleX(xbound.max))
       .attr('y2', 0);
     var axisY = d3.svg.axis()
       .scale(scaleY)
@@ -582,9 +597,9 @@ var PlotView = {
     axisGroupY.append('svg:line')
       .attr('class', 'range')
       .attr('x1', 0)
-      .attr('y1', scaleY(ymin))
+      .attr('y1', scaleY(ybound.min))
       .attr('x2', 0)
-      .attr('y2', scaleY(ymax));
+      .attr('y2', scaleY(ybound.max));
 
     // projection ticks
     var projX = axisGroupX.append('svg:g')
@@ -630,15 +645,8 @@ var PlotView = {
       .attr('dy', '.71em')
       .text(_caption(args.__sexps.y));
 
-    var regress = Stats.linregress(data);
-    g.append('svg:line')
-      .attr('id', 'foo')
-      .attr('class', 'plot regression')
-      .attr('x1', scaleX(xmin))
-      .attr('y1', scaleY(regress.L(xmin)))
-      .attr('x2', scaleX(xmax))
-      .attr('y2', scaleY(regress.L(xmax)))
-      .attr('opacity', Math.abs(regress.R));
+    // regression line
+    this._drawRegressionLine(data, g);
 
     // region-filtering hit area
     // TODO: merge this with time-filtering code from LineView
