@@ -402,7 +402,7 @@ var HistogramView = {
       .text(_caption(args.__sexps.c));
 
     // value-filtering hit area
-    // TODO: merge this with time-filtering code from SparklineView
+    // TODO: merge this with time-filtering code from LineView
     this._selectionStart = null;
     var dragBehavior = d3.behavior.drag()
       .on('dragstart', function(d) {
@@ -597,8 +597,18 @@ var PlotView = {
       .attr('dy', '.71em')
       .text(_caption(args.__sexps.y));
 
+    var regress = Stats.linregress(data);
+    g.append('svg:line')
+      .attr('id', 'foo')
+      .attr('class', 'plot regression')
+      .attr('x1', scaleX(xmin))
+      .attr('y1', scaleY(regress.L(xmin)))
+      .attr('x2', scaleX(xmax))
+      .attr('y2', scaleY(regress.L(xmax)))
+      .attr('opacity', Math.abs(regress.R));
+
     // region-filtering hit area
-    // TODO: merge this with time-filtering code from SparklineView
+    // TODO: merge this with time-filtering code from LineView
     this._selectionStart = null;
     var dragBehavior = d3.behavior.drag()
       .on('dragstart', function(d) {
