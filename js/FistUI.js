@@ -630,7 +630,79 @@ var Status = new Class({
   },
   progress: function(file, loaded) {
     this._progressBar.set('value', loaded);
+  }
+});
 
+var ImportDialog = new Class({
+  _reset: function(file) {
+    this._subtitle.set('text', 'from ' + file.name);
+    this._prefixField.set('value', '').focus();
+    this._root.getElements('.form-row').removeClass('warning');
+    $('tcols').empty();
+  },
+  _makeCheckbox: function(col, name) {
+    return new Element('div.checkbox').adopt(
+      new Element('span.checkbox', {
+        text: col
+      }),
+      new Element('input', {
+        type: 'checkbox',
+        text: col,
+        name: name
+      })
+    );
+  },
+  initialize: function(root) {
+    this._root = root;
+    this._subtitle = this._root.getElement('div.modal-subtitle');
+    this._prefixField = this._root.getElement('#prefix');
+    this._timeColumns = this._root.getElement('#tcols');
+    this._valueColumns = this._root.getElement('#xcols');
+  },
+  show: function(file, cols, callback) {
+    this._reset(file);
+    cols.each(function(col) {
+      this._timeColumns.adopt(this._makeCheckbox(col, 'tcols'));
+      this._valueColumns.adopt(this._makeCheckbox(col, 'xcols'));
+    }.bind(this));
+    $('modal_ok').removeEvents('click').addEvent('click', function(evt) {
+      var prefix = $('prefix').value;
+      if (prefix.length === 0) {
+        $('prefix_row').addClass('warning');
+        return false;
+      } else {
+        $('prefix_row').removeClass('warning');
+      }
+      var tcols = $$('#tcols input[type=checkbox]').filter(function(c) {
+        return c.checked;
+      }).map(function(c) {
+        return c.get('text');
+      });
+      if (tcols.length === 0) {
+        $('tcols_row').addClass('warning');
+        return false;
+      } else {
+        $('tcols_row').removeClass('warning');
+      }
+      var xcols = $$('#xcols input[type=checkbox]').filter(function(c) {
+        return c.checked;
+      }).map(function(c) {
+        return c.get('text');
+      });
+      if (xcols.length === 0) {
+        $('xcols_row').addClass('warning');
+        return false;
+      } else {
+        $('xcols_row').removeClass('warning');
+      }
+      this._root.removeClass('active');
+      callback(tcols, xcols, prefix);
+    }.bind(this));
+    $('modal_cancel').removeEvents('click').addEvent('click', function(evt) {
+      this._root.removeClass('active');
+      callback();
+    }.bind(this));
+    this._root.addClass('active');
   }
 });
 
@@ -730,7 +802,7 @@ var FistUI = new Class({
               this._status.working('identifying channels...');
               var columns = Object.keys(rows[0]);
               columns.sort();
-              this._showImportDialog(file, columns, function(tcols, xcols, prefix) {
+              this._importDialog.show(file, columns, function(tcols, xcols, prefix) {
                 try {
                   if (tcols === undefined) {
                     // user cancelled
@@ -763,6 +835,9 @@ var FistUI = new Class({
 
     // set up status area
     this._status = new Status(this._root.getElement('#status_wrapper'));
+
+    // set up import dialog
+    this._importDialog = new ImportDialog($('modal'));
 
     // set up palette
     this._palette = this._root.getElement('#palette');
@@ -952,72 +1027,5 @@ var FistUI = new Class({
     var loadTime = +(new Date()) - loadStart,
         msg = 'datafist version ' + version + ': loaded in ' + loadTime + ' ms';
     this._status.OK(msg);
-  },
-  _showImportDialog: function(file, cols, callback) {
-    // TODO: mustache templating here? move to separate ModalDialog handler?
-    var modalDialog = $('modal');
-    $('prefix').set('value', '').focus();
-    $('prefix_row').removeClass('warning');
-    $('tcols_row').removeClass('warning');
-    $('xcols_row').removeClass('warning');
-    modalDialog.getElement('div.modal-subtitle').set('text', 'from ' + file.name);
-    function makeCheckbox(col, name) {
-      return new Element('div.checkbox').adopt(
-        new Element('span.checkbox', {
-          text: col
-        }),
-        new Element('input', {
-          type: 'checkbox',
-          text: col,
-          name: name
-        })
-      );
-    }
-    $('tcols').empty();
-    cols.each(function(col) {
-      $('tcols').adopt(makeCheckbox(col, 'tcols'));
-    });
-    $('xcols').empty();
-    cols.each(function(col) {
-      $('xcols').adopt(makeCheckbox(col, 'xcols'));
-    });
-    $('modal_ok').removeEvents('click').addEvent('click', function(evt) {
-      var prefix = $('prefix').value;
-      if (prefix.length === 0) {
-        $('prefix_row').addClass('warning');
-        return false;
-      } else {
-        $('prefix_row').removeClass('warning');
-      }
-      var tcols = $$('#tcols input[type=checkbox]').filter(function(c) {
-        return c.checked;
-      }).map(function(c) {
-        return c.get('text');
-      });
-      if (tcols.length === 0) {
-        $('tcols_row').addClass('warning');
-        return false;
-      } else {
-        $('tcols_row').removeClass('warning');
-      }
-      var xcols = $$('#xcols input[type=checkbox]').filter(function(c) {
-        return c.checked;
-      }).map(function(c) {
-        return c.get('text');
-      });
-      if (xcols.length === 0) {
-        $('xcols_row').addClass('warning');
-        return false;
-      } else {
-        $('xcols_row').removeClass('warning');
-      }
-      modalDialog.removeClass('active');
-      callback(tcols, xcols, prefix);
-    });
-    $('modal_cancel').removeEvents('click').addEvent('click', function(evt) {
-      modalDialog.removeClass('active');
-      callback();
-    });
-    modalDialog.addClass('active');
   }
 });
