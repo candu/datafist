@@ -54,22 +54,32 @@
   background-color: #6b3;
   color: #cea;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw > .line-number {
-  display: inline-block;
-  width: 50px;
-  font-size: 80%;
-}
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw > .line {
-  padding-left: 4px;
-  display: inline-block;
-}
 .modal-dialog > div > .modal-content > #step2 > #step2_help {
   padding-bottom: 4px;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable {
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper {
+  width: 100%;
+  overflow: auto;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable {
   height: 200px;
   overflow: auto;
   font-family: "Menlo", monospace;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell {
+  width: 100px;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 80%;
+  background-color: #ccc;
+  padding: 2px;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell.odd {
+  background-color: #ddd;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell.selected {
+  background-color: #6b3;
+  color: #cea;
 }
 .modal-dialog > div > .modal-buttons {
   padding: 0 4px 4px 4px;

@@ -52,15 +52,6 @@
               background-color: #6b3;
               color: #cea;
             }
-            & > .line-number {
-              display: inline-block;
-              width: 50px;
-              font-size: 80%;
-            }
-            & > .line {
-              padding-left: 4px;
-              display: inline-block;
-            }
           }
         }
       }
@@ -68,10 +59,31 @@
         & > #step2_help {
           padding-bottom: 4px;
         }
-        & > #step2_datatable {
-          height: 200px;
+        & > #step2_datatable_wrapper {
+          width: 100%;
           overflow: auto;
-          font-family: "Menlo", monospace;
+          & > #step2_datatable {
+            height: 200px;
+            overflow: auto;
+            font-family: "Menlo", monospace;
+            & > .data-row {
+              & > .data-cell {
+                width: 100px;
+                display: inline-block;
+                cursor: pointer;
+                font-size: 80%;
+                background-color: #ccc;
+                padding: 2px;
+                &.odd {
+                  background-color: #ddd;
+                }
+                &.selected {
+                  background-color: #6b3;
+                  color: #cea;
+                }
+              }
+            }
+          }
         }
       }
     }
