@@ -39,6 +39,7 @@
 .modal-dialog > div > .modal-content > #step1 > #step1_linetable {
   height: 200px;
   overflow: auto;
+  font-family: "Menlo", monospace;
 }
 .modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw {
   cursor: pointer;
@@ -61,6 +62,14 @@
 .modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw > .line {
   padding-left: 4px;
   display: inline-block;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_help {
+  padding-bottom: 4px;
+}
+.modal-dialog > div > .modal-content > #step2 > #step2_datatable {
+  height: 200px;
+  overflow: auto;
+  font-family: "Menlo", monospace;
 }
 .modal-dialog > div > .modal-buttons {
   padding: 0 4px 4px 4px;

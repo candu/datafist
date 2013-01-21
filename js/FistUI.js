@@ -642,16 +642,41 @@ var ImportDialog = new Class({
     this._status = status;
     this._currentStep = null;
 
+    this._lines = null;
+    this._fullFileReader = null;
+
     this._backButton = this._root.getElement('#back');
+    this._backButton.addEvent('click', this._back.bind(this));
     this._nextButton = this._root.getElement('#next');
+    this._nextButton.addEvent('click', this._next.bind(this));
     this._cancelButton = this._root.getElement('#cancel');
     this._cancelButton.addEvent('click', this._cancel.bind(this));
   },
   _step: function(i) {
     this._currentStep = i;
     this._root.getElements('.step').addClass('hidden');
-    if (i !== null && i > 0) {
-      this._root.getElement('#step' + i).removeClass('hidden');
+    switch (this._currentStep) {
+      case 1:
+        this._root.getElement('#step1').removeClass('hidden');
+        this._backButton.addClass('hidden');
+        this._nextButton.set('value', 'next').removeClass('hidden');
+        break;
+      case 2:
+        this._root.getElement('#step2').removeClass('hidden');
+        this._backButton.removeClass('hidden');
+        this._nextButton.set('value', 'next').removeClass('hidden');
+        break;
+      case 3:
+        this._root.getElement('#step3').removeClass('hidden');
+        this._backButton.removeClass('hidden');
+        this._nextButton.set('value', 'import').removeClass('hidden');
+        break;
+      case 4:
+        this._root.getElement('#step3').removeClass('hidden');
+        this._backButton.addClass('hidden');
+        this._nextButton.addClass('hidden');
+        break;
+      default:
     }
   },
   _step0: function(file) {
@@ -677,6 +702,7 @@ var ImportDialog = new Class({
   _makeLineRaw: function(line, i, selected) {
     var lineNumber = i + 1;
     var row = new Element('div.line-raw')
+      .set('id', 'line_raw_' + i)
       .toggleClass('odd', lineNumber % 2 === 1)
       .toggleClass('selected', i === selected);
     var lineNumberElem = new Element('div.line-number', {
@@ -720,36 +746,73 @@ var ImportDialog = new Class({
         lines = lineData.split('\n'),
         stepRoot = this._root.getElement('#step1'),
         lineTable = stepRoot.getElement('#step1_linetable');
+    this._lines = lines;
     lineTable.empty();
     for (var i = 0; i < picked.limit; i++) {
       lineTable.adopt(this._makeLineRaw(lines[i], i, picked.selected));
     }
     this._root.addClass('active');
   },
-  _step2: function() {
+  _step2: function(selected) {
     this._step(2);
+    var stepRoot = this._root.getElement('#step2'),
+        dataTable = stepRoot.getElement('#step2_datatable');
   },
   _step3: function() {
     this._step(3);
   },
+  _step4: function() {
+  },
   _back: function() {
     switch (this._currentStep) {
+      case 2:
+      case 3:
+        this._step(this._currentStep - 1);
+        break;
+      default:
+        var msg = 'invalid step for _back(): ' + this._currentStep;
+        this._error(msg);
+    }
+  },
+  _next: function(args) {
+    switch (this._currentStep) {
+      case 1:
+        var stepRoot = this._root.getElement('#step1'),
+            lineTable = stepRoot.getElement('#step1_linetable'),
+            selectedLine = lineTable.getElement('div.line-raw.selected');
+        if (selectedLine === null) {
+          // TODO: enforce validation without closing dialog
+          this._error('no line selected!');
+          return;
+        }
+        var lineID = selectedLine.get('id'),
+            selected = parseInt(lineID.substring('line_raw_'.length));
+        this._step2(selected);
+        break;
       case 2:
         break;
       case 3:
         break;
       default:
-        var msg = 'invalid step for _back(): ' + this._currentStep;
-        throw new DataImportError(msg);
+        var msg = 'invalid step for _next(): ' + this._currentStep;
+        this._error(msg);
     }
   },
-  _next: function() {
-
+  _reset: function() {
+    this._currentStep = null;
+    this._lines = null;
+    if (this._fullFileReader !== null) {
+      this._fullFileReader.abort();
+    }
+    this._fullFileReader = null;
   },
   _error: function(msg) {
-
+    this._reset();
+    this._status.notOK('import failed! ' + msg);
+    this._root.removeClass('active');
   },
   _cancel: function() {
+    this._reset();
     this._status.notOK('import cancelled.');
     this._root.removeClass('active');
   },
