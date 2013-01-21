@@ -20,6 +20,12 @@ Event.prototype.isFileDrag = function() {
   );
 };
 
+Error.prototype.trap = function(type) {
+  if (!(this instanceof type)) {
+    throw this;
+  }
+};
+
 /**
  * Converts the result of a call to d3.select() into a mootools $() object.
  * (d3 plays nicely with mootools, jQuery, etc. objects already.)

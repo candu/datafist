@@ -8,10 +8,10 @@
   left: 0;
   background: rgba(0,0,0,0.8);
   z-index: 99999;
-  opacity: 0;
   -webkit-transition: opacity 100ms ease-in;
   -moz-transition: opacity 100ms ease-in;
   transition: opacity 100ms ease-in;
+  opacity: 0;
   pointer-events: none;
   &.active {
     opacity: 1;
@@ -22,78 +22,72 @@
     color: #333;
     position: relative;
     margin: 10% auto;
-    padding: 3px 12px 8px 12px;
-    background: #fff;
-    border-radius: 12px;
-    background: -moz-linear-gradient(#fff, #aaa);
-    background: -webkit-linear-gradient(#fff, #aaa);
-    background: -o-linear-gradient(#fff, #aaa);
+    background: #eee;
     overflow-y: auto;
-    & > .modal-subtitle {
-      background: rgba(0, 0, 0, 0.2);
+    & > .modal-title {
       padding: 4px;
-      font-size: 80%;
+      background-color: #bbb;
+      font-size: 140%;
     }
     & > .modal-content {
-      background: rgba(0, 0, 0, 0.1);
       padding: 4px;
-      & > .form-row {
-        width: 100%;
-        &.warning {
-          background: rgba(255, 0, 0, 0.5);
+      background-color: #eee;
+      & > #step1 {
+        & > #step1_help {
+          padding-bottom: 4px;
         }
-        & > .form-row-title {
-          font-size: 120%;
+        & > #step1_linetable {
+          height: 200px;
+          overflow: auto;
+          & > .line-raw {
+            cursor: pointer;
+            font-size: 80%;
+            background-color: #ccc;
+            padding: 2px;
+            &.odd {
+              background-color: #ddd;
+            }
+            &.selected {
+              background-color: #6b3;
+              color: #cea;
+            }
+            & > .line-number {
+              display: inline-block;
+              width: 50px;
+              font-size: 80%;
+            }
+            & > .line {
+              padding-left: 4px;
+              display: inline-block;
+            }
+          }
         }
       }
-      div.checkbox {
-        display: inline-block;
+    }
+    & > .modal-buttons {
+      padding: 0 4px 4px 4px;
+      & > input[type=button] {
+        cursor: pointer;
         text-align: center;
+        text-decoration: none;
         font-size: 80%;
-        padding: 3px;
-        width: 191px;
       }
-      input[type=checkbox] {
-        height: 14px;
-        width: 14px;
+      & > #back, & > #next {
+        background: #666;
+        color: #eee;
+        &:hover {
+          background: #6b3;
+          color: #cea;
+        }
       }
-    }
-  }
-  #prefix {
-    font-size: 120%;
-    width: 400px;
-    margin: 4px 0 8px 0;
-  }
-  #modal_ok {
-    cursor: pointer;
-    background: #666;
-    color: #eee;
-    line-height: 25px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 100%;
-    -moz-box-shadow: 1px 1px 3px #000;
-    -webkit-box-shadow: 1px 1px 3px #000;
-    box-shadow: 1px 1px 3px #000;
-    &:hover {
-      color: #cea;
-      background: #6b3;
-    }
-  }
-  #modal_cancel {
-    cursor: pointer;
-    background: #999;
-    color: #ccc;
-    line-height: 25px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 100%;
-    -moz-box-shadow: 1px 1px 3px #000;
-    -webkit-box-shadow: 1px 1px 3px #000;
-    box-shadow: 1px 1px 3px #000;
-    &:hover {
-      color: #fc9;
-      background: #f30;
+      & > #cancel {
+        background: #999;
+        color: #ccc;
+        &:hover {
+          background: #f30;
+          color: #fc9;
+        }
+      }
     }
   }
 }

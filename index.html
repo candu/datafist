@@ -29,29 +29,27 @@
   <body>
     <div id="modal" class="modal-dialog">
       <div>
-        <h2>import data</h2>
-        <div class="modal-subtitle"></div>
+        <div class="modal-title">import data</div>
         <div class="modal-content">
-          <div id="prefix_row" class="form-row">
-            <div class="form-row-title">
-              enter a prefix for the channel names
+          <div id="step1" class="step">
+            <div id="step1_help">
+              which line contains the column names for your data?
             </div>
-            <input id="prefix" placeholder="channel name prefix" name="prefix"></input>
+            <div id="step1_linetable"></div>
           </div>
-          <div id="tcols_row" class="form-row">
-            <div class="form-row-title">
-              select date/time columns
-            </div>
-            <div id="tcols" class="cols-checkboxes"></div>
+          <div id="step2" class="step">
           </div>
-          <div id="xcols_row" class="form-row">
-            <div class="form-row-title">
-              select value columns
-            </div>
-            <div id="xcols" class="cols-checkboxes"></div>
+          <div id="step3" class="step">
+            <!--
+            <div id="progress_msg"></div>
+            <progress id="progress_bar"></progress>
+            -->
           </div>
-          <input type="button" id="modal_ok" value="import"></input>
-          <input type="button" id="modal_cancel" value="cancel"></input>
+        </div>
+        <div class="modal-buttons">
+          <input type="button" id="back" value="back"></input>
+          <input type="button" id="next" value="next"></input>
+          <input type="button" id="cancel" value="cancel"></input>
         </div>
       </div>
     </div>
@@ -65,10 +63,6 @@
           <td id="status">
             <div id="status_wrapper" class="working">
               <div id="message">loading...</div>
-              <div id="import" class="hidden"> 
-                <div id="filename"></div>
-                <progress id="progress"></progress>
-              </div>
             </div>
           </td>
         </tr>

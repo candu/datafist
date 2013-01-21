@@ -144,7 +144,7 @@ function FileImporter(file) {
       return this;
     },
     import: function() {
-      var MAX_FILE_SIZE = 10 * 1024 * 1024;  // 10 MB
+      var MAX_FILE_SIZE = 100 * 1024 * 1024;  // 10 MB
       if (file.size > MAX_FILE_SIZE) {
         throw new DataImportError('file too large');
       }

@@ -634,75 +634,112 @@ var Status = new Class({
 });
 
 var ImportDialog = new Class({
-  _reset: function(file) {
-    this._subtitle.set('text', 'from ' + file.name);
-    this._prefixField.set('value', '').focus();
-    this._root.getElements('.form-row').removeClass('warning');
-    $('tcols').empty();
-  },
-  _makeCheckbox: function(col, name) {
-    return new Element('div.checkbox').adopt(
-      new Element('span.checkbox', {
-        text: col
-      }),
-      new Element('input', {
-        type: 'checkbox',
-        text: col,
-        name: name
-      })
-    );
-  },
-  initialize: function(root) {
+  MAX_FILE_SIZE: 100 * 1024 * 1024,   // 100 MB
+  INITIAL_CHUNK_READ: 4 * 1024,       // 4 KB
+  initialize: function(root, fist, status) {
     this._root = root;
-    this._subtitle = this._root.getElement('div.modal-subtitle');
-    this._prefixField = this._root.getElement('#prefix');
-    this._timeColumns = this._root.getElement('#tcols');
-    this._valueColumns = this._root.getElement('#xcols');
+    this._fist = fist;
+    this._status = status;
+    this._currentStep = null;
   },
-  show: function(file, cols, callback) {
-    this._reset(file);
-    cols.each(function(col) {
-      this._timeColumns.adopt(this._makeCheckbox(col, 'tcols'));
-      this._valueColumns.adopt(this._makeCheckbox(col, 'xcols'));
-    }.bind(this));
-    $('modal_ok').removeEvents('click').addEvent('click', function(evt) {
-      var prefix = $('prefix').value;
-      if (prefix.length === 0) {
-        $('prefix_row').addClass('warning');
+  _step: function(i) {
+    this._currentStep = i;
+    this._root.getElements('.step').addClass('hidden');
+    if (i !== null && i > 0) {
+      this._root.getElement('#step' + i).removeClass('hidden');
+    }
+  },
+  _step0: function(file) {
+    this._step(0);
+    if (file.size > this.MAX_FILE_SIZE) {
+      this._error('file too large!');
+    }
+    var reader = new FileReader();
+    reader.onloadstart = function(evt) {
+      if (!evt.lengthComputable) {
+        this._error('could not compute file length!');
         return false;
-      } else {
-        $('prefix_row').removeClass('warning');
       }
-      var tcols = $$('#tcols input[type=checkbox]').filter(function(c) {
-        return c.checked;
-      }).map(function(c) {
-        return c.get('text');
-      });
-      if (tcols.length === 0) {
-        $('tcols_row').addClass('warning');
-        return false;
-      } else {
-        $('tcols_row').removeClass('warning');
+    }.bind(this);
+    reader.onloadend = function(evt) {
+      if (evt.target.readyState === FileReader.DONE) {
+        this._step1(evt.target.result);
       }
-      var xcols = $$('#xcols input[type=checkbox]').filter(function(c) {
-        return c.checked;
-      }).map(function(c) {
-        return c.get('text');
-      });
-      if (xcols.length === 0) {
-        $('xcols_row').addClass('warning');
-        return false;
-      } else {
-        $('xcols_row').removeClass('warning');
+    }.bind(this);
+    var blob = file.slice(0, this.INITIAL_CHUNK_READ);
+    reader.readAsBinaryString(blob);
+  },
+  _makeLineRaw: function(line, i, selected) {
+    var lineNumber = i + 1;
+    var row = new Element('div.line-raw')
+      .toggleClass('odd', lineNumber % 2 === 1)
+      .toggleClass('selected', i === selected);
+    var lineNumberElem = new Element('div.line-number', {
+      text: lineNumber
+    });
+    var lineElem = new Element('div.line', {
+      text: line
+    });
+    row.adopt(lineNumberElem, lineElem).addEvent('click', function(evt) {
+      this.getSiblings('div.line-raw').removeClass('selected');
+      this.addClass('selected');
+    });
+    return row;
+  },
+  _pickLines: function(lineData) {
+    var rows = d3.csv.parseRows(lineData);
+    var maxL = d3.max(rows, function(row) { return row.length; }),
+        Ls = [];
+    for (var i = 0; i <= maxL; i++) {
+      Ls.push([]);
+    }
+    rows.each(function(row, i) {
+      Ls[row.length].push(i);
+    });
+    var maxi = 0;
+    for (var i = 1; i <= maxL; i++) {
+      if (Ls[i].length > Ls[maxi].length) {
+        maxi = i;
       }
-      this._root.removeClass('active');
-      callback(tcols, xcols, prefix);
-    }.bind(this));
-    $('modal_cancel').removeEvents('click').addEvent('click', function(evt) {
-      this._root.removeClass('active');
-      callback();
-    }.bind(this));
+    }
+    return {
+      selected: Ls[maxi][0],
+      limit: Ls[maxi][0] + 10
+    };
+  },
+  _step1: function(partialFileData) {
+    this._step(1);
+    var last = partialFileData.lastIndexOf('\n'),
+        lineData = partialFileData.substring(0, last),
+        picked = this._pickLines(lineData),
+        lines = lineData.split('\n'),
+        stepRoot = this._root.getElement('#step1'),
+        lineTable = stepRoot.getElement('#step1_linetable');
+    lineTable.empty();
+    for (var i = 0; i < picked.limit; i++) {
+      lineTable.adopt(this._makeLineRaw(lines[i], i, picked.selected));
+    }
     this._root.addClass('active');
+  },
+  _step2: function() {
+    this._step(2);
+  },
+  _step3: function() {
+    this._step(3);
+  },
+  _back: function() {
+  },
+  _next: function() {
+
+  },
+  _error: function(msg) {
+
+  },
+  _cancel: function() {
+
+  },
+  show: function(file) {
+    this._step0(file);
   }
 });
 
@@ -779,56 +816,7 @@ var FistUI = new Class({
         return;
       }
       this._dropOverlay.removeClass('droptarget');
-      var trapDataImportError = function(e) {
-        console.log(e);
-        if (!(e instanceof DataImportError)) {
-          throw e;
-        }
-        this._status.notOK(e);
-      }.bind(this);
-      try {
-        FileImporter(evt.dataTransfer.files[0])
-          .start(function(file, total) {
-            this._status.working('importing data...');
-            this._status.progressStart(file, total);
-          }.bind(this))
-          .progress(function(file, loaded) {
-            this._status.progress(file, loaded);
-          }.bind(this))
-          .load(function(file, data) {
-            try {
-              this._status.working('loading rows...');
-              var rows = RowLoader.load(data);
-              this._status.working('identifying channels...');
-              var columns = Object.keys(rows[0]);
-              columns.sort();
-              this._importDialog.show(file, columns, function(tcols, xcols, prefix) {
-                try {
-                  if (tcols === undefined) {
-                    // user cancelled
-                    throw new DataImportError('import cancelled.');
-                  }
-                  this._status.working('extracting channels...');
-                  var channels = ChannelExtractor.extract(tcols, xcols, rows);
-                  this._status.working('importing channels...');
-                  Object.each(channels, function(data, suffix) {
-                    var name = prefix + '-' + suffix;
-                    name = name.toLowerCase().replace(/\s+/g, '-');
-                    this._fist.importData(name, data, file.name);
-                  }.bind(this));
-                  this._status.OK('import successful.');
-                } catch (e) {
-                  trapDataImportError(e);
-                }
-              }.bind(this));
-            } catch (e) {
-              trapDataImportError(e);
-            }
-          }.bind(this))
-          .import();
-      } catch (e) {
-        trapDataImportError(e);
-      }
+      this._importDialog.show(evt.dataTransfer.files[0]);
     }.bind(this), false);
 
     this._dragBlock = null;
@@ -837,7 +825,11 @@ var FistUI = new Class({
     this._status = new Status(this._root.getElement('#status_wrapper'));
 
     // set up import dialog
-    this._importDialog = new ImportDialog($('modal'));
+    this._importDialog = new ImportDialog(
+      $('modal'),
+      this._fist,
+      this._status
+    );
 
     // set up palette
     this._palette = this._root.getElement('#palette');

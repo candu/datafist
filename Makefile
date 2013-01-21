@@ -1,5 +1,5 @@
 LESS = lessc
-LESS_FLAGS = --yui-compress --verbose
+LESS_FLAGS = --verbose
 
 all: less
 
