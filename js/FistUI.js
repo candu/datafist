@@ -641,6 +641,11 @@ var ImportDialog = new Class({
     this._fist = fist;
     this._status = status;
     this._currentStep = null;
+
+    this._backButton = this._root.getElement('#back');
+    this._nextButton = this._root.getElement('#next');
+    this._cancelButton = this._root.getElement('#cancel');
+    this._cancelButton.addEvent('click', this._cancel.bind(this));
   },
   _step: function(i) {
     this._currentStep = i;
@@ -728,6 +733,15 @@ var ImportDialog = new Class({
     this._step(3);
   },
   _back: function() {
+    switch (this._currentStep) {
+      case 2:
+        break;
+      case 3:
+        break;
+      default:
+        var msg = 'invalid step for _back(): ' + this._currentStep;
+        throw new DataImportError(msg);
+    }
   },
   _next: function() {
 
@@ -736,7 +750,8 @@ var ImportDialog = new Class({
 
   },
   _cancel: function() {
-
+    this._status.notOK('import cancelled.');
+    this._root.removeClass('active');
   },
   show: function(file) {
     this._step0(file);
