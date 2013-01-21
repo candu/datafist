@@ -1,1 +1,45 @@
-path.channel{fill:none;stroke-width:2px}line.channel-separator{stroke-width:1px;stroke:#aaa}text.caption{font-family:"Helvetica Neue",sans-serif;font-size:110%}g.axis{font-family:"Helvetica Neue",sans-serif;font-size:80%}g.axis line.range{stroke-width:1px;stroke:#aaa}g.axis path{fill:none;stroke:none;stroke-width:1.5px}g.axis g.projection line{stroke-width:1px;stroke:#000;opacity:.2}rect.hit-area{fill:#000;stroke:none;opacity:0}rect.selection-area{fill:#333;stroke:none;opacity:.3;cursor:pointer}line.regression{stroke:#f33;stroke-width:1.5px}
+path.channel {
+  fill: none;
+  stroke-width: 2px;
+}
+line.channel-separator {
+  stroke-width: 1px;
+  stroke: #aaa;
+}
+text.caption {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 110%;
+}
+g.axis {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 80%;
+}
+g.axis line.range {
+  stroke-width: 1px;
+  stroke: #aaa;
+}
+g.axis path {
+  fill: none;
+  stroke: none;
+  stroke-width: 1.5px;
+}
+g.axis g.projection line {
+  stroke-width: 1px;
+  stroke: #000;
+  opacity: 0.2;
+}
+rect.hit-area {
+  fill: #000;
+  stroke: none;
+  opacity: 0;
+}
+rect.selection-area {
+  fill: #333;
+  stroke: none;
+  opacity: 0.3;
+  cursor: pointer;
+}
+line.regression {
+  stroke: #f33;
+  stroke-width: 1.5px;
+}
