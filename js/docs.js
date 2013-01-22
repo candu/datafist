@@ -15,19 +15,51 @@ var Docs = new Class({
     this._content = this._root.getElement('#content');
   },
   _params: function(value) {
-    return new Element('p', {
-      text: value.type()
+    var params = [];
+    var extract = function(type) {
+      console.log(type);
+      if (SExp.isAtom(type)) {
+        return;
+      }
+      switch (type[0]) {
+        case 'name':
+          var subType = type[1],
+              name = this._fist.evaluateAtom(type[2]);
+          params.push([name, subType]);
+          break;
+        case '->':
+          for (var j = 1; j < type.length; j++) {
+            extract(type[j]);
+          }
+          break;
+        default:
+          return;
+      }
+    }.bind(this);
+    var fnType = SExp.parse(value.type());
+    extract(fnType[1]);
+    console.log(params);
+    var paramsDiv = new Element('div.params');
+    params.each(function(param) {
+      var paramsRow = new Element('div.param-row');
+      var nameDiv = new Element('div.param-name', {
+        text: param[0]
+      });
+      var typeDiv = new Element('div.param-type', {
+        text: SExp.unparse(param[1])
+      });
+      paramsRow.adopt(nameDiv, typeDiv);
+      paramsDiv.adopt(paramsRow);
     });
+    return paramsDiv;
   },
   _desc: function(value) {
-    return new Element('p', {
+    return new Element('p.desc', {
       text: value.describe()
     });
   },
   _onSymbolImport: function(name, value, moduleName) {
-    console.log(name);
-    console.log(value.describe());
-    var header = new Element('h3', {
+    var header = new Element('h3.symbol', {
       text: name,
       id: this._href(name)
     });
@@ -39,7 +71,6 @@ var Docs = new Class({
     return name.replace(' ', '_').replace('-', '_').toLowerCase();
   },
   _onModuleImport: function(moduleName) {
-    console.log(moduleName);
     var link = new Element('a', {
       text: moduleName,
       href: '#' + this._href(moduleName)
@@ -48,7 +79,7 @@ var Docs = new Class({
     listItem.adopt(link);
     this._index.adopt(listItem);
 
-    var header = new Element('h2', {
+    var header = new Element('h2.module', {
       text: moduleName,
       id: this._href(moduleName)
     });
