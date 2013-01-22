@@ -65,7 +65,17 @@ td {
   font-size: 32px;
   color: #333;
   display: inline-block;
-  width: 20%;
+  padding-right: 7px;
+}
+a.nav {
+  text-decoration: none;
+  background-color: #aaccee;
+  color: #3366ff;
+  border: 1px solid #99aaff;
+  padding: 2px;
+  font-size: 90%;
+  position: relative;
+  top: -3px;
 }
 #status {
   background-color: #bbb;
