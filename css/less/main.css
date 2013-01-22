@@ -183,9 +183,13 @@ a.nav {
   user-select: none;
   cursor: pointer;
 }
-#svg_graph_wrapper g.block rect.control-point {
-  fill: #eee;
+#svg_graph_wrapper g.block rect.hit {
+  fill: #ddd;
   stroke: #999;
+}
+#svg_graph_wrapper g.block rect.hit.hover {
+  fill: #aaa;
+  stroke: #777;
 }
 #svg_graph_wrapper rect.block.function {
   fill: #ffee77;

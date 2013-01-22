@@ -219,9 +219,13 @@ a.nav {
   g.block {
     .user-select(none);
     cursor: pointer;
-    rect.control-point {
-      fill: #eee;
+    rect.hit {
+      fill: #ddd;
       stroke: #999;
+      &.hover {
+        fill: #aaa;
+        stroke: #777;
+      }
     }
   }
   rect.block {

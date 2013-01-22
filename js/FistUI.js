@@ -155,8 +155,6 @@ var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
     this._node = node;
     this._dragging = false;
-    this._controlling = false;
-    this._controlPointSize = 8;
 
     this._g = nodeGroup.append('svg:g')
       .data([this._node])
@@ -164,16 +162,6 @@ var ViewNode = new Class({
       .attr('transform', function(d) {
         return 'translate(' + d.x + ', ' + d.y + ')';
       })
-      .on('mouseover', function(d) {
-        if (!this._dragging) {
-          this._controls.attr('class', '');
-        }
-      }.bind(this))
-      .on('mouseout', function(d) {
-        if (!this._dragging && !this._controlling) {
-          this._controls.attr('class', 'hidden');
-        }
-      }.bind(this))
       .on('dblclick', function(d) {
         d3.event.preventDefault();
         d3.event.stopPropagation();
@@ -208,39 +196,24 @@ var ViewNode = new Class({
       .attr('text-anchor', 'middle')
       .text(this._node.name);
 
-    this._controls = this._g.append('svg:g')
-      .attr('class', 'hidden');
-    this._controls.selectAll('rect')
-      .data([null,null,null,null])
-      .enter().append('svg:rect')
-        .attr('class', 'control-point')
-        .attr('width', this._controlPointSize)
-        .attr('height', this._controlPointSize)
-        .call(graph.edgeCreateBehavior());
-    this._updateControlPoints();
+    this._outputHit = this._g.append('svg:rect')
+      .attr('class', 'hit output')
+      .attr('x', 0)
+      .attr('y', this._node.h)
+      .attr('width', 12)
+      .attr('height', 5)
+      .on('mouseover', function(d) {
+        this._outputHit.attr('class', 'hit output hover');
+      }.bind(this))
+      .on('mouseout', function(d) {
+        this._outputHit.attr('class', 'hit output');
+      }.bind(this))
+      .call(graph.edgeCreateBehavior());
   },
   updatePosition: function() {
     this._g.attr('transform', function(d) {
       return 'translate(' + d.x + ', ' + d.y + ')';
     });
-  },
-  _updateControlPoints: function() {
-    var wMid = Math.floor(this._node.w / 2),
-        hMid = Math.floor(this._node.h / 2);
-    var controlPoints = [
-      {x: wMid, y: 0, index: this._node.index},             // top
-      {x: this._node.w, y: hMid, index: this._node.index},  // right
-      {x: wMid, y: this._node.h, index: this._node.index},  // bottom
-      {x: 0, y: hMid, index: this._node.index}              // left
-    ];
-    this._controls.selectAll('rect')
-      .data(controlPoints)
-      .attr('x', function(d) {
-        return d.x - this._controlPointSize / 2;
-      }.bind(this))
-      .attr('y', function(d) {
-        return d.y - this._controlPointSize / 2;
-      }.bind(this));
   },
   updateText: function() {
     this.updatePosition();
@@ -253,7 +226,6 @@ var ViewNode = new Class({
       .attr('x', function(d) { return d.w / 2; })
       .attr('y', function(d) { return d.h / 2; })
       .text(function(d) { return d.name; });
-    this._updateControlPoints();
   },
   cleanup: function() {
     this._g.remove();
@@ -353,14 +325,12 @@ var ViewGraph = new Class({
       .on('dragstart', function(d) {
         var viewNode = this._nodes[d.index];
         viewNode._dragging = true;
-        viewNode._controls.attr('class', 'hidden');
       }.bind(this))
       .on('dragend', function(d) {
         if (!this._isInViewer(d3.event.sourceEvent.target)) {
           this._state.deleteNode(d.index);
         } else {
           var viewNode = this._nodes[d.index];
-          viewNode._controls.attr('class', '');
           viewNode._dragging = false;
         }
       }.bind(this))
@@ -379,11 +349,8 @@ var ViewGraph = new Class({
     this._edgeCreateBehavior = d3.behavior.drag()
       .on('dragstart', function(d) {
         d3.event.sourceEvent.stopPropagation();
-        this._nodes[d.index]._controlling = true;
-        // TODO: fix this horrible positioning hack
-        var node = this._state._nodes[d.index];
         this._tempEdgeGroup
-          .attr('transform', 'translate(' + (node.x + d.x) + ', ' + (node.y + d.y) + ')');
+          .attr('transform', 'translate(' + (d.x + 6) + ', ' + (d.y + d.h + 2) + ')');
         this._tempEdgeEnd.x = 0;
         this._tempEdgeEnd.y = 0;
         this._tempEdge
@@ -396,12 +363,9 @@ var ViewGraph = new Class({
           .attr('transform', 'translate(-1000, -1000)');
         var targetNode = this._parentNode(d3.event.sourceEvent.target);
         if (targetNode === null) {
-          this._nodes[d.index]._controls.attr('class', 'hidden');
         } else if (d.index !== targetNode.index) {
           this._state.addEdge(d.index, targetNode.index);
-          this._nodes[d.index]._controls.attr('class', 'hidden');
         }
-        this._nodes[d.index]._controlling = false;
       }.bind(this))
       .on('drag', function(d) {
         this._tempEdgeEnd.x += d3.event.dx;
