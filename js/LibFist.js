@@ -1,7 +1,5 @@
 'use strict';
 
-// TODO: update describe() blurbs
-
 var _unaryOp = function(a, op) {
   if (typeOf(a) === 'number') {
     return op(a);
@@ -714,25 +712,26 @@ var View = {
   __fullName: 'Views',
   viewLine: new FistFunction(function(args) {
     this._viewInvoked('line', args);
-  }).type('(fn (name (+ channel) "cs") view)')
+  }).type('(fn (name (+ channel) "channels") view)')
     .describe(
-      'Displays its channels as line charts.'
+      'Displays each of its channels as a line chart.'
     ),
   viewHistogram: new FistFunction(function(args) {
     this._viewInvoked('histogram', args);
-  }).type('(fn (-> (name channel "c") (name (? channel) "groupBy") (name (? number) "bucket")) view)')
+  }).type('(fn (-> (name channel "channel") (name (? channel) "groupBy") (name (? number) "bucket")) view)')
     .describe(
-      'Displays its channel as a histogram. If the second parameter is ' +
-      'provided, that is used as the histogram bucket width; otherwise, it ' +
-      'looks for a //* operation applied to its channel.'
+      'Displays its channel as a histogram. If groupBy is ' +
+      'provided, the values of channel are grouped by the ' +
+      'values of groupBy at the same timestamps. ' +
+      'If bucket is provided, it is used as the width of the ' +
+      'histogram buckets.'
     ),
   viewPlot: new FistFunction(function(args) {
     this._viewInvoked('plot', args);
   }).type('(fn (-> (name channel "x") (name channel "y")) view)')
     .describe(
-      'Displays its two channels as an XY plot, with the first channel ' +
-      'as the X value and the second as the Y value. Also displays the ' +
-      'line of best fit.'
+      'Displays its two channels as an x-y plot. If the correlation ' +
+      'R value is high enough, also displays the line of best fit.'
     )
 };
 

@@ -75,8 +75,8 @@ var LineView = {
         h = view.attr('height'),
         axisH = 20,
         axisW = 60,
-        channels = args.cs,
-        sexps = args.__sexps.cs;
+        channels = args.channels,
+        sexps = args.__sexps.channels;
 
     // extract data from channels
     var n = channels.length,
@@ -337,12 +337,12 @@ var HistogramView = {
     var bucketing = args.bucket;
     if (bucketing === undefined) {
       if (args.groupBy === undefined) {
-        bucketing = _getBucketing(args.__sexps.c);
+        bucketing = _getBucketing(args.__sexps.channel);
       } else {
         bucketing = _getBucketing(args.__sexps.groupBy);
       }
     }
-    var data = this._getData(args.c, args.groupBy, bucketing),
+    var data = this._getData(args.channel, args.groupBy, bucketing),
         hist = this._getHist(data),
         xs = hist.map(function(p) { return p.x; }),
         xmin = d3.min(xs) || 0,
@@ -423,7 +423,7 @@ var HistogramView = {
       .attr('x', histW - 8)
       .attr('y', 8)
       .attr('text-anchor', 'end')
-      .text(_caption(args.__sexps.c));
+      .text(_caption(args.__sexps.channel));
 
     // value-filtering hit area
     // TODO: merge this with time-filtering code from LineView
@@ -478,7 +478,7 @@ var HistogramView = {
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
         if (args.groupBy === undefined) {
-          var sexpX = _stripFilters(args.__sexps.c, 'value-between');
+          var sexpX = _stripFilters(args.__sexps.channel, 'value-between');
           var filteredSExp = [
             'view-histogram',
             ['value-between', sexpX, _format(x[0]), _format(x[1])]
