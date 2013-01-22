@@ -674,15 +674,15 @@ QUnit.test('GensData', function() {
   var limit = FOUR_NINES_SIG * Math.sqrt(1 / (3 * N));
   ok(error < limit);
 
-  var choice = fist.execute('(choice "foo" "foo" "foo" "baz" "baz")');
+  var choice = fist.execute('(choice 0 0 0 1 1)');
   ok(choice instanceof Function);
   var N = 1000,
       p = 0.6,
-      bins = { foo: 0, baz: 0};
+      bins = [0, 0];
   for (var i = 0; i < N; i++) {
     bins[choice(i)]++;
   }
-  var error = Math.abs(p * N - bins.foo);
+  var error = Math.abs(p * N - bins[0]);
   var limit = FOUR_NINES_SIG * Math.sqrt(N * p * (1 - p));
   ok(error < limit);
 
