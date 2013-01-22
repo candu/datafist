@@ -641,6 +641,7 @@ var ImportDialog = new Class({
     this._fist = fist;
     this._status = status;
 
+    this._file = null;
     this._currentStep = null;
     this._lines = null;
     this._picked = null;
@@ -685,23 +686,29 @@ var ImportDialog = new Class({
   },
   _step0: function(file) {
     this._step(0);
-    if (file.size > this.MAX_FILE_SIZE) {
+    this._file = file;
+    if (this._file.size > this.MAX_FILE_SIZE) {
       this._error('file too large!');
     }
     var reader = new FileReader();
     reader.onloadstart = function(evt) {
       if (!evt.lengthComputable) {
         this._error('could not compute file length!');
-        return false;
+        return;
       }
     }.bind(this);
     reader.onloadend = function(evt) {
-      if (evt.target.readyState === FileReader.DONE) {
-        this._step1(evt.target.result);
+      if (evt.target.readyState !== FileReader.DONE) {
+        this._error('failed to load file!');
+        return;
       }
+      if (this._currentStep !== 0) {
+        return;
+      }
+      this._step1(evt.target.result);
     }.bind(this);
-    var blob = file.slice(0, this.INITIAL_CHUNK_READ);
-    reader.readAsBinaryString(blob);
+    var blob = this._file.slice(0, this.INITIAL_CHUNK_READ);
+    reader.readAsText(blob);
   },
   _pickLines: function(lineData) {
     var rows = d3.csv.parseRows(lineData);
@@ -731,27 +738,29 @@ var ImportDialog = new Class({
         picked = this._pickLines(lineData),
         lines = lineData.split('\n'),
         stepRoot = this._root.getElement('#step1'),
-        lineTable = stepRoot.getElement('#step1_linetable');
+        table = stepRoot.getElement('.table');
     this._lines = lines;
     this._picked = picked;
     var buildLine = function(i, selected) {
       var line = this._lines[i],
           lineNumber = i + 1;
-      var rowElem = new Element('div.line-raw')
-        .set('id', 'line_raw_' + i)
+      var rowElem = new Element('div.data-row');
+      var cell = Element('div.data-cell')
         .set('text', line)
+        .setStyle('width', '99%')
         .toggleClass('odd', lineNumber % 2 === 1)
         .toggleClass('selected', i === selected)
         .addEvent('click', function(evt) {
-          lineTable.getElements('.line-raw').removeClass('selected');
-          row.addClass('selected');
+          table.getElements('.data-cell').removeClass('selected');
+          cell.addClass('selected');
           this._picked = {selected: i, limit: i + 10};
         }.bind(this));
+      rowElem.adopt(cell);
       return rowElem;
     }.bind(this);
-    lineTable.empty();
+    table.empty();
     for (var i = 0; i < this._picked.limit; i++) {
-      lineTable.adopt(buildLine(i, this._picked.selected));
+      table.adopt(buildLine(i, this._picked.selected));
     }
     this._root.addClass('active');
   },
@@ -762,19 +771,20 @@ var ImportDialog = new Class({
           return d3.csv.parseRows(line)[0];
         }),
         stepRoot = this._root.getElement('#step2'),
-        dataTable = stepRoot.getElement('#step2_datatable');
+        table = stepRoot.getElement('.table');
     this._columns = rows[0];
     this._timeColumns = new Array(this._columns.length);
-    dataTable.setStyle('width', (100 + 2 * 2) * this._columns.length)
+    table.setStyle('width', (100 + 2 * 2) * this._columns.length)
     var buildRow = function(row) {
       var rowElem = new Element('div.data-row');
       row.each(function(col, i) {
         var cell = new Element('div.data-cell')
           .set('text', col)
+          .setStyle('width', 100)
           .addClass('col_' + i)
           .toggleClass('odd', i % 2 === 1);
         cell.addEvent('click', function(evt) {
-          dataTable.getElements('.col_' + i).toggleClass('selected');
+          table.getElements('.col_' + i).toggleClass('selected');
           if (this._timeColumns[i] === undefined) {
             this._timeColumns[i] = true;
           } else {
@@ -786,15 +796,87 @@ var ImportDialog = new Class({
       }.bind(this));
       return rowElem;
     }.bind(this);
-    dataTable.empty();
+    table.empty();
     for (var i = 0; i < rows.length; i++) {
-      dataTable.adopt(buildRow(rows[i]));
+      table.adopt(buildRow(rows[i]));
     }
   },
   _step3: function() {
     this._step(3);
+    var lines = this._lines.slice(this._picked.selected, this._picked.limit),
+        rows = lines.map(function(line) {
+          return d3.csv.parseRows(line)[0];
+        }),
+        stepRoot = this._root.getElement('#step3'),
+        table = stepRoot.getElement('.table');
+    this._valueColumns = new Array(this._columns.length);
+    table.setStyle('width', (100 + 2 * 2) * this._columns.length)
+    var buildRow = function(row) {
+      var rowElem = new Element('div.data-row');
+      row.each(function(col, i) {
+        var cell = new Element('div.data-cell')
+          .set('text', col)
+          .setStyle('width', 100)
+          .addClass('col_' + i)
+          .toggleClass('odd', i % 2 === 1);
+        if (this._timeColumns[i] === true) {
+          cell.addClass('unselectable');
+        } else {
+          cell.addEvent('click', function(evt) {
+            table.getElements('.col_' + i).toggleClass('selected');
+            if (this._valueColumns[i] === undefined) {
+              this._valueColumns[i] = true;
+            } else {
+              this._valueColumns[i] = undefined;
+            }
+            console.log(JSON.stringify(this._timeColumns));
+          }.bind(this));
+        }
+        rowElem.adopt(cell);
+      }.bind(this));
+      return rowElem;
+    }.bind(this);
+    table.empty();
+    for (var i = 0; i < rows.length; i++) {
+      table.adopt(buildRow(rows[i]));
+    }
+  },
+  _getColumns: function(selection) {
+    return this._columns.filter(function(x, i) {
+      return selection[i];
+    });
+  },
+  _importData: function(data) {
+    var tcols = this._getColumns(this._timeColumns),
+        xcols = this._getColumns(this._valueColumns),
+        rows = RowLoader.load(data),
+        channels = ChannelExtractor.extract(tcols, xcols, rows);
+    Object.each(channels, function(channelData, suffix) {
+      var fileName = this._file.name,
+          prefix = fileName.substring(0, fileName.lastIndexOf('.')),
+          lowerSuffix = suffix.toLowerCase(),
+          name = prefix + '-' + lowerSuffix;
+      this._fist.importData(name, channelData, fileName);
+    }.bind(this));
   },
   _step4: function() {
+    this._step(4);
+    var progress = this._root.getElement('#progress');
+    this._fullFileReader = new FileReader();
+    this._fullFileReader.onloadstart = function(evt) {
+      progress.set('value', 0).set('max', evt.total);
+    };
+    this._fullFileReader.onprogress = function(evt) {
+      progress.set('value', evt.loaded);
+    };
+    this._fullFileReader.onloadend = function(evt) {
+      if (evt.target.readyState !== FileReader.DONE) {
+        this._error('failed to load file!');
+      }
+      this._importData(evt.target.result);
+      this._finish();
+    }.bind(this);
+    this._fullFileReader.readAsText(this._file);
   },
   _back: function() {
     switch (this._currentStep) {
@@ -808,21 +890,16 @@ var ImportDialog = new Class({
     }
   },
   _next: function(args) {
+    // TODO: validation!
     switch (this._currentStep) {
       case 1:
-        var stepRoot = this._root.getElement('#step1'),
-            lineTable = stepRoot.getElement('#step1_linetable'),
-            selectedLine = lineTable.getElement('div.line-raw.selected');
-        if (selectedLine === null) {
-          // TODO: enforce validation without closing dialog
-          this._error('no line selected!');
-          return;
-        }
         this._step2();
         break;
       case 2:
+        this._step3();
         break;
       case 3:
+        this._step4();
         break;
       default:
         var msg = 'invalid step for _next(): ' + this._currentStep;
@@ -830,6 +907,7 @@ var ImportDialog = new Class({
     }
   },
   _reset: function() {
+    this._file = null;
     this._currentStep = null;
     this._lines = null;
     if (this._fullFileReader !== null) {
@@ -849,6 +927,11 @@ var ImportDialog = new Class({
   _cancel: function() {
     this._reset();
     this._status.notOK('import cancelled.');
+    this._root.removeClass('active');
+  },
+  _finish: function() {
+    this._reset();
+    this._status.OK('import successful.');
     this._root.removeClass('active');
   },
   show: function(file) {

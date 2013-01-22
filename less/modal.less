@@ -32,37 +32,48 @@
     & > .modal-content {
       padding: 4px;
       background-color: #eee;
-      & > #step1 {
-        & > #step1_help {
+      & > .step {
+        & > .help {
           padding-bottom: 4px;
         }
-        & > #step1_linetable {
-          height: 200px;
+        & > .table-wrapper {
+          width: 100%;
           overflow: auto;
-          font-family: "Menlo", monospace;
-          & > .line-raw {
-            cursor: pointer;
-            font-size: 80%;
-            background-color: #ccc;
-            padding: 2px;
-            &.odd {
-              background-color: #ddd;
-            }
-            &.selected {
-              background-color: #6b3;
-              color: #cea;
+          & > .table {
+            height: 200px;
+            overflow: auto;
+            font-family: "Menlo", monospace;
+            & > .data-row {
+              & > .data-cell {
+                display: inline-block;
+                cursor: pointer;
+                font-size: 80%;
+                background-color: #ccc;
+                padding: 2px;
+                &.odd {
+                  background-color: #ddd;
+                }
+                &.selected {
+                  background-color: #6b3;
+                  color: #cea;
+                }
+                &.unselectable {
+                  background-color: #f30;
+                  color: #fc9;
+                }
+              }
             }
           }
         }
       }
-      & > #step2 {
-        & > #step2_help {
+      & > #step3 {
+        & > #step3_help {
           padding-bottom: 4px;
         }
-        & > #step2_datatable_wrapper {
+        & > #step3_datatable_wrapper {
           width: 100%;
           overflow: auto;
-          & > #step2_datatable {
+          & > #step3_datatable {
             height: 200px;
             overflow: auto;
             font-family: "Menlo", monospace;

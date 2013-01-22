@@ -33,40 +33,49 @@
   padding: 4px;
   background-color: #eee;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_help {
+.modal-dialog > div > .modal-content > .step > .help {
   padding-bottom: 4px;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable {
+.modal-dialog > div > .modal-content > .step > .table-wrapper {
+  width: 100%;
+  overflow: auto;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table {
   height: 200px;
   overflow: auto;
   font-family: "Menlo", monospace;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw {
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell {
+  display: inline-block;
   cursor: pointer;
   font-size: 80%;
   background-color: #ccc;
   padding: 2px;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw.odd {
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.odd {
   background-color: #ddd;
 }
-.modal-dialog > div > .modal-content > #step1 > #step1_linetable > .line-raw.selected {
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.selected {
   background-color: #6b3;
   color: #cea;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_help {
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.unselectable {
+  background-color: #f30;
+  color: #fc9;
+}
+.modal-dialog > div > .modal-content > #step3 > #step3_help {
   padding-bottom: 4px;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper {
+.modal-dialog > div > .modal-content > #step3 > #step3_datatable_wrapper {
   width: 100%;
   overflow: auto;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable {
+.modal-dialog > div > .modal-content > #step3 > #step3_datatable_wrapper > #step3_datatable {
   height: 200px;
   overflow: auto;
   font-family: "Menlo", monospace;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell {
+.modal-dialog > div > .modal-content > #step3 > #step3_datatable_wrapper > #step3_datatable > .data-row > .data-cell {
   width: 100px;
   display: inline-block;
   cursor: pointer;
@@ -74,10 +83,10 @@
   background-color: #ccc;
   padding: 2px;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell.odd {
+.modal-dialog > div > .modal-content > #step3 > #step3_datatable_wrapper > #step3_datatable > .data-row > .data-cell.odd {
   background-color: #ddd;
 }
-.modal-dialog > div > .modal-content > #step2 > #step2_datatable_wrapper > #step2_datatable > .data-row > .data-cell.selected {
+.modal-dialog > div > .modal-content > #step3 > #step3_datatable_wrapper > #step3_datatable > .data-row > .data-cell.selected {
   background-color: #6b3;
   color: #cea;
 }

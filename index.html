@@ -32,30 +32,34 @@
         <div class="modal-title">import data</div>
         <div class="modal-content">
           <div id="step1" class="step">
-            <div id="step1_help">
+            <div class="help">
               which line contains the column names for your data?
             </div>
-            <div id="step1_linetable"></div>
+            <div class="table-wrapper">
+              <div class="table"></div>
+            </div>
           </div>
           <div id="step2" class="step">
-            <div id="step2_help">
+            <div class="help">
               which columns contain date or time information?
             </div>
-            <div id="step2_datatable_wrapper">
-              <div id="step2_datatable"></div>
+            <div class="table-wrapper">
+              <div class="table"></div>
             </div>
-            <div id="step2_columninfo"></div>
           </div>
           <div id="step3" class="step">
-            <div id="step3_help">
+            <div class="help">
               which columns contain the data you want to import?
             </div>
-            <div id="step3_datatable"></div>
-            <div id="step3_columninfo"></div>
+            <div class="table-wrapper">
+              <div class="table"></div>
+            </div>
           </div>
           <div id="step4" class="step">
-            <div id="step4_loading_msg"></div>
-            <progress id="step4_progress"></progress>
+            <div class="help">
+              loading...
+            </div>
+            <progress id="progress"></progress>
           </div>
         </div>
         <div class="modal-buttons">
