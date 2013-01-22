@@ -737,22 +737,24 @@ var View = {
 };
 
 var LibFist = {
+  modules: [
+    View,
+    OpsArith,
+    OpsMath,
+    //OpsString,
+    OpsTime,
+    OpsSmooth,
+    OpsJoin,
+    OpsFilterValue,
+    OpsFilterTime,
+    //OpsFilterLocation,
+    //OpsFilterRegion,
+    GensData,
+    GensChannel
+  ],
   import: function(fist) {
-    fist.importModule(null, View);
-
-    fist.importModule(null, OpsArith);
-    fist.importModule(null, OpsMath);
-    //fist.importModule(null, OpsString);
-    fist.importModule(null, OpsTime);
-    fist.importModule(null, OpsSmooth);
-    fist.importModule(null, OpsJoin);
-
-    fist.importModule(null, OpsFilterValue);
-    fist.importModule(null, OpsFilterTime);
-    //fist.importModule(null, OpsFilterLocation);
-    //fist.importModule(null, OpsFilterRegion);
-
-    fist.importModule(null, GensData);
-    fist.importModule(null, GensChannel);
+    this.modules.each(function(module) {
+      fist.importModule(null, module);
+    });
   }
 };
