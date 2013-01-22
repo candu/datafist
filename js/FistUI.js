@@ -669,12 +669,12 @@ var ImportDialog = new Class({
       case 2:
         this._root.getElement('#step2').removeClass('hidden');
         this._backButton.removeClass('disabled');
-        this._nextButton.set('value', 'next').removeClass('disabled');
+        this._nextButton.set('value', 'next').addClass('disabled');
         break;
       case 3:
         this._root.getElement('#step3').removeClass('hidden');
         this._backButton.removeClass('disabled');
-        this._nextButton.set('value', 'import').removeClass('disabled');
+        this._nextButton.set('value', 'import').addClass('disabled');
         break;
       case 4:
         this._root.getElement('#step3').removeClass('hidden');
@@ -787,8 +787,13 @@ var ImportDialog = new Class({
           table.getElements('.col_' + i).toggleClass('selected');
           if (this._timeColumns[i] === undefined) {
             this._timeColumns[i] = true;
+            this._nextButton.removeClass('disabled');
           } else {
             this._timeColumns[i] = undefined;
+            var tcols = this._getColumns(this._timeColumns);
+            if (tcols.length === 0) {
+              this._nextButton.addClass('disabled');
+            }
           }
           console.log(JSON.stringify(this._timeColumns));
         }.bind(this));
@@ -826,8 +831,13 @@ var ImportDialog = new Class({
             table.getElements('.col_' + i).toggleClass('selected');
             if (this._valueColumns[i] === undefined) {
               this._valueColumns[i] = true;
+              this._nextButton.removeClass('disabled');
             } else {
               this._valueColumns[i] = undefined;
+              var xcols = this._getColumns(this._valueColumns);
+              if (xcols.length === 0) {
+                this._nextButton.addClass('disabled');
+              }
             }
             console.log(JSON.stringify(this._timeColumns));
           }.bind(this));
@@ -904,9 +914,17 @@ var ImportDialog = new Class({
         this._step2();
         break;
       case 2:
+        var tcols = this._getColumns(this._timeColumns);
+        if (tcols.length === 0) {
+          return;
+        }
         this._step3();
         break;
       case 3:
+        var xcols = this._getColumns(this._timeColumns);
+        if (xcols.length === 0) {
+          return;
+        }
         this._step4();
         break;
       default:
