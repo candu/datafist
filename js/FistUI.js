@@ -663,23 +663,23 @@ var ImportDialog = new Class({
     switch (this._currentStep) {
       case 1:
         this._root.getElement('#step1').removeClass('hidden');
-        this._backButton.addClass('hidden');
-        this._nextButton.set('value', 'next').removeClass('hidden');
+        this._backButton.addClass('disabled');
+        this._nextButton.set('value', 'next').removeClass('disabled');
         break;
       case 2:
         this._root.getElement('#step2').removeClass('hidden');
-        this._backButton.removeClass('hidden');
-        this._nextButton.set('value', 'next').removeClass('hidden');
+        this._backButton.removeClass('disabled');
+        this._nextButton.set('value', 'next').removeClass('disabled');
         break;
       case 3:
         this._root.getElement('#step3').removeClass('hidden');
-        this._backButton.removeClass('hidden');
-        this._nextButton.set('value', 'import').removeClass('hidden');
+        this._backButton.removeClass('disabled');
+        this._nextButton.set('value', 'import').removeClass('disabled');
         break;
       case 4:
         this._root.getElement('#step3').removeClass('hidden');
-        this._backButton.addClass('hidden');
-        this._nextButton.addClass('hidden');
+        this._backButton.addClass('disabled');
+        this._nextButton.addClass('disabled');
         break;
       default:
     }
@@ -873,7 +873,15 @@ var ImportDialog = new Class({
       if (evt.target.readyState !== FileReader.DONE) {
         this._error('failed to load file!');
       }
-      this._importData(evt.target.result);
+      try {
+        this._importData(evt.target.result);
+      } catch (e) {
+        if (!(e instanceof DataImportError)) {
+          throw e;
+        }
+        this._error(e.toString());
+        return;
+      }
       this._finish();
     }.bind(this);
     this._fullFileReader.readAsText(this._file);

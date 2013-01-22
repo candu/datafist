@@ -71,20 +71,20 @@
   text-align: center;
   text-decoration: none;
   font-size: 80%;
-}
-.modal-dialog > div > .modal-buttons > #back,
-.modal-dialog > div > .modal-buttons > #next {
   background: #666;
   color: #eee;
 }
-.modal-dialog > div > .modal-buttons > #back:hover,
-.modal-dialog > div > .modal-buttons > #next:hover {
+.modal-dialog > div > .modal-buttons > input[type=button]:hover {
   background: #6b3;
   color: #cea;
 }
+.modal-dialog > div > .modal-buttons > input[type=button].disabled {
+  cursor: auto;
+  pointer-events: none;
+  opacity: 0.5;
+}
 .modal-dialog > div > .modal-buttons > #cancel {
-  background: #999;
-  color: #ccc;
+  float: right;
 }
 .modal-dialog > div > .modal-buttons > #cancel:hover {
   background: #f30;

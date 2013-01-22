@@ -74,18 +74,20 @@
         text-align: center;
         text-decoration: none;
         font-size: 80%;
-      }
-      & > #back, & > #next {
         background: #666;
         color: #eee;
         &:hover {
           background: #6b3;
           color: #cea;
         }
+        &.disabled {
+          cursor: auto;
+          pointer-events: none;
+          opacity: 0.5;
+        }
       }
       & > #cancel {
-        background: #999;
-        color: #ccc;
+        float: right;
         &:hover {
           background: #f30;
           color: #fc9;
