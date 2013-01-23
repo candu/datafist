@@ -205,10 +205,36 @@ var ViewEdge = new Class({
 });
 
 var HitArea = new Class({
-  initialize: function(node, type, id) {
+  initialize: function(graph, blockGroup, node, type, id) {
     this.node = node;
     this.type = type;
     this.id = id;
+
+    var pos = {
+      x: id * (HitArea.WIDTH + HitArea.PADDING)
+    };
+    switch (type) {
+      case HitArea.INPUT:
+        pos.y = -HitArea.HEIGHT;
+        break;
+      case HitArea.OUTPUT:
+        pos.y = node.dims.h;
+        break;
+    }
+    this._hit = blockGroup.append('svg:rect')
+      .attr('class', 'hit output')
+      .attr('x', pos.x)
+      .attr('y', pos.y)
+      .attr('width', HitArea.WIDTH)
+      .attr('height', HitArea.HEIGHT)
+      .on('mouseover', function() {
+        this._hit.attr('class', 'hit output hover');
+      }.bind(this))
+      .on('mouseout', function() {
+        this._hit.attr('class', 'hit output');
+      }.bind(this));
+      // TODO: fix this behavior
+      //.call(graph.edgeCreateBehavior());
   },
   isFull: function() {
     return this.type === HitArea.INPUT &&
@@ -217,6 +243,9 @@ var HitArea = new Class({
 });
 HitArea.INPUT = 1;
 HitArea.OUTPUT = 2;
+HitArea.WIDTH = 12;
+HitArea.HEIGHT = 5;
+HitArea.PADDING = 4;
 
 // TODO: verify that Object.values returns values in key-sorted order
 // across all browsers
@@ -260,20 +289,15 @@ var Node = new Class({
       .attr('text-anchor', 'middle')
       .text(this.name);
 
-    this._outputHit = this._g.append('svg:rect')
-      .attr('class', 'hit output')
-      .attr('x', 0)
-      .attr('y', this.dims.h)
-      .attr('width', 12)
-      .attr('height', 5)
-      .on('mouseover', function() {
-        this._outputHit.attr('class', 'hit output hover');
-      }.bind(this))
-      .on('mouseout', function() {
-        this._outputHit.attr('class', 'hit output');
-      }.bind(this));
-      // TODO: fix this behavior
-      //.call(graph.edgeCreateBehavior());
+    this._inputHits = [
+      new HitArea(graph, this._g, this, HitArea.INPUT, 0),
+      new HitArea(graph, this._g, this, HitArea.INPUT, 1),
+      new HitArea(graph, this._g, this, HitArea.INPUT, 2),
+      new HitArea(graph, this._g, this, HitArea.INPUT, 3)
+    ];
+    this._outputHits = [
+      new HitArea(graph, this._g, this, HitArea.OUTPUT, 0)
+    ];
   },
   setName: function(name) {
     this.name = name;
