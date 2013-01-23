@@ -232,6 +232,14 @@ var OpsMath = {
       'where e is roughly 2.718). If both (x, b) are provided, ' +
       'produces x log b (the logarithm of x base b).'
     ),
+  abs: new FistFunction(function(args) {
+    return _unaryOp(args.x, function(x) {
+      return Math.abs(x);
+    });
+  }).type('(fn (name channel? "x") (ref "x"))')
+    .describe(
+      'Produces the absolute value of x.'
+    ),
   floor: new FistFunction(function(args) {
     return _unaryOp(args.x, function(x) {
       return Math.floor(x);

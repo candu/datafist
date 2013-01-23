@@ -490,6 +490,8 @@ QUnit.test('OpsMath', function() {
   epsilonEqual(Fist.execute('(log 1)'), 0);
   epsilonEqual(Fist.execute('(log 2.7182818)'), 1);
   equal(Fist.execute('(log 64 4)'), 3);
+  equal(Fist.execute('(abs -73)'), 73);
+  equal(Fist.execute('(abs 42)'), 42);
   equal(Fist.execute('(floor 2)'), 2);
   equal(Fist.execute('(floor 2.3)'), 2);
   equal(Fist.execute('(floor 2.7)'), 2);
