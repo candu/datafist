@@ -274,7 +274,8 @@ var OpsTime = {
     ['timeBucket', 'time-bucket'],
     ['timeIdentity', 'time-identity'],
     ['hourOfDay', 'hour-of-day'],
-    ['dayOfWeek', 'day-of-week']
+    ['dayOfWeek', 'day-of-week'],
+    ['monthOfYear', 'month-of-year']
   ],
   __fullName: 'Time Operations',
   timeShift: new FistFunction(function(args) {
@@ -400,6 +401,20 @@ var OpsTime = {
   }).type('(fn (name channel "c") channel)')
     .describe(
       'Produces a channel whose values are the days of week (0-6) ' +
+      'corresponding to the timestamps of c.'
+    ),
+  monthOfYear: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return new Date(t).getMonth() + 1;
+      },
+      iter: function() {
+        return args.c.iter();
+      }
+    }
+  }).type('(fn (name channel "c") channel)')
+    .describe(
+      'Produces a channel whose values are the months of year (1-12) ' +
       'corresponding to the timestamps of c.'
     )
 };
