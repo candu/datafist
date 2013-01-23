@@ -146,37 +146,6 @@ var ViewGraphState = new Class({
     });
   }
 });
-ViewGraphState.fromJSON = function(json) {
-  // TODO: implement this
-  throw new Error('not implemented yet');
-};
-
-var ViewNode = new Class({
-  initialize: function(graph, nodeGroup, node) {
-    this._node = node;
-
-  },
-  updatePosition: function() {
-    this._g.attr('transform', function(d) {
-      return 'translate(' + d.x + ', ' + d.y + ')';
-    });
-  },
-  updateText: function() {
-    this.updatePosition();
-    this._rect
-      .attr('class', function(d) { return 'block ' + d.type; })
-      .attr('width', function(d) { return d.w; })
-      .attr('height', function(d) { return d.h; });
-    this._text
-      .attr('class', function(d) { return 'block ' + d.type; })
-      .attr('x', function(d) { return d.w / 2; })
-      .attr('y', function(d) { return d.h / 2; })
-      .text(function(d) { return d.name; });
-  },
-  cleanup: function() {
-    this._g.remove();
-  }
-});
 
 var ViewEdge = new Class({
   _snapToClosestSides: function(selection, d) {
@@ -252,10 +221,10 @@ HitArea.OUTPUT = 2;
 // TODO: verify that Object.values returns values in key-sorted order
 // across all browsers
 var Node = new Class({
-  initialize: function(nodeGroup, name, pos, id) {
+  initialize: function(graph, nodeGroup, name, pos, id) {
     this.name = name;
     this.type = Fist.blockType(name);
-    this.dims = FistUI.nodeDimensions(name, pos);
+    this.dims = graph.nodeDimensions(name, pos);
     this.id = id;
 
     this._edgesOut = {};
@@ -275,7 +244,7 @@ var Node = new Class({
         }
         this.setName(name);
       }.bind(this))
-      .call(graph.nodeDragBehavior());
+      .call(Node._dragBehavior(graph, this));
 
     this._rect = this._g.append('svg:rect')
       .attr('class', 'block ' + this.type)
@@ -297,24 +266,39 @@ var Node = new Class({
       .attr('y', this.dims.h)
       .attr('width', 12)
       .attr('height', 5)
-      .on('mouseover', function(d) {
+      .on('mouseover', function() {
         this._outputHit.attr('class', 'hit output hover');
       }.bind(this))
-      .on('mouseout', function(d) {
+      .on('mouseout', function() {
         this._outputHit.attr('class', 'hit output');
       }.bind(this));
       // TODO: fix this behavior
       //.call(graph.edgeCreateBehavior());
   },
   setName: function(name) {
-    this._name = name;
-    // TODO: make this update dims, position as well
+    this.name = name;
+    this.type = Fist.blockType(name);
+    this.dims = graph.nodeDimensions(name, this.dims);
+    this._rect = this._g.append('svg:rect')
+      .attr('class', 'block ' + this.type)
+      .attr('width', this.dims.w)
+      .attr('height', this.dims.h);
+    this._text = this._g.append('svg:text')
+      .attr('class', 'block ' + this.type)
+      .attr('x', this.dims.w / 2)
+      .attr('y', this.dims.h / 2)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .text(this.name);
     return this;
   },
-  setPos: function(pos) {
-    this.dims.x = pos.x;
-    this.dims.y = pos.y;
-    this._g.attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')')
+  move: function(dx, dy) {
+    this.dims.x += dx;
+    this.dims.y += dy;
+    this._g.attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')');
+    this.allEdges.each(function(edge) {
+      edge.update();
+    });
     return this;
   },
   addEdge: function(edge) {
@@ -352,9 +336,23 @@ var Node = new Class({
     return this.allEdgesIn().append(this.allEdgesOut());
   }
 });
-// TODO: put this on FistUI, actually, since that's a global singleton now
-Node.textSize = function(name) {
-  // TODO: implement this
+Node.PADDING = 2;
+Node._dragBehavior = function(graph, node) {
+  return d3.behavior.drag()
+    .origin(Object)
+    .on('dragstart', function() {
+      node._dragging = true;
+    })
+    .on('dragend', function() {
+      if (!graph.isInViewer(d3.event.sourceEvent.target)) {
+        graph.deleteNode(node);
+      } else {
+        this._dragging = false;
+      }
+    })
+    .on('drag', function() {
+      node.move(d3.event.dx, d3.event.dy);
+    });
 };
 Node._depthSearch = function(fromNode, toNode, visited) {
   visited[node._id] = true;
@@ -393,12 +391,34 @@ var ViewGraph = new Class({
     this._nodes = {};
 
     this._edgeGroup = this._svg.append('svg:g');
+    this._tempEdgeGroup = svg.append('svg:g')
+      .attr('transform', 'translate(-1000, -1000)');
+
+    this._tempTextGroup = svg.append('svg:g')
+      .attr('transform', 'translate(-1000, -1000)');
+    this._tempText = this._tempTextGroup.append('svg:text')
+      .attr('class', 'block');
+
     this._nodeGroup = this._svg.append('svg:g');
+
+    // see http://www.w3.org/TR/SVG/painting.html#Markers for inspiration
+    var defs = this._svg.append('defs');
+    var edgeEndMarker = defs.append('svg:marker')
+      .attr('id', 'edge_end')
+      .attr('viewBox', '0 0 10 10')
+      .attr('refX', 10)
+      .attr('refY', 5)
+      .attr('markerUnits', 'strokeWidth')
+      .attr('markerWidth', 4)
+      .attr('markerHeight', 3)
+      .attr('fill', '#555')
+      .attr('orient', 'auto')
+      .append('svg:path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z');
   },
-  addNode: function(text, pos) {
+  addNode: function(name, pos) {
     var id = this._nextNodeID++;
-    this._nodeGroup.call(Node.create(
-    this._nodes[id] = new Node(text, pos, id);
+    this._nodes[id] = new Node(this, this._nodeGroup, name, pos, id);
   },
   addEdge: function(output, input) {
     if (Node.existsPath(input.node, output.node)) {
@@ -438,58 +458,35 @@ var ViewGraph = new Class({
   },
   fromJSON: function(json) {
     // TODO: implement this
+  },
+  isInViewer: function(elem) {
+    var svgRoot = $d3(this._svg);
+    while (elem !== null) {
+      if (elem.match(svgRoot)) {
+        return true;
+      }
+      elem = elem.getParent();
+    }
+    return false;
+  },
+  nodeDimensions: function(name, pos) {
+    this._tempText.text(name);
+    var size = $d3(this._tempText).getSize();
+    size.x = Math.max(50, size.x);
+    var w = size.x + 2 * Node.PADDING,
+        h = size.y + 2 * Node.PADDING;
+    return {
+      x: Math.floor(pos.x - w / 2) + 0.5,
+      y: Math.floor(pos.y - h / 2) + 0.5,
+      w: w,
+      h: h
+    };
   }
 });
 
+/*
 var ViewGraph = new Class({
   initialize: function(svg, state) {
-    this._svg = svg;
-    this._edgeGroup = svg.append('svg:g');
-    this._tempEdgeGroup = svg.append('svg:g')
-      .attr('transform', 'translate(-1000, -1000)');
-    this._tempTextGroup = svg.append('svg:g')
-      .attr('transform', 'translate(-1000, -1000)');
-    this._nodeGroup = svg.append('svg:g');
-    this._state = state;
-    this._nodes = {};
-    this._edgesOut = {};
-    this._edgesIn = {};
-
-    // see http://www.w3.org/TR/SVG/painting.html#Markers for inspiration
-    var defs = this._svg.append('defs');
-    var edgeEndMarker = defs.append('svg:marker')
-      .attr('id', 'edge_end')
-      .attr('viewBox', '0 0 10 10')
-      .attr('refX', 10)
-      .attr('refY', 5)
-      .attr('markerUnits', 'strokeWidth')
-      .attr('markerWidth', 4)
-      .attr('markerHeight', 3)
-      .attr('fill', '#555')
-      .attr('orient', 'auto')
-      .append('svg:path')
-        .attr('d', 'M 0 0 L 10 5 L 0 10 z');
-
-    this._nodeDragBehavior = d3.behavior.drag()
-      .origin(Object)
-      .on('dragstart', function(d) {
-        var viewNode = this._nodes[d.index];
-        viewNode._dragging = true;
-      }.bind(this))
-      .on('dragend', function(d) {
-        if (!this._isInViewer(d3.event.sourceEvent.target)) {
-          this._state.deleteNode(d.index);
-        } else {
-          var viewNode = this._nodes[d.index];
-          viewNode._dragging = false;
-        }
-      }.bind(this))
-      .on('drag', function(d) {
-        d.x += d3.event.dx;
-        d.y += d3.event.dy;
-        this._onNodeMoved(d);
-      }.bind(this));
-
     this._tempEdgeEnd = {};
     this._tempEdge = this._tempEdgeGroup.append('svg:line')
       .attr('class', 'edge temp')
@@ -605,16 +602,6 @@ var ViewGraph = new Class({
     }
     return null;
   },
-  _isInViewer: function(elem) {
-    var svgRoot = $d3(this._svg);
-    while (elem !== null) {
-      if (elem.match(svgRoot)) {
-        return true;
-      }
-      elem = elem.getParent();
-    }
-    return false;
-  },
   _updateNodeEdges: function(d) {
     for (var i in this._edgesOut[d.index]) {
       this._edgesOut[d.index][i].updatePosition();
@@ -622,11 +609,6 @@ var ViewGraph = new Class({
     for (var i in this._edgesIn[d.index]) {
       this._edgesIn[d.index][i].updatePosition();
     }
-  },
-  _onNodeMoved: function(d) {
-    this._nodes[d.index].updatePosition();
-    this._updateNodeEdges(d);
-    this._state._updateFist();
   },
   _onNodeTextChanged: function(d) {
     this._nodes[d.index].updateText();
@@ -653,21 +635,6 @@ var ViewGraph = new Class({
     this._edgesOut[i][j].cleanup();
     delete this._edgesOut[i][j];
     delete this._edgesIn[j][i];
-  },
-  _getTextSize: function(name) {
-    this._tempText.text(name);
-    var textSize = $d3(this._tempText).getSize();
-    textSize.x = Math.max(50, textSize.x);
-    return textSize;
-  },
-  _getBlockDimensions: function(x, y, name, padding) {
-    var textSize = this._getTextSize(name);
-    return {
-      x: Math.floor(x - (textSize.x / 2 + padding)) + 0.5,
-      y: Math.floor(y - (textSize.y / 2 + padding)) + 0.5,
-      w: textSize.x + 2 * padding,
-      h: textSize.y + 2 * padding
-    };
   },
   _replaceSExp: function(sexp) {
     this._state.empty();
@@ -714,6 +681,7 @@ var ViewGraph = new Class({
     }
   }
 });
+*/
 
 var Status = new Class({
   initialize: function(statusWrapper) {
@@ -1083,7 +1051,7 @@ var FistUI = {
     options = options || {};
     var rebuild = options.rebuild || true;
     if (rebuild) {
-      this._repl.set('text', this._viewGraphState.toFist());
+      this._repl.set('text', this._viewGraph.toFistCode());
     }
     var fistExpression = this._repl.get('text');
     console.log(fistExpression);
@@ -1113,10 +1081,6 @@ var FistUI = {
   },
   init: function() {
     this._viewTable = {};
-    this._viewGraphState = new ViewGraphState();
-    this._viewGraphState.listen('fistmodified', function() {
-      this._runViewGraph();
-    }.bind(this));
 
     // set up root
     this._root = $('container');
@@ -1173,7 +1137,7 @@ var FistUI = {
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
     $d3(this._viewExecuteSVG).addEvent('sexpreplaced', function(sexp) {
-      this._viewGraph._replaceSExp(sexp);
+      this._viewGraph.fromFistCode(sexp);
     }.bind(this));
 
     // set up interpreter
@@ -1191,7 +1155,7 @@ var FistUI = {
         var svgPosition = $d3(this._viewGraph._svg).getPosition(),
             x = d3.event.pageX - svgPosition.x,
             y = d3.event.pageY - svgPosition.y;
-        this._viewGraph.addNode(name, x, y);
+        this._viewGraph.addNode(name, {x: x, y: y});
       }.bind(this));
     this._svgGraphWrapper.addEventListener('dragenter', function(evt) {
       evt.stop();
@@ -1225,11 +1189,11 @@ var FistUI = {
       var svgPosition = this._svgGraphWrapper.getPosition(),
           x = evt.pageX - svgPosition.x,
           y = evt.pageY - svgPosition.y;
-      this._viewGraph.addNode(json.name, x, y);
+      this._viewGraph.addNode(json.name, {x: x, y: y});
     }.bind(this), false);
 
     this._repl = this._root.getElement('#repl');
-    this._viewGraph = new ViewGraph(this._viewGraphSVG, this._viewGraphState);
+    this._viewGraph = new ViewGraph(this._viewGraphSVG);
 
     // register event listeners for Fist events
     Fist.listen('symbolimport', function(name, value, moduleName) {
