@@ -320,7 +320,7 @@ var Node = new Class({
     this.dims.x += dx;
     this.dims.y += dy;
     this._g.attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')');
-    this.allEdges.each(function(edge) {
+    this.allEdges().each(function(edge) {
       edge.update();
     });
     return this;
@@ -342,7 +342,7 @@ var Node = new Class({
     return this;
   },
   cleanup: function() {
-    this._block.remove();
+    this._g.remove();
   },
   edgeIn: function(inputID) {
     return this._edgesIn[inputID];
@@ -456,7 +456,7 @@ var ViewGraph = new Class({
   },
   deleteNode: function(node) {
     node.cleanup();
-    node.allEdges.each(function(edge) {
+    node.allEdges().each(function(edge) {
       edge.cleanup();
       node.deleteEdge(edge);
     });
