@@ -239,8 +239,8 @@ var ViewEdge = new Class({
         dx = cFrom.x - cTo.x,
         dy = cFrom.y - cTo.y;
     selection
-      .attr('x1', cFrom.x)
-      .attr('y1', cFrom.y);
+      .attr('x1', d.from.x + 6)
+      .attr('y1', d.from.y + d.from.h + 2);
     if (dy > dx) {
       if (dy > -dx) {
         // -> bottom
