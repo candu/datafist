@@ -154,61 +154,7 @@ ViewGraphState.fromJSON = function(json) {
 var ViewNode = new Class({
   initialize: function(graph, nodeGroup, node) {
     this._node = node;
-    this._dragging = false;
 
-    this._g = nodeGroup.append('svg:g')
-      .data([this._node])
-      .attr('class', 'block')
-      .attr('transform', function(d) {
-        return 'translate(' + d.x + ', ' + d.y + ')';
-      })
-      .on('dblclick', function(d) {
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        var name = window.prompt('edit node name:', d.name);
-        if (name === null ||
-            name.length === 0 ||
-            name === d.name) {
-          return;
-        }
-        var type = Fist.blockType(name),
-            svgPosition = $d3(this._svg).getPosition(),
-            padding = 2,
-            blockDimensions = this._getBlockDimensions(d.x, d.y, name, padding);
-        d.name = name;
-        d.type = type;
-        Object.merge(d, blockDimensions);
-        this._onNodeTextChanged(d);
-      }.bind(graph))
-      .call(graph.nodeDragBehavior());
-
-    this._rect = this._g.append('svg:rect')
-      .attr('class', 'block ' + this._node.type)
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', this._node.w)
-      .attr('height', this._node.h);
-    this._text = this._g.append('svg:text')
-      .attr('class', 'block ' + this._node.type)
-      .attr('x', this._node.w / 2)
-      .attr('y', this._node.h / 2)
-      .attr('dy', '.35em')
-      .attr('text-anchor', 'middle')
-      .text(this._node.name);
-
-    this._outputHit = this._g.append('svg:rect')
-      .attr('class', 'hit output')
-      .attr('x', 0)
-      .attr('y', this._node.h)
-      .attr('width', 12)
-      .attr('height', 5)
-      .on('mouseover', function(d) {
-        this._outputHit.attr('class', 'hit output hover');
-      }.bind(this))
-      .on('mouseout', function(d) {
-        this._outputHit.attr('class', 'hit output');
-      }.bind(this))
-      .call(graph.edgeCreateBehavior());
   },
   updatePosition: function() {
     this._g.attr('transform', function(d) {
@@ -289,6 +235,211 @@ var ViewEdge = new Class({
   }
 });
 
+var HitArea = new Class({
+  initialize: function(node, type, id) {
+    this.node = node;
+    this.type = type;
+    this.id = id;
+  },
+  isFull: function() {
+    return this.type === HitArea.INPUT &&
+           this.node.edgeIn(this.id) !== undefined;
+  }
+});
+HitArea.INPUT = 1;
+HitArea.OUTPUT = 2;
+
+// TODO: verify that Object.values returns values in key-sorted order
+// across all browsers
+var Node = new Class({
+  initialize: function(nodeGroup, name, pos, id) {
+    this.name = name;
+    this.type = Fist.blockType(name);
+    this.dims = FistUI.nodeDimensions(name, pos);
+    this.id = id;
+
+    this._edgesOut = {};
+    this._edgesIn = {};
+
+    this._dragging = false;
+
+    this._g = nodeGroup.append('svg:g')
+      .attr('class', 'block')
+      .attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')')
+      .on('dblclick', function() {
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+        var name = window.prompt('edit node name:', this.name);
+        if (!name || name === d.name) {
+          return;
+        }
+        this.setName(name);
+      }.bind(this))
+      .call(graph.nodeDragBehavior());
+
+    this._rect = this._g.append('svg:rect')
+      .attr('class', 'block ' + this.type)
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', this.dims.w)
+      .attr('height', this.dims.h);
+    this._text = this._g.append('svg:text')
+      .attr('class', 'block ' + this.type)
+      .attr('x', this.dims.w / 2)
+      .attr('y', this.dims.h / 2)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .text(this.name);
+
+    this._outputHit = this._g.append('svg:rect')
+      .attr('class', 'hit output')
+      .attr('x', 0)
+      .attr('y', this.dims.h)
+      .attr('width', 12)
+      .attr('height', 5)
+      .on('mouseover', function(d) {
+        this._outputHit.attr('class', 'hit output hover');
+      }.bind(this))
+      .on('mouseout', function(d) {
+        this._outputHit.attr('class', 'hit output');
+      }.bind(this));
+      // TODO: fix this behavior
+      //.call(graph.edgeCreateBehavior());
+  },
+  setName: function(name) {
+    this._name = name;
+    // TODO: make this update dims, position as well
+    return this;
+  },
+  setPos: function(pos) {
+    this.dims.x = pos.x;
+    this.dims.y = pos.y;
+    this._g.attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')')
+    return this;
+  },
+  addEdge: function(edge) {
+    if (edge.input.node === this) {
+      this._edgesIn[edges.input.id] = edge;
+    } else if (edge.output.node === this) {
+      this._edgesOut[edges.output.id] = edge;
+    }
+    return this;
+  },
+  deleteEdge: function(edge) {
+    if (edge.input.node === this) {
+      delete this._edgesIn[edges.input.id];
+    } else if (edge.output.node === this) {
+      delete this._edgesOut[edges.output.id];
+    }
+    return this;
+  },
+  cleanup: function() {
+    this._block.remove();
+  },
+  edgeIn: function(inputID) {
+    return this._edgesIn[inputID];
+  },
+  edgesOut: function(outputID) {
+    return this._edgesOut[outputID];
+  },
+  allEdgesIn: function() {
+    return Object.values(this._edgesIn);
+  },
+  allEdgesOut: function() {
+    return Object.values(this._edgesOut).flatten();
+  },
+  allEdges: function() {
+    return this.allEdgesIn().append(this.allEdgesOut());
+  }
+});
+// TODO: put this on FistUI, actually, since that's a global singleton now
+Node.textSize = function(name) {
+  // TODO: implement this
+};
+Node._depthSearch = function(fromNode, toNode, visited) {
+  visited[node._id] = true;
+  if (fromNode === toNode) {
+    return true;
+  }
+  var edges = fromNode.edgesOut();
+  for (var i = 0; i < edges.length; i++) {
+    var nextNode = edges[i].input.node;
+    if (visited[nextNode._id]) {
+      continue;
+    }
+    if (Node._depthSearch(nextNode, toNode, visited)) {
+      return true;
+    }
+  }
+  return false;
+};
+Node.existsPath = function(fromNode, toNode) {
+  var visited = {};
+  return Node._depthSearch(fromNode, toNode, visited);
+};
+
+var Edge = new Class({
+  initialize: function(output, input) {
+  },
+  update: function() {
+
+  }
+});
+
+var ViewGraph = new Class({
+  initialize: function(svg) {
+    this._svg = svg;
+    this._nextNodeID = 0;
+    this._nodes = {};
+
+    this._edgeGroup = this._svg.append('svg:g');
+    this._nodeGroup = this._svg.append('svg:g');
+  },
+  addNode: function(text, pos) {
+    var id = this._nextNodeID++;
+    this._nodeGroup.call(Node.create(
+    this._nodes[id] = new Node(text, pos, id);
+  },
+  addEdge: function(output, input) {
+    if (Node.existsPath(input.node, output.node)) {
+      console.log('skipping, will create cycle!');
+      return;
+    }
+    if (input.isBeingUsed()) {
+      console.log('skipping, input is already being used!');
+      return;
+    }
+  },
+  deleteNode: function(node) {
+    node.cleanup();
+    node.allEdges.each(function(edge) {
+      edge.cleanup();
+      node.deleteEdge(edge);
+    });
+    delete this._nodes[node.id];
+  },
+  deleteEdge: function(edge) {
+    edge.cleanup();
+    edge.input.node.deleteEdge(edge);
+    edge.output.node.deleteEdge(edge);
+  },
+  empty: function() {
+    Object.values(this._nodes).each(function(node) {
+      this.deleteNode(node);
+    }.bind(this));
+  },
+  toFistCode: function() {
+  },
+  fromFistCode: function(fistCode) {
+    // TODO: implement this
+  },
+  toJSON: function() {
+    // TODO: implement this
+  },
+  fromJSON: function(json) {
+    // TODO: implement this
+  }
+});
 
 var ViewGraph = new Class({
   initialize: function(svg, state) {
