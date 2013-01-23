@@ -725,9 +725,9 @@ var PlotView = {
 };
 
 var LibFistUI = {
-  import: function(fistUI) {
-    fistUI.importView('line', LineView);
-    fistUI.importView('histogram', HistogramView);
-    fistUI.importView('plot', PlotView);
+  import: function() {
+    FistUI.importView('line', LineView);
+    FistUI.importView('histogram', HistogramView);
+    FistUI.importView('plot', PlotView);
   }
 };

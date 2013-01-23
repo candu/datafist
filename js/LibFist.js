@@ -79,7 +79,7 @@ var OpsArith = {
         numberSum = 0;
     for (var i = 0; i < args.values.length; i++) {
       var arg = args.values[i],
-          argType = fist.evaluateType(args.__sexps.values[i]);
+          argType = Fist.evaluateType(args.__sexps.values[i]);
       if (argType === 'number') {
         numberSum += arg;
       } else {
@@ -108,7 +108,7 @@ var OpsArith = {
         numberProd = 1;
     for (var i = 0; i < args.values.length; i++) {
       var arg = args.values[i],
-          argType = fist.evaluateType(args.__sexps.values[i]);
+          argType = Fist.evaluateType(args.__sexps.values[i]);
       if (argType === 'number') {
         numberProd *= arg;
       } else {
@@ -745,9 +745,9 @@ var LibFist = {
     GensData,
     GensChannel
   ],
-  import: function(fist) {
+  import: function() {
     this.modules.each(function(module) {
-      fist.importModule(null, module);
+      Fist.importModule(null, module);
     });
   }
 };

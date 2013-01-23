@@ -1,17 +1,16 @@
 'use strict';
 
-var Docs = new Class({
+var Docs = {
   _colorScale: d3.scale.category10(),
-  initialize: function(fist, root) {
-    this._fist = fist;
-    this._fist.listen('symbolimport', function(name, value, moduleName) {
+  init: function() {
+    Fist.listen('symbolimport', function(name, value, moduleName) {
       this._onSymbolImport(name, value, moduleName);
     }.bind(this));
-    this._fist.listen('moduleimport', function(moduleName) {
+    Fist.listen('moduleimport', function(moduleName) {
       this._onModuleImport(moduleName);
     }.bind(this));
 
-    this._root = root;
+    this._root = $('docs');
     this._index = this._root.getElement('#index');
     this._content = this._root.getElement('#content');
   },
@@ -36,7 +35,7 @@ var Docs = new Class({
       switch (type[0]) {
         case 'name':
           var subType = type[1],
-              name = this._fist.evaluateAtom(type[2]);
+              name = Fist.evaluateAtom(type[2]);
           return {name: name, type: extract(subType)};
         case '->':
           var thenType = [];
@@ -148,12 +147,9 @@ var Docs = new Class({
     });
     this._content.adopt(header);
   }
-});
+};
 
-var fist = null,
-    docs = null;
 $(window).addEvent('domready', function() {
-  fist = new Fist();
-  docs = new Docs(fist, $('docs'));
-  LibFist.import(fist);
+  Docs.init();
+  LibFist.import();
 });

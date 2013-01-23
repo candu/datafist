@@ -359,71 +359,71 @@ QUnit.test('SExp', function() {
 
 QUnit.test('evaluateAtom', function() {
   // empty
-  throws(function() { fist.evaluateAtom(''); }, /empty atom not allowed/);
+  throws(function() { Fist.evaluateAtom(''); }, /empty atom not allowed/);
 
   // number
-  equal(fist.evaluateAtom('1'), 1);
-  equal(fist.evaluateAtom('-1'), -1);
-  equal(fist.evaluateAtom('3.25'), 3.25);
+  equal(Fist.evaluateAtom('1'), 1);
+  equal(Fist.evaluateAtom('-1'), -1);
+  equal(Fist.evaluateAtom('3.25'), 3.25);
 
   // boolean
-  equal(fist.evaluateAtom('true'), true);
-  equal(fist.evaluateAtom('false'), false);
+  equal(Fist.evaluateAtom('true'), true);
+  equal(Fist.evaluateAtom('false'), false);
 
   // string
-  equal(fist.evaluateAtom('"foo"'), 'foo');
-  equal(fist.evaluateAtom('"foo: \\"bar\\""'), 'foo: "bar"');
-  throws(function() { fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
+  equal(Fist.evaluateAtom('"foo"'), 'foo');
+  equal(Fist.evaluateAtom('"foo: \\"bar\\""'), 'foo: "bar"');
+  throws(function() { Fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
 
   // ops
-  equal(fist.evaluateAtom('+'), OpsArith.add);
+  equal(Fist.evaluateAtom('+'), OpsArith.add);
 });
 
 QUnit.test('Keywords', function() {
   // define
-  equal(fist.execute('(define x 21)'), null);
-  equal(fist.execute('(+ x x)'), 42);
+  equal(Fist.execute('(define x 21)'), null);
+  equal(Fist.execute('(+ x x)'), 42);
 });
 
 QUnit.test('OpsArith', function() {
   // number
-  equal(fist.execute('(+ 1 2)'), 3);
-  equal(fist.execute('(+ 1 2 3)'), 6);
-  equal(fist.execute('(- 73)'), -73);
-  equal(fist.execute('(- 45 3)'), 42);
-  equal(fist.execute('(* 2 3 5 7)'), 210);
-  equal(fist.execute('(/ 19 8)'), 2.375);
-  equal(fist.execute('(// 19 8)'), 2);
-  equal(fist.execute('(% 19 8)'), 3);
-  equal(fist.execute('(//* 19 8)'), 16);
-  equal(fist.execute('(//* 19 8)'), fist.execute('(* (// 19 8) 8)'));
+  equal(Fist.execute('(+ 1 2)'), 3);
+  equal(Fist.execute('(+ 1 2 3)'), 6);
+  equal(Fist.execute('(- 73)'), -73);
+  equal(Fist.execute('(- 45 3)'), 42);
+  equal(Fist.execute('(* 2 3 5 7)'), 210);
+  equal(Fist.execute('(/ 19 8)'), 2.375);
+  equal(Fist.execute('(// 19 8)'), 2);
+  equal(Fist.execute('(% 19 8)'), 3);
+  equal(Fist.execute('(//* 19 8)'), 16);
+  equal(Fist.execute('(//* 19 8)'), Fist.execute('(* (// 19 8) 8)'));
 
   // channel
-  var c = fist.execute(
+  var c = Fist.execute(
     '(+ (gen-regular (constant 1) 0 3 3) (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(- (gen-regular (constant 45) 0 3 3) (gen-regular (constant 3) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(* (gen-regular (constant 5) 0 3 3) (gen-regular (constant 7) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 35);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(/ (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(// (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
@@ -431,43 +431,43 @@ QUnit.test('OpsArith', function() {
   }
 
   // mixed
-  var c = fist.execute(
+  var c = Fist.execute(
     '(+ 35 (gen-regular (constant 1) 0 3 3) 4 (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(- 10 (gen-regular (constant 2) 0 3 3))'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 8);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(* (gen-regular (constant 2) 0 3 3) 73)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 146);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(/ (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(// (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(% (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
-  var c = fist.execute(
+  var c = Fist.execute(
     '(//* (gen-regular (constant 19) 0 3 3) 8)'
   );
   for (var i = 0; i < 3; i++) {
@@ -482,28 +482,28 @@ QUnit.test('OpsMath', function() {
   }
 
   // number
-  equal(fist.execute('(sqrt 289)'), 17);
-  equal(fist.execute('(pow 2 8)'), 256);
-  epsilonEqual(fist.execute('(exp 0)'), 1);
-  epsilonEqual(fist.execute('(exp 1)'), Math.E);
-  equal(fist.execute('(exp 3 4)'), 64);
-  epsilonEqual(fist.execute('(log 1)'), 0);
-  epsilonEqual(fist.execute('(log 2.7182818)'), 1);
-  equal(fist.execute('(log 64 4)'), 3);
-  equal(fist.execute('(floor 2)'), 2);
-  equal(fist.execute('(floor 2.3)'), 2);
-  equal(fist.execute('(floor 2.7)'), 2);
-  equal(fist.execute('(round 2)'), 2);
-  equal(fist.execute('(round 2.3)'), 2);
-  equal(fist.execute('(round 2.7)'), 3);
-  equal(fist.execute('(ceil 2)'), 2);
-  equal(fist.execute('(ceil 2.3)'), 3);
-  equal(fist.execute('(ceil 2.7)'), 3);
+  equal(Fist.execute('(sqrt 289)'), 17);
+  equal(Fist.execute('(pow 2 8)'), 256);
+  epsilonEqual(Fist.execute('(exp 0)'), 1);
+  epsilonEqual(Fist.execute('(exp 1)'), Math.E);
+  equal(Fist.execute('(exp 3 4)'), 64);
+  epsilonEqual(Fist.execute('(log 1)'), 0);
+  epsilonEqual(Fist.execute('(log 2.7182818)'), 1);
+  equal(Fist.execute('(log 64 4)'), 3);
+  equal(Fist.execute('(floor 2)'), 2);
+  equal(Fist.execute('(floor 2.3)'), 2);
+  equal(Fist.execute('(floor 2.7)'), 2);
+  equal(Fist.execute('(round 2)'), 2);
+  equal(Fist.execute('(round 2.3)'), 2);
+  equal(Fist.execute('(round 2.7)'), 3);
+  equal(Fist.execute('(ceil 2)'), 2);
+  equal(Fist.execute('(ceil 2.3)'), 3);
+  equal(Fist.execute('(ceil 2.7)'), 3);
 });
 
 QUnit.test('OpsTime', function() {
   // simultaneous iteration
-  var c = fist.execute(
+  var c = Fist.execute(
     '(time-shift (gen-regular (constant 42) 0 3 3) -7)'
   );
   var it1 = c.iter(),
@@ -529,7 +529,7 @@ QUnit.test('OpsSmooth', function() {
     {t: 1, x: 0},
     {t: 3, x: 5}
   ];
-  var c = OpsSmooth.rollingAverage.call(fist, {
+  var c = OpsSmooth.rollingAverage.call(Fist, {
     c: new DataChannel(data),
     halfLife: 1
   });
@@ -542,7 +542,7 @@ QUnit.test('OpsSmooth', function() {
     {t: 1, x: 4},
     {t: 3, x: 5}
   ];
-  var c = OpsSmooth.slidingWindow.call(fist, {
+  var c = OpsSmooth.slidingWindow.call(Fist, {
     c: new DataChannel(data),
     windowSize: 2
   });
@@ -557,7 +557,7 @@ QUnit.test('OpsFilterValue', function() {
       TWO_DEV_PROB = 0.954499736104;
 
   function checkInequality(filter, args, p) {
-    var c = fist.execute(
+    var c = Fist.execute(
       '(' + filter + ' (gen-regular (gaussian 3 1) 0 1000 1000) ' + args.join(' ') + ')'
     );
     var found = 0,
@@ -587,7 +587,7 @@ QUnit.test('OpsFilterValue', function() {
   checkInequality('value-more-than', [5], (1 - TWO_DEV_PROB) / 2);
   checkInequality('value-between', [1, 5], TWO_DEV_PROB);
 
-  var c = fist.execute(
+  var c = Fist.execute(
     '(value-is (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
   );
   for (var t = 0; t < 10; t++) {
@@ -598,7 +598,7 @@ QUnit.test('OpsFilterValue', function() {
     }
   }
 
-  var c = fist.execute(
+  var c = Fist.execute(
     '(value-is-not (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
   );
   for (var t = 0; t < 10; t++) {
@@ -612,7 +612,7 @@ QUnit.test('OpsFilterValue', function() {
 
 QUnit.test('OpsFilterTime', function() {
   // since
-  var c = fist.execute(
+  var c = Fist.execute(
     '(time-since (gen-regular (constant 1) 0 10 10) 3)'
   );
   for (var t = 0; t < 10; t++) {
@@ -624,7 +624,7 @@ QUnit.test('OpsFilterTime', function() {
   }
 
   // until
-  var c = fist.execute(
+  var c = Fist.execute(
     '(time-until (gen-regular (constant 1) 0 10 10) 7)'
   );
   for (var t = 0; t < 10; t++) {
@@ -636,7 +636,7 @@ QUnit.test('OpsFilterTime', function() {
   }
 
   // between
-  var c = fist.execute(
+  var c = Fist.execute(
     '(time-between (gen-regular (constant 1) 0 10 10) 3 7)'
   );
   for (var t = 0; t < 10; t++) {
@@ -651,7 +651,7 @@ QUnit.test('OpsFilterTime', function() {
 QUnit.test('GensData', function() {
   var FOUR_NINES_SIG = 3.89;
 
-  var constant = fist.execute('(constant 42)');
+  var constant = Fist.execute('(constant 42)');
   ok(constant instanceof Function);
   var N = 1000,
       foundMismatch = false;
@@ -663,7 +663,7 @@ QUnit.test('GensData', function() {
   }
   ok(!foundMismatch);
 
-  var uniform = fist.execute('(uniform 1 3)');
+  var uniform = Fist.execute('(uniform 1 3)');
   ok(uniform instanceof Function);
   var total = 0,
       N = 1000;
@@ -674,7 +674,7 @@ QUnit.test('GensData', function() {
   var limit = FOUR_NINES_SIG * Math.sqrt(1 / (3 * N));
   ok(error < limit);
 
-  var choice = fist.execute('(choice 0 0 0 1 1)');
+  var choice = Fist.execute('(choice 0 0 0 1 1)');
   ok(choice instanceof Function);
   var N = 1000,
       p = 0.6,
@@ -686,7 +686,7 @@ QUnit.test('GensData', function() {
   var limit = FOUR_NINES_SIG * Math.sqrt(N * p * (1 - p));
   ok(error < limit);
 
-  var gaussian = fist.execute('(gaussian 4 1)');
+  var gaussian = Fist.execute('(gaussian 4 1)');
   ok(gaussian instanceof Function);
   var total = 0,
       N = 1000;
@@ -702,12 +702,12 @@ QUnit.test('GensData', function() {
 QUnit.test('GensChannel', function() {
   var FOUR_NINES_SIG = 3.89;
 
-  var c = fist.execute('(gen-regular (constant 42) 0 60 10)');
+  var c = Fist.execute('(gen-regular (constant 42) 0 60 10)');
   for (var t = 0; t < 60; t += 6) {
     equal(c.at(t), 42);
   }
 
-  var c = fist.execute('(gen-uniform (constant 42) 0 60 10)'),
+  var c = Fist.execute('(gen-uniform (constant 42) 0 60 10)'),
       pointsFound = 0;
   for (var t = 0; t < 60; t++) {
     if (c.at(t) === 42) {
@@ -716,7 +716,7 @@ QUnit.test('GensChannel', function() {
   }
   equal(pointsFound, 10);
 
-  var c = fist.execute('(gen-poisson (constant 42) 0 10000 10)'),
+  var c = Fist.execute('(gen-poisson (constant 42) 0 10000 10)'),
       N = 10000,
       rate = 10,
       pointsFound = 0;
@@ -953,154 +953,154 @@ QUnit.test('ChannelExtractor', function() {
 
 QUnit.test('Fist', function() {
   // atoms
-  equal(fist.executeType('42'), 'number');
-  equal(fist.executeType('3.14'), 'number');
-  equal(fist.executeType('6.18e-1'), 'number');
-  equal(fist.executeType('"foo"'), 'string');
+  equal(Fist.executeType('42'), 'number');
+  equal(Fist.executeType('3.14'), 'number');
+  equal(Fist.executeType('6.18e-1'), 'number');
+  equal(Fist.executeType('"foo"'), 'string');
 
   // invalid atoms
-  equal(fist.executeType('blargh'), null);
+  equal(Fist.executeType('blargh'), null);
 
   // views
-  equal(fist.executeType(
+  equal(Fist.executeType(
     '(view-line (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
   ), 'view');
 
   // channels
-  equal(fist.executeType('(gen-regular (constant 1) 0 10 10)'), 'channel');
-  equal(fist.executeType(
+  equal(Fist.executeType('(gen-regular (constant 1) 0 10 10)'), 'channel');
+  equal(Fist.executeType(
     '(/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10))'
   ), 'channel');
 
   // filters
-  equal(fist.executeType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
+  equal(Fist.executeType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
 
   // _applyTypes
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn number string)'),
     ['number']
   ), 'string');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn number string)'),
     ['channel']
   ), null);
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number number) number)'),
     ['number']
   ), null);
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number number) number)'),
     ['number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number number) number)'),
     ['number', 'string']
   ), null);
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number (? number)) number)'),
     ['number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number (? number)) number)'),
     ['number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> number (? number)) number)'),
     ['number', 'string']
   ), null);
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (+ number) number)'),
     []
   ), null);
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (+ number) number)'),
     ['number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (+ number) number)'),
     ['number', 'number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (+ number) number)'),
     ['number', 'number', 'string']
   ), null);
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
     ['number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
     ['channel', 'number']
   ), 'channel');
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
     ['number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
     ['number', 'channel']
   ), 'channel');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
     ['channel', 'number']
   ), 'channel');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
     ['channel', 'channel']
   ), 'channel');
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
     ['number', 'number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
     ['number', 'number', 'channel']
   ), 'channel');
 
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
     []
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
     ['number']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
     ['string']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
     ['number', 'string']
   ), 'number');
-  equal(fist._applyTypes(
+  equal(Fist._applyTypes(
     SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
     ['string', 'number']
   ), null);
 
   // _bindArgs
-  var args = fist._bindArgs(
+  var args = Fist._bindArgs(
     SExp.parse('(name number "a")'),
     SExp.parse('(42)')
   );
   equal(args.__sexps.a, '42');
   equal(args.a, 42);
 
-  fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
-  var args = fist._bindArgs(
+  Fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
+  var args = Fist._bindArgs(
     SExp.parse('(-> (name channel "c1") (name (? channel) "c2") (name (? number) "n"))'),
     SExp.parse('(c1 42)')
   );
   equal(args.__sexps.c1, 'c1');
   equal(args.__sexps.c2, undefined);
   equal(args.__sexps.n, '42');
-  equal(args.c1, fist.execute('c1'));
+  equal(args.c1, Fist.execute('c1'));
   equal(args.c2, undefined);
   equal(args.n, 42);
 });

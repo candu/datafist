@@ -51,12 +51,9 @@ var DataChannel = new Class({
   }
 });
 
-var Fist = new Class({
-  initialize: function() {
-    // TODO: builtins
-    this._symbolTable = {};
-    this._dummyElem = new Element('div');
-  },
+var Fist = {
+  _symbolTable: {},
+  _dummyElem: new Element('div'),
   _symbolImported: function(name, value, moduleName) {
     this._dummyElem.fireEvent('symbolimport', [name, value, moduleName]);
   },
@@ -474,4 +471,4 @@ var Fist = new Class({
     }
     return null;
   }
-});
+};

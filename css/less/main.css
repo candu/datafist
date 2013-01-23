@@ -223,7 +223,7 @@ a.nav {
 }
 #svg_graph_wrapper line.edge {
   stroke: #aaa;
-  stroke-width: 4px;
+  stroke-width: 3px;
 }
 #svg_graph_wrapper line.edge.temp {
   stroke-opacity: 0.4;

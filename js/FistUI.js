@@ -8,7 +8,7 @@ var ViewGraphState = new Class({
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
-    this._fist = '';
+    this._fistCode = '';
   },
   // TODO: abstract away into Listenable
   _fire: function(type, args) {
@@ -102,19 +102,19 @@ var ViewGraphState = new Class({
     this._updateFist();
   },
   toFist: function() {
-    return this._fist;
+    return this._fistCode;
   },
   _updateFist: function() {
-    var fist = this._toFist().join(' ');
-    if (fist !== this._fist) {
-      this._fist = fist;
+    var fistCode = this._toFistCode().join(' ');
+    if (fistCode !== this._fistCode) {
+      this._fistCode = fistCode;
       this._fire('fistmodified');
     }
   },
   /**
    * Produce a representation of this ViewGraphState in the fist language.
    */
-  _toFist: function() {
+  _toFistCode: function() {
     var spatialSort = function(indices) {
       indices.sort(function(i, j) {
         var dx = this._nodes[i].x - this._nodes[j].x;
@@ -171,7 +171,7 @@ var ViewNode = new Class({
             name === d.name) {
           return;
         }
-        var type = this._fist.blockType(name),
+        var type = Fist.blockType(name),
             svgPosition = $d3(this._svg).getPosition(),
             padding = 2,
             blockDimensions = this._getBlockDimensions(d.x, d.y, name, padding);
@@ -291,7 +291,7 @@ var ViewEdge = new Class({
 
 
 var ViewGraph = new Class({
-  initialize: function(svg, state, fist) {
+  initialize: function(svg, state) {
     this._svg = svg;
     this._edgeGroup = svg.append('svg:g');
     this._tempEdgeGroup = svg.append('svg:g')
@@ -303,7 +303,6 @@ var ViewGraph = new Class({
     this._nodes = {};
     this._edgesOut = {};
     this._edgesIn = {};
-    this._fist = fist;
 
     // see http://www.w3.org/TR/SVG/painting.html#Markers for inspiration
     var defs = this._svg.append('defs');
@@ -434,7 +433,7 @@ var ViewGraph = new Class({
     return this._edgeDragBehavior;
   },
   addNode: function(name, x, y) {
-    var type = this._fist.blockType(name),
+    var type = Fist.blockType(name),
         padding = 2,
         blockDimensions = this._getBlockDimensions(x, y, name, padding);
     this._state.addNode(
@@ -546,7 +545,7 @@ var ViewGraph = new Class({
       for (var pos = 0; pos < levels[level].length; pos++) {
         var node = levels[level][pos];
         node.size = this._getTextSize(node.name);
-        node.type = this._fist.blockType(node.name);
+        node.type = Fist.blockType(node.name);
         node.index = this._state.addNode(
           node.name,
           node.type,
@@ -600,9 +599,8 @@ var Status = new Class({
 var ImportDialog = new Class({
   MAX_FILE_SIZE: 100 * 1024 * 1024,   // 100 MB
   INITIAL_CHUNK_READ: 4 * 1024,       // 4 KB
-  initialize: function(root, fist, status) {
+  initialize: function(root, status) {
     this._root = root;
-    this._fist = fist;
     this._status = status;
 
     this._file = null;
@@ -830,7 +828,7 @@ var ImportDialog = new Class({
           prefix = fileName.substring(0, fileName.lastIndexOf('.')),
           lowerSuffix = suffix.toLowerCase(),
           name = prefix + '-' + lowerSuffix;
-      this._fist.importData(name, channelData, fileName);
+      Fist.importData(name, channelData, fileName);
     }.bind(this));
   },
   _step4: function() {
@@ -929,7 +927,7 @@ var ImportDialog = new Class({
   }
 });
 
-var FistUI = new Class({
+var FistUI = {
   _runViewGraph: function(options) {
     options = options || {};
     var rebuild = options.rebuild || true;
@@ -944,7 +942,7 @@ var FistUI = new Class({
     }
     try {
       this._status.working('type-checking view graph...');
-      var fistType = this._fist.blockType(fistExpression);
+      var fistType = Fist.blockType(fistExpression);
       if (fistType === null) {
         // TODO: identify *what* is invalid about it
         this._status.notOK('view graph is invalid!');
@@ -955,24 +953,22 @@ var FistUI = new Class({
         return;
       }
       this._status.working('rendering view...');
-      this._fist.execute(fistExpression);
+      Fist.execute(fistExpression);
       this._status.OK('rendered view graph successfully.');
     } catch (e) {
       console.log(e);
       this._status.notOK(e);
     }
   },
-  initialize: function(fist, root) {
+  init: function() {
     this._viewTable = {};
     this._viewGraphState = new ViewGraphState();
     this._viewGraphState.listen('fistmodified', function() {
       this._runViewGraph();
     }.bind(this));
 
-    this._fist = fist;
-
     // set up root
-    this._root = root;
+    this._root = $('container');
     this._dropOverlay = this._root.getElement('#drop_overlay');
     this._root.addEventListener('dragenter', function(evt) {
       evt.stop();
@@ -1011,11 +1007,7 @@ var FistUI = new Class({
     this._status = new Status(this._root.getElement('#status_wrapper'));
 
     // set up import dialog
-    this._importDialog = new ImportDialog(
-      $('modal'),
-      this._fist,
-      this._status
-    );
+    this._importDialog = new ImportDialog($('modal'), this._status);
 
     // set up palette
     this._palette = this._root.getElement('#palette');
@@ -1086,25 +1078,21 @@ var FistUI = new Class({
     }.bind(this), false);
 
     this._repl = this._root.getElement('#repl');
-    this._viewGraph = new ViewGraph(
-      this._viewGraphSVG,
-      this._viewGraphState,
-      this._fist
-    );
+    this._viewGraph = new ViewGraph(this._viewGraphSVG, this._viewGraphState);
 
     // register event listeners for Fist events
-    fist.listen('symbolimport', function(name, value, moduleName) {
+    Fist.listen('symbolimport', function(name, value, moduleName) {
       this.onSymbolImport(name, moduleName);
     }.bind(this));
-    fist.listen('moduleimport', function(moduleName) {
+    Fist.listen('moduleimport', function(moduleName) {
       this.onModuleImport(moduleName);
     }.bind(this));
-    fist.listen('viewinvoked', function(name, args) {
+    Fist.listen('viewinvoked', function(name, args) {
       this.onViewInvoked(name, args);
     }.bind(this));
   },
   onSymbolImport: function(name, moduleName) {
-    var type = this._fist.blockType(name),
+    var type = Fist.blockType(name),
         sexp = SExp.parse(type);
     var block = Element('div.block.' + type, {
       text: name,
@@ -1115,7 +1103,7 @@ var FistUI = new Class({
       title: 'text',
       text: function(element) {
         if (type === 'function' || type === 'channel') {
-          var value = this._fist.evaluateAtom(element.get('text'));
+          var value = Fist.evaluateAtom(element.get('text'));
           if (value.describe === undefined) {
             return type;
           }
@@ -1206,4 +1194,4 @@ var FistUI = new Class({
         msg = 'datafist version ' + version + ': loaded in ' + loadTime + ' ms';
     this._status.OK(msg);
   }
-});
+};
