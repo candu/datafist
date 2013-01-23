@@ -423,8 +423,8 @@ var Edge = new Class({
 
     this._line = edgeGroup.append('svg:line')
       .attr('class', 'edge')
-      .attr('marker-end', 'url(#edge_end)');
-      //.call(graph.edgeDragBehavior());
+      .attr('marker-end', 'url(#edge_end)')
+      .call(Edge._dragBehavior(graph, this));
     this.update();
   },
   update: function() {
@@ -440,6 +440,29 @@ var Edge = new Class({
     this._line.remove();
   }
 });
+Edge._dragBehavior = function(graph, edge) {
+  var drag = function() {
+    var origin = graph.getOrigin(),
+        x = d3.event.sourceEvent.pageX - origin.x,
+        y = d3.event.sourceEvent.pageY - origin.y;
+    edge._line
+      .attr('class', 'edge temp')
+      .attr('x2', x)
+      .attr('y2', y);
+  };
+  return d3.behavior.drag()
+    .on('dragstart', drag)
+    .on('drag', drag)
+    .on('dragend', function() {
+      var target = d3.event.sourceEvent.target,
+          input = HitArea.fromElement(graph, target),
+          output = edge.output;
+      graph.deleteEdge(edge);
+      if (input !== undefined && input.type === HitArea.INPUT) {
+        graph.addEdge(output, input);
+      }
+    });
+};
 
 var ViewGraph = new Class({
   initialize: function(svg) {
@@ -548,41 +571,15 @@ var ViewGraph = new Class({
       w: w,
       h: h
     };
+  },
+  getOrigin: function() {
+    return $d3(this._svg).getPosition();
   }
 });
 
 /*
 var ViewGraph = new Class({
   initialize: function(svg, state) {
-    this._edgeDragBehavior = d3.behavior.drag()
-      .on('dragstart', function(d) {
-        var edge = this._edgesOut[d.from.index][d.to.index],
-            svgPos = $d3(this._svg).getPosition(),
-            x = d3.event.sourceEvent.pageX - svgPos.x,
-            y = d3.event.sourceEvent.pageY - svgPos.y;
-        edge._line
-          .attr('class', 'edge temp')
-          .attr('x2', x)
-          .attr('y2', y);
-      }.bind(this))
-      .on('dragend', function(d) {
-        var targetNode = this._parentNode(d3.event.sourceEvent.target);
-        this._state.deleteEdge(d.from.index, d.to.index);
-        if (targetNode !== null && d.from.index !== targetNode.index) {
-          this._state.addEdge(d.from.index, targetNode.index);
-        }
-      }.bind(this))
-      .on('drag', function(d) {
-        var edge = this._edgesOut[d.from.index][d.to.index],
-            svgPos = $d3(this._svg).getPosition(),
-            x = d3.event.sourceEvent.pageX - svgPos.x,
-            y = d3.event.sourceEvent.pageY - svgPos.y;
-        edge._line
-          .attr('class', 'edge temp')
-          .attr('x2', x)
-          .attr('y2', y);
-      }.bind(this));
-
     this._state.listen('nodeadded', function(node) {
       this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
       this._edgesOut[node.index] = {};
