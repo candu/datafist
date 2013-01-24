@@ -184,9 +184,16 @@ var Node = new Class({
         this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i, param.variadic));
       }.bind(this));
     }
-    this.outputs = [
-      new HitArea(graph, this._g, this, HitArea.OUTPUT, 0)
-    ];
+    this.outputs = [];
+    if (this.type === 'function') {
+      var value = Fist.evaluateAtom(this.name),
+          fnType = SExp.parse(value.type());
+      if (fnType[2] !== 'view') {
+        this.outputs.push(new HitArea(graph, this._g, this, HitArea.OUTPUT, 0));
+      }
+    } else {
+      this.outputs.push(new HitArea(graph, this._g, this, HitArea.OUTPUT, 0));
+    }
   },
   addVariadicInput: function(graph) {
     this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, this.inputs.length, true));
