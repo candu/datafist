@@ -172,15 +172,68 @@ var Node = new Class({
     // TODO: VariadicHitArea?
     this.inputs = [];
     if (this.type === 'function') {
-      var value = Fist.evaluateAtom(this.name),
-          fnType = value.type();
-      for (var i = 0; i < 4; i++) {
+      var params = this._getFunctionParams();
+      params.each(function(param, i) {
         this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i));
-      }
+      }.bind(this));
     }
     this.outputs = [
       new HitArea(graph, this._g, this, HitArea.OUTPUT, 0)
     ];
+  },
+  _getFunctionParams: function() {
+    var variadicity = function(type) {
+      if (SExp.isAtom(type)) {
+        switch (type) {
+          case 'channel?':
+          case 'time':
+          case 'timedelta':
+          case 'number':
+          case 'string':
+          case 'channel':
+          case 'view':
+            return false;
+          default:
+            throw new Error('unrecognized atomic type: ' + type);
+        }
+      }
+      switch (type[0]) {
+        case 'name':
+          var subType = type[1],
+              name = Fist.evaluateAtom(type[2]);
+          return {name: name, v: variadicity(subType)};
+        case '->':
+          var thenType = [];
+          for (var j = 1; j < type.length; j++) {
+            thenType.push(variadicity(type[j]));
+          }
+          return thenType;
+        case '|':
+          var isVariadic = false;
+          for (var j = 1; j < type.length; j++) {
+            if (variadicity(type[j])) {
+              isVariadic = true;
+              break;
+            }
+          }
+          return isVariadic;
+        case '?':
+          return variadicity(type[1]);
+        case '+':
+          return true;
+        case 'fn':
+          return false;
+        default:
+          throw new Error('unrecognized param type operator: ' + type[0]);
+      }
+    };
+    var value = Fist.evaluateAtom(this.name),
+        fnType = SExp.parse(value.type()),
+        params = variadicity(fnType[1]);
+    if (!(params instanceof Array)) {
+      params = [params];
+    }
+    return params;
   },
   setName: function(name) {
     this.name = name;
