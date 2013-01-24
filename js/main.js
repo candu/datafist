@@ -2,7 +2,7 @@
 
 var resizeTimer = null,
     loadStart = +(new Date()),
-    VERSION = '0.2';
+    VERSION = '0.3';
 $(window).addEvent('domready', function() {
   FistUI.init();
   FistUI.dynamicResize();

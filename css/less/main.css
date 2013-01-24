@@ -67,6 +67,13 @@ td {
   display: inline-block;
   padding-right: 7px;
 }
+#links {
+  position: relative;
+  top: -4px;
+  left: 1px;
+  display: inline-block;
+  width: 116px;
+}
 a.nav {
   text-decoration: none;
   background-color: #aaccee;
@@ -74,8 +81,6 @@ a.nav {
   border: 1px solid #99aaff;
   padding: 2px;
   font-size: 90%;
-  position: relative;
-  top: -3px;
 }
 #status {
   background-color: #bbb;
@@ -132,14 +137,14 @@ a.nav {
   height: 240px;
 }
 #toolbox {
-  width: 206px;
+  width: 250px;
   background-color: #bbb;
 }
 #palette {
   border: 1px solid #999999;
   margin: 2px 2px 4px 4px;
   background-color: #f7f7f7;
-  width: 198px;
+  width: 242px;
   height: 232px;
   overflow-y: auto;
 }
