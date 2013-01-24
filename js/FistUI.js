@@ -83,7 +83,6 @@ HitArea._edgeCreateBehavior = function(graph, output) {
     .on('dragstart', function() {
       d3.event.sourceEvent.stopPropagation();
       var outputPos = output.getEdgePos();
-      console.log(outputPos);
       graph._tempEdgeGroup
         .attr('transform', 'translate(' + outputPos.x + ', ' + outputPos.y + ')');
       graph._tempEdgeEnd.x = 0;
@@ -117,6 +116,10 @@ HitArea._edgeCreateBehavior = function(graph, output) {
 // across all browsers
 var Node = new Class({
   initialize: function(graph, nodeGroup, name, pos, id) {
+    // HACK: allow setName() access to graph.nodeDimensions() (which should
+    // probably be moved to Node somehow...)
+    this._graph = graph;
+
     this.name = name;
     this.type = Fist.blockType(name);
     this.dims = graph.nodeDimensions(name, pos);
@@ -134,7 +137,7 @@ var Node = new Class({
         d3.event.preventDefault();
         d3.event.stopPropagation();
         var name = window.prompt('edit node name:', this.name);
-        if (!name || name === d.name) {
+        if (!name || name === this.name) {
           return;
         }
         this.setName(name);
@@ -171,7 +174,7 @@ var Node = new Class({
   setName: function(name) {
     this.name = name;
     this.type = Fist.blockType(name);
-    this.dims = graph.nodeDimensions(name, this.dims);
+    this.dims = this._graph.nodeDimensions(name, this.dims);
     this._rect = this._g.append('svg:rect')
       .attr('class', 'block ' + this.type)
       .attr('width', this.dims.w)
@@ -183,6 +186,7 @@ var Node = new Class({
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
       .text(this.name);
+    FistUI.runViewGraph();
     return this;
   },
   move: function(dx, dy) {
