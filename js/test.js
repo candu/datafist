@@ -1106,33 +1106,3 @@ QUnit.test('Fist', function() {
   equal(args.c2, undefined);
   equal(args.n, 42);
 });
-
-QUnit.test('ViewGraphState', function() {
-  var g = new ViewGraphState();
-
-  // empty
-  var cmds = g.toFist();
-  equal(cmds.length, 0);
-
-  // partial
-  g.addNode('c1', null, 0, 0);
-  g.addNode('c2', null, 40, 0);
-  g.addNode('+', null, 30, 10);
-  g.addEdge(0, 2);
-  g.addEdge(1, 2);
-  var cmds = g.toFist();
-  equal(cmds, '(+ c1 c2)');
-
-  // full
-  g.addNode('v1', null, 10, 20);
-  g.addNode('c3', null, 60, 0);
-  g.addNode('v2', null, 50, 20);
-  g.addNode('c4', null, 20, 0);
-  g.addEdge(0, 5);
-  g.addEdge(1, 5);
-  g.addEdge(2, 3);
-  g.addEdge(6, 3);
-
-  var cmds = g.toFist();
-  equal(cmds, '(v1 c4 (+ c1 c2)) (v2 c1 c2) c3');
-});

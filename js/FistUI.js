@@ -1,152 +1,5 @@
 'use strict';
 
-var ViewGraphState = new Class({
-  initialize: function() {
-    this._dummyElem = new Element('div');
-
-    this._nextNodeID = 0;
-    this._nodes = {};
-    this._edgesOut = {};
-    this._edgesIn = {};
-    this._fistCode = '';
-  },
-  // TODO: abstract away into Listenable
-  _fire: function(type, args) {
-    this._dummyElem.fireEvent(type, args);
-  },
-  listen: function(type, callback) {
-    this._dummyElem.addEvent(type, callback);
-  },
-  addNode: function(name, type, x, y, w, h) {
-    var i = this._nextNodeID++;
-    this._nodes[i] = {
-      name: name,
-      type: type,
-      x: x,
-      y: y,
-      w: w,
-      h: h,
-      index: i
-    };
-    this._edgesOut[i] = {};
-    this._edgesIn[i] = {};
-    this._fire('nodeadded', [this._nodes[i]]);
-    this._updateFist();
-    return i;
-  },
-  deleteNode: function(i) {
-    var outEdges = Object.keys(this._edgesOut[i]);
-    var inEdges = Object.keys(this._edgesIn[i]);
-    outEdges.each(function(j) {
-      delete this._edgesIn[j][i];
-    }.bind(this));
-    delete this._edgesIn[i];
-    inEdges.each(function(j) {
-      delete this._edgesOut[j][i];
-    }.bind(this));
-    delete this._edgesOut[i];
-    delete this._nodes[i];
-    this._fire('nodedeleted', [i]);
-    this._updateFist();
-    // this helps clean up gestural filters
-    if (outEdges.length === 1 && inEdges.length === 1) {
-      this.addEdge(inEdges[0], outEdges[0]);
-    }
-  },
-  empty: function() {
-    var depthDeleteNodes = function(i) {
-      var S = Object.keys(this._edgesIn[i]);
-      this.deleteNode(i);
-      S.each(depthDeleteNodes);
-    }.bind(this);
-    for (var i in this._edgesOut) {
-      if (Object.isEmpty(this._edgesOut[i])) {
-        depthDeleteNodes(i);
-      }
-    }
-  },
-  addEdge: function(i, j) {
-    console.log('adding (' + i + ', ' + j + ')...');
-    // enforce DAG property: i -> j will complete a cycle iff there exists a
-    // path j -> ... -> i
-    var S = {};
-    var depthSearch = function(k) {
-      S[k] = true;
-      if (k === i) {
-        return true;
-      }
-      return Object.keys(this._edgesOut[k]).map(function(n) {
-        return parseInt(n);
-      }).filter(function(n) {
-        return S[n] === undefined;
-      }).some(depthSearch);
-    }.bind(this);
-    if (depthSearch(j)) {
-      console.log('skipping, will create cycle!');
-      return;
-    }
-    if (this._edgesOut[i][j] !== undefined) {
-      console.log('skipping, already there!');
-      return;
-    }
-    this._edgesOut[i][j] = true;
-    this._edgesIn[j][i] = true;
-    this._fire('edgeadded', [this._nodes[i], this._nodes[j]]);
-    this._updateFist();
-  },
-  deleteEdge: function(i, j) {
-    // remove i -> j
-    delete this._edgesOut[i][j];
-    delete this._edgesIn[j][i];
-    this._fire('edgedeleted', [i, j]);
-    this._updateFist();
-  },
-  toFist: function() {
-    return this._fistCode;
-  },
-  _updateFist: function() {
-    var fistCode = this._toFistCode().join(' ');
-    if (fistCode !== this._fistCode) {
-      this._fistCode = fistCode;
-      this._fire('fistmodified');
-    }
-  },
-  /**
-   * Produce a representation of this ViewGraphState in the fist language.
-   */
-  _toFistCode: function() {
-    var spatialSort = function(indices) {
-      indices.sort(function(i, j) {
-        var dx = this._nodes[i].x - this._nodes[j].x;
-        if (dx !== 0) {
-          return dx;
-        }
-        return this._nodes[i].y - this._nodes[j].y;
-      }.bind(this));
-    }.bind(this);
-    var depthWalk = function(i) {
-      var S = Object.keys(this._edgesIn[i]);
-      if (S.length === 0) {
-        return this._nodes[i].name;
-      }
-      spatialSort(S);
-      var sexp = S.map(depthWalk);
-      sexp.unshift(this._nodes[i].name);
-      return '(' + sexp.join(' ') + ')';
-    }.bind(this);
-    var T = [];
-    for (var i in this._edgesOut) {
-      if (Object.isEmpty(this._edgesOut[i])) {
-        T.push(i);
-      }
-    }
-    spatialSort(T);
-    return T.map(function(i) {
-      return depthWalk(i);
-    });
-  }
-});
-
 var HitArea = new Class({
   initialize: function(graph, blockGroup, node, type, id) {
     this.node = node;
@@ -503,11 +356,18 @@ var ViewGraph = new Class({
       .append('svg:path')
         .attr('d', 'M 0 0 L 10 5 L 0 10 z');
   },
-  addNode: function(name, pos) {
+  // NOTE: the _*Impl() versions exist to allow, e.g., fromSExp() to issue
+  // a bunch of graph operations without constantly calling
+  // FistUI.runViewGraph() :)
+  _addNodeImpl: function(name, pos) {
     var id = this._nextNodeID++;
     this._nodes[id] = new Node(this, this._nodeGroup, name, pos, id);
   },
-  addEdge: function(output, input) {
+  addNode: function(name, pos) {
+    this._addNodeImpl(name, pos);
+    FistUI.runViewGraph();
+  },
+  _addEdgeImpl: function(output, input) {
     if (Node.existsPath(input.node, output.node)) {
       console.log('skipping, will create cycle!');
       return;
@@ -520,27 +380,59 @@ var ViewGraph = new Class({
     output.node.addEdge(edge);
     input.node.addEdge(edge);
   },
-  deleteNode: function(node) {
+  addEdge: function(output, input) {
+    this._addEdgeImpl(output, input);
+    FistUI.runViewGraph();
+  },
+  _deleteNodeImpl: function(node) {
     node.cleanup();
     node.allEdges().each(function(edge) {
       edge.cleanup();
       node.deleteEdge(edge);
     });
     delete this._nodes[node.id];
+    // TODO: connect in/out neighbors to help with filter cleanup?
   },
-  deleteEdge: function(edge) {
+  deleteNode: function(node) {
+    this._deleteNodeImpl(node);
+    FistUI.runViewGraph();
+  },
+  _deleteEdgeImpl: function(edge) {
     edge.cleanup();
     edge.input.node.deleteEdge(edge);
     edge.output.node.deleteEdge(edge);
   },
-  empty: function() {
+  deleteEdge: function(edge) {
+    this._deleteEdgeImpl(edge);
+    FistUI.runViewGraph();
+  },
+  _emptyImpl: function() {
     Object.values(this._nodes).each(function(node) {
-      this.deleteNode(node);
+      this._deleteNodeImpl(node);
     }.bind(this));
   },
-  toFistCode: function() {
+  empty: function() {
+    FistUI.runViewGraph();
   },
-  fromFistCode: function(fistCode) {
+  _depthSExp: function(node) {
+    var S = node.allEdgesIn().map(function(edge) {
+      return edge.output.node;
+    });
+    if (S.length === 0) {
+      return node.name;
+    }
+    return [node.name].append(S.map(this._depthSExp.bind(this)));
+  },
+  toSExps: function() {
+    var T = Object.values(this._nodes).filter(function(node) {
+      return node.allEdgesOut().length === 0;
+    });
+    return T.map(this._depthSExp.bind(this));
+  },
+  toFistCode: function() {
+    return this.toSExps().map(SExp.unparse.bind(SExp)).join(' ');
+  },
+  fromSExp: function(fistCode) {
     // TODO: implement this
   },
   toJSON: function() {
@@ -579,86 +471,6 @@ var ViewGraph = new Class({
 
 /*
 var ViewGraph = new Class({
-  initialize: function(svg, state) {
-    this._state.listen('nodeadded', function(node) {
-      this._nodes[node.index] = new ViewNode(this, this._nodeGroup, node);
-      this._edgesOut[node.index] = {};
-      this._edgesIn[node.index] = {};
-    }.bind(this));
-    this._state.listen('nodedeleted', function(i) {
-      this._deleteNode(i);
-    }.bind(this));
-    this._state.listen('edgeadded', function(node1, node2) {
-      var edge = new ViewEdge(this, this._edgeGroup, node1, node2);
-      this._edgesOut[node1.index][node2.index] = edge;
-      this._edgesIn[node2.index][node1.index] = edge;
-    }.bind(this));
-    this._state.listen('edgedeleted', function(i, j) {
-      this._deleteEdge(i, j);
-    }.bind(this));
-
-    this._tempText = this._tempTextGroup.append('svg:text')
-      .attr('class', 'block');
-  },
-  edgeDragBehavior: function() {
-    return this._edgeDragBehavior;
-  },
-  addNode: function(name, x, y) {
-    var type = Fist.blockType(name),
-        padding = 2,
-        blockDimensions = this._getBlockDimensions(x, y, name, padding);
-    this._state.addNode(
-      name,
-      type,
-      blockDimensions.x,
-      blockDimensions.y,
-      blockDimensions.w,
-      blockDimensions.h
-    );
-  },
-  _parentNode: function(elem) {
-    while (elem !== null) {
-      if (elem.match('g.block')) {
-        return elem.__data__;
-      }
-      elem = elem.getParent();
-    }
-    return null;
-  },
-  _updateNodeEdges: function(d) {
-    for (var i in this._edgesOut[d.index]) {
-      this._edgesOut[d.index][i].updatePosition();
-    }
-    for (var i in this._edgesIn[d.index]) {
-      this._edgesIn[d.index][i].updatePosition();
-    }
-  },
-  _onNodeTextChanged: function(d) {
-    this._nodes[d.index].updateText();
-    this._updateNodeEdges(d);
-    this._state._updateFist();
-  },
-  _deleteNode: function(i) {
-    var outEdges = Object.keys(this._edgesOut[i]);
-    var inEdges = Object.keys(this._edgesIn[i]);
-    outEdges.each(function(j) {
-      this._edgesIn[j][i].cleanup();
-      delete this._edgesIn[j][i];
-    }.bind(this));
-    delete this._edgesIn[i];
-    inEdges.each(function(j) {
-      this._edgesOut[j][i].cleanup();
-      delete this._edgesOut[j][i];
-    }.bind(this));
-    delete this._edgesOut[i];
-    this._nodes[i].cleanup();
-    delete this._nodes[i];
-  },
-  _deleteEdge: function(i, j) {
-    this._edgesOut[i][j].cleanup();
-    delete this._edgesOut[i][j];
-    delete this._edgesIn[j][i];
-  },
   _replaceSExp: function(sexp) {
     this._state.empty();
 
@@ -1070,21 +882,22 @@ var ImportDialog = new Class({
 });
 
 var FistUI = {
-  _runViewGraph: function(options) {
+  _viewTable: {},
+  _fistCode: '',
+  runViewGraph: function(options) {
     options = options || {};
     var rebuild = options.rebuild || true;
     if (rebuild) {
-      this._repl.set('text', this._viewGraph.toFistCode());
+      this._fistCode = this._viewGraph.toFistCode();
     }
-    var fistExpression = this._repl.get('text');
-    console.log(fistExpression);
-    if (fistExpression === '') {
+    console.log(this._fistCode);
+    if (this._fistCode === '') {
       this._status.OK('view graph is empty.');
       return;
     }
     try {
       this._status.working('type-checking view graph...');
-      var fistType = Fist.blockType(fistExpression);
+      var fistType = Fist.blockType(this._fistCode);
       if (fistType === null) {
         // TODO: identify *what* is invalid about it
         this._status.notOK('view graph is invalid!');
@@ -1095,7 +908,7 @@ var FistUI = {
         return;
       }
       this._status.working('rendering view...');
-      Fist.execute(fistExpression);
+      Fist.execute(this._fistCode);
       this._status.OK('rendered view graph successfully.');
     } catch (e) {
       console.log(e);
@@ -1103,8 +916,6 @@ var FistUI = {
     }
   },
   init: function() {
-    this._viewTable = {};
-
     // set up root
     this._root = $('container');
     this._dropOverlay = this._root.getElement('#drop_overlay');
@@ -1322,7 +1133,7 @@ var FistUI = {
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2)
     try {
-      this._runViewGraph({rebuild: false});
+      this.runViewGraph({rebuild: false});
     } catch (e) {
       console.log(e);
     }
