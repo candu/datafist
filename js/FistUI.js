@@ -170,12 +170,14 @@ var Node = new Class({
     // TODO: infer number of input hit areas from full type associated with
     // node name
     // TODO: VariadicHitArea?
-    this.inputs = [
-      new HitArea(graph, this._g, this, HitArea.INPUT, 0),
-      new HitArea(graph, this._g, this, HitArea.INPUT, 1),
-      new HitArea(graph, this._g, this, HitArea.INPUT, 2),
-      new HitArea(graph, this._g, this, HitArea.INPUT, 3)
-    ];
+    this.inputs = [];
+    if (this.type === 'function') {
+      var value = Fist.evaluateAtom(this.name),
+          fnType = value.type();
+      for (var i = 0; i < 4; i++) {
+        this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i));
+      }
+    }
     this.outputs = [
       new HitArea(graph, this._g, this, HitArea.OUTPUT, 0)
     ];
