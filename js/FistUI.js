@@ -438,8 +438,41 @@ var ViewGraph = new Class({
   toFistCode: function() {
     return this.toSExps().map(SExp.unparse.bind(SExp)).join(' ');
   },
-  fromSExp: function(fistCode) {
-    // TODO: implement this
+  _buildGrid: function(sexp, level, parent, input, grid) {
+    if (SExp.isAtom(sexp)) {
+      grid.push({name: sexp, level: level, parent: parent, input: input});
+      return;
+    }
+    this._buildGrid(sexp[0], level, parent, input, grid);
+    var last = grid.length - 1;
+    for (var i = 1; i < sexp.length; i++) {
+      this._buildGrid(sexp[i], level + 1, last, i - 1, grid);
+    }
+  },
+  fromSExp: function(sexp) {
+    var grid = [];
+    this._buildGrid(sexp, 0, null, null, grid);
+    var gridPadding = 20,
+        depth = d3.max(grid, function(item) { return item.level; }),
+        xs = {};
+    this._emptyImpl();
+    grid.each(function(item) {
+      item.id = this._nextNodeID;
+      var x = xs[item.level] || gridPadding,
+          y = (depth - item.level) * 40 + gridPadding + 0.5;
+      this._addNodeImpl(item.name, {x: x, y: y});
+      var node = this._nodes[item.id];
+      node.move(Math.floor(node.dims.w / 2), Math.floor(node.dims.h / 2));
+      xs[item.level] = x + (node.dims.w + gridPadding);
+      if (item.parent !== null && item.input !== null) {
+        var output = node.outputs[0],
+            parentItem = grid[item.parent],
+            parentNode = this._nodes[parentItem.id],
+            input = parentNode.inputs[item.input];
+        this._addEdgeImpl(output, input);
+      }
+    }.bind(this));
+    FistUI.runViewGraph();
   },
   toJSON: function() {
     // TODO: implement this
@@ -474,55 +507,6 @@ var ViewGraph = new Class({
     return $d3(this._svg).getPosition();
   }
 });
-
-/*
-var ViewGraph = new Class({
-  _replaceSExp: function(sexp) {
-    this._state.empty();
-
-    var levels = [];
-    var buildGrid = function(exp, level, p) {
-      if (level === levels.length) {
-        levels.push([]);
-      }
-      if (SExp.isAtom(exp)) {
-        levels[level].push({name: exp, p: p});
-      } else {
-        levels[level].push({name: SExp.unparse(exp[0]), p: p});
-        for (var i = 1; i < exp.length; i++) {
-          buildGrid(exp[i], level + 1, levels[level].length - 1);
-        }
-      }
-    };
-    buildGrid(sexp, 0, null);
-
-    var gridPadding = 10,
-        padding = 2,
-        numLevels = levels.length;
-    for (var level = 0; level < numLevels; level++) {
-      var x = gridPadding;
-      for (var pos = 0; pos < levels[level].length; pos++) {
-        var node = levels[level][pos];
-        node.size = this._getTextSize(node.name);
-        node.type = Fist.blockType(node.name);
-        node.index = this._state.addNode(
-          node.name,
-          node.type,
-          x,
-          (numLevels - level - 1) * 40 + 10 + 0.5,
-          node.size.x + 2 * padding,
-          node.size.y + 2 * padding
-        );
-        x += node.size.x + 2 * padding + gridPadding;
-        if (node.p !== null) {
-          var parentNode = levels[level - 1][node.p];
-          this._state.addEdge(node.index, parentNode.index);
-        }
-      }
-    }
-  }
-});
-*/
 
 var Status = new Class({
   initialize: function(statusWrapper) {

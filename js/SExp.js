@@ -88,4 +88,10 @@ var SExp = {
   equal: function(sexp1, sexp2) {
     return this.unparse(sexp1) === this.unparse(sexp2);
   },
+  depth: function(sexp) {
+    if (this.isAtom(sexp)) {
+      return 0;
+    }
+    return 1 + d3.max(sexp.map(this.depth.bind(this)));
+  }
 };

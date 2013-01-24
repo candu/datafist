@@ -355,6 +355,16 @@ QUnit.test('SExp', function() {
   jsonEqual(SExp.parseMany('()()()'), [[], [], []]);
   jsonEqual(SExp.parseMany('()(a)()'), [[], ['a'], []]);
   jsonEqual(SExp.parseMany('() ( a ) ()'), [[], ['a'], []]);
+
+  // equal
+  ok(SExp.equal(SExp.parse('(+ 2 2)'), SExp.parse('(+ 2 2)')));
+  ok(!SExp.equal(SExp.parse('(+ 2 2)'), SExp.parse('(* 2 2)')));
+
+  // depth
+  equal(SExp.depth(SExp.parse('42')), 0);
+  equal(SExp.depth(SExp.parse('(+ 1 2)')), 1);
+  equal(SExp.depth(SExp.parse('(view-line (+ c1 c2))')), 2);
+  equal(SExp.depth(SExp.parse('(view-line (gen-regular (gaussian 0 1) 0 100 100))')), 3);
 });
 
 QUnit.test('evaluateAtom', function() {
