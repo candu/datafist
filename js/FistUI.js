@@ -1,5 +1,14 @@
 'use strict';
 
+var SVGUtils = {
+  translate: function(pos) {
+    return 'translate(' + pos.x + ', ' + pos.y + ')';
+  },
+  translateToHide: function() {
+    return 'translate(-1000, -1000)';
+  }
+};
+
 var HitArea = new Class({
   initialize: function(graph, blockGroup, node, type, id) {
     this.node = node;
@@ -84,7 +93,7 @@ HitArea._edgeCreateBehavior = function(graph, output) {
       d3.event.sourceEvent.stopPropagation();
       var outputPos = output.getEdgePos();
       graph._tempEdgeGroup
-        .attr('transform', 'translate(' + outputPos.x + ', ' + outputPos.y + ')');
+        .attr('transform', SVGUtils.translate(outputPos));
       graph._tempEdgeEnd.x = 0;
       graph._tempEdgeEnd.y = 0;
       graph._tempEdge
@@ -94,7 +103,7 @@ HitArea._edgeCreateBehavior = function(graph, output) {
     .on('dragend', function(d) {
       d3.event.sourceEvent.stopPropagation();
       graph._tempEdgeGroup
-        .attr('transform', 'translate(-1000, -1000)');
+        .attr('transform', SVGUtils.translateToHide());
       var target = d3.event.sourceEvent.target,
           input = HitArea.fromElement(graph, target);
       if (input === undefined || input.type !== HitArea.INPUT) {
@@ -132,7 +141,7 @@ var Node = new Class({
 
     this._g = nodeGroup.append('svg:g')
       .attr('class', 'block')
-      .attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')')
+      .attr('transform', SVGUtils.translate(this.dims))
       .on('dblclick', function() {
         d3.event.preventDefault();
         d3.event.stopPropagation();
@@ -175,11 +184,11 @@ var Node = new Class({
     this.name = name;
     this.type = Fist.blockType(name);
     this.dims = this._graph.nodeDimensions(name, this.dims);
-    this._rect = this._g.append('svg:rect')
+    this._rect
       .attr('class', 'block ' + this.type)
       .attr('width', this.dims.w)
       .attr('height', this.dims.h);
-    this._text = this._g.append('svg:text')
+    this._text
       .attr('class', 'block ' + this.type)
       .attr('x', this.dims.w / 2)
       .attr('y', this.dims.h / 2)
@@ -192,7 +201,8 @@ var Node = new Class({
   move: function(dx, dy) {
     this.dims.x += dx;
     this.dims.y += dy;
-    this._g.attr('transform', 'translate(' + this.dims.x + ', ' + this.dims.y + ')');
+    this._g
+      .attr('transform', SVGUtils.translate(this.dims));
     this.allEdges().each(function(edge) {
       edge.update();
     });
@@ -333,7 +343,7 @@ var ViewGraph = new Class({
     this._edgeGroup = this._svg.append('svg:g');
 
     this._tempEdgeGroup = svg.append('svg:g')
-      .attr('transform', 'translate(-1000, -1000)');
+      .attr('transform', SVGUtils.translateToHide());
     this._tempEdgeEnd = {};
     this._tempEdge = this._tempEdgeGroup.append('svg:line')
       .attr('class', 'edge temp')
@@ -342,7 +352,7 @@ var ViewGraph = new Class({
       .attr('y1', 0);
 
     this._tempTextGroup = svg.append('svg:g')
-      .attr('transform', 'translate(-1000, -1000)');
+      .attr('transform', SVGUtils.translateToHide());
     this._tempText = this._tempTextGroup.append('svg:text')
       .attr('class', 'block');
 
