@@ -10,10 +10,11 @@ var SVGUtils = {
 };
 
 var HitArea = new Class({
-  initialize: function(graph, blockGroup, node, type, id) {
+  initialize: function(graph, blockGroup, node, type, id, variadic) {
     this.node = node;
     this.type = type;
     this.id = id;
+    this.variadic = variadic || false;
 
     this.pos = {
       x: id * (HitArea.WIDTH + HitArea.PADDING)
@@ -55,6 +56,9 @@ var HitArea = new Class({
   isFull: function() {
     return this.type === HitArea.INPUT &&
            this.node.edgeIn(this.id) !== undefined;
+  },
+  cleanup: function() {
+    this._hit.remove();
   }
 });
 HitArea.INPUT = 'I';
@@ -111,6 +115,9 @@ HitArea._edgeCreateBehavior = function(graph, output) {
         return;
       }
       graph.addEdge(output, input);
+      if (input.variadic && input.id === input.node.inputs.length - 1) {
+        input.node.addVariadicInput(graph);
+      }
     })
     .on('drag', function(d) {
       graph._tempEdgeEnd.x += d3.event.dx;
@@ -174,12 +181,15 @@ var Node = new Class({
     if (this.type === 'function') {
       var params = this._getFunctionParams();
       params.each(function(param, i) {
-        this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i));
+        this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i, param.variadic));
       }.bind(this));
     }
     this.outputs = [
       new HitArea(graph, this._g, this, HitArea.OUTPUT, 0)
     ];
+  },
+  addVariadicInput: function(graph) {
+    this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, this.inputs.length, true));
   },
   _getFunctionParams: function() {
     var variadicity = function(type) {
@@ -201,7 +211,7 @@ var Node = new Class({
         case 'name':
           var subType = type[1],
               name = Fist.evaluateAtom(type[2]);
-          return {name: name, v: variadicity(subType)};
+          return {name: name, variadic: variadicity(subType)};
         case '->':
           var thenType = [];
           for (var j = 1; j < type.length; j++) {
@@ -277,6 +287,22 @@ var Node = new Class({
   deleteEdge: function(edge) {
     if (edge.input.node === this) {
       delete this._edgesIn[edge.input.id];
+      if (edge.input.variadic) {
+        var n = this.inputs.length;
+        for (var i = edge.input.id + 1; i < n - 1; i++) {
+          var nextEdge = this._edgesIn[i];
+          if (nextEdge !== undefined) {
+            delete this._edgesIn[i];
+            this._edgesIn[i - 1] = nextEdge;
+            nextEdge.input = this.inputs[i - 1];
+            nextEdge.update();
+          }
+        }
+        if (n > 1 && this.inputs[n - 2].variadic) {
+          var input = this.inputs.pop();
+          input.cleanup();
+        }
+      }
     } else if (edge.output.node === this) {
       this._edgesOut[edge.output.id].erase(edge);
     }
