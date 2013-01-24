@@ -501,7 +501,7 @@ var HistogramView = {
 };
 
 var PlotView = {
-  _drawRegressionLine: function(data, g) {
+  _drawRegressionLine: function(data, g, scaleX, scaleY, xbound) {
     if (data.length <= 5) {
       return;
     }
@@ -646,7 +646,7 @@ var PlotView = {
       .text(_caption(args.__sexps.y));
 
     // regression line
-    this._drawRegressionLine(data, g);
+    this._drawRegressionLine(data, g, scaleX, scaleY, xbound);
 
     // region-filtering hit area
     // TODO: merge this with time-filtering code from LineView
