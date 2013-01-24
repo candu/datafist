@@ -202,7 +202,10 @@ var Node = new Class({
     if (edge.input.node === this) {
       this._edgesIn[edge.input.id] = edge;
     } else if (edge.output.node === this) {
-      this._edgesOut[edge.output.id] = edge;
+      if (this._edgesOut[edge.output.id] === undefined) {
+        this._edgesOut[edge.output.id] = [];
+      }
+      this._edgesOut[edge.output.id].push(edge);
     }
     return this;
   },
@@ -210,7 +213,7 @@ var Node = new Class({
     if (edge.input.node === this) {
       delete this._edgesIn[edge.input.id];
     } else if (edge.output.node === this) {
-      delete this._edgesOut[edge.output.id];
+      this._edgesOut[edge.output.id].erase(edge);
     }
     return this;
   },
@@ -389,11 +392,10 @@ var ViewGraph = new Class({
     FistUI.runViewGraph();
   },
   _deleteNodeImpl: function(node) {
-    node.cleanup();
     node.allEdges().each(function(edge) {
-      edge.cleanup();
-      node.deleteEdge(edge);
-    });
+      this._deleteEdgeImpl(edge);
+    }.bind(this));
+    node.cleanup();
     delete this._nodes[node.id];
     // TODO: connect in/out neighbors to help with filter cleanup?
   },
@@ -975,7 +977,7 @@ var FistUI = {
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
     $d3(this._viewExecuteSVG).addEvent('sexpreplaced', function(sexp) {
-      this._viewGraph.fromFistCode(sexp);
+      this._viewGraph.fromSExp(sexp);
     }.bind(this));
 
     // set up interpreter
