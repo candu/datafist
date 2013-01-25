@@ -789,8 +789,11 @@ var FistUI = {
     console.log('importing symbol ' + name + ' in module ' + moduleName);
     var type = Fist.blockType(name),
         sexp = SExp.parse(type);
-    var block = Element('div.block.' + type, {
+    // ensure uniques...
+    this._palette.getElements('div.block[name=' + name + ']').destroy();
+    var block = new Element('div.block.' + type, {
       text: name,
+      name: name,
       draggable: true,
     });
     block.tips = new Tips(block, {
