@@ -226,7 +226,7 @@ var OpsMath = {
     return _binaryOp(args.x, args.b, function(x, b) {
       return Math.log(x) / Math.log(b);
     });
-  }).type('(fn (-> (name channel? "x") (name (? number) "b")) (ref "a"))')
+  }).type('(fn (-> (name channel? "x") (name (? number) "b")) (ref "x"))')
     .describe(
       'If only x is provided, produces ln x (the logarithm of x base e, ' +
       'where e is roughly 2.718). If both (x, b) are provided, ' +
