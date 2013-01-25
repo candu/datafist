@@ -544,7 +544,7 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return args.c.at(t) === args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name (| number string) "x")) channel)')
     .describe(
       'Filters c to contain only values equal to x.'
     ),
@@ -553,7 +553,7 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return args.c.at(t) !== args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type('(fn (-> (name channel "c") (name (| number string) "x")) channel)')
     .describe(
       'Filters c to contain only values not equal to x.'
     ),

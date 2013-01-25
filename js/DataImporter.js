@@ -78,12 +78,19 @@ var ChannelExtractor = {
     // TODO: deal with more
     throw new DataImportError('could not get timestamps!');
   },
-  _getValue: function(x) {
+  _getFloatValue: function(x) {
     // kill thousands separators
     x = x.replace(/,/g, '');
     // kill currency symbols
     x = x.replace(/[$€£]/, '');
     return parseFloat(x);
+  },
+  _getValue: function(x) {
+    var xFloat = this._getFloatValue(x);
+    if (!isNaN(xFloat)) {
+      return xFloat;
+    }
+    return x;
   },
   _extractColumn: function(xcol, rows) {
     var data = [],
