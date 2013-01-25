@@ -115,9 +115,6 @@ HitArea._edgeCreateBehavior = function(graph, output) {
         return;
       }
       graph.addEdge(output, input);
-      if (input.variadic && input.id === input.node.inputs.length - 1) {
-        input.node.addVariadicInput(graph);
-      }
     })
     .on('drag', function(d) {
       graph._tempEdgeEnd.x += d3.event.dx;
@@ -132,10 +129,6 @@ HitArea._edgeCreateBehavior = function(graph, output) {
 // across all browsers
 var Node = new Class({
   initialize: function(graph, nodeGroup, name, pos, id) {
-    // HACK: allow setName() access to graph.nodeDimensions() (which should
-    // probably be moved to Node somehow...)
-    this._graph = graph;
-
     this.name = name;
     this.type = Fist.blockType(name);
     this.dims = graph.nodeDimensions(name, pos);
@@ -156,7 +149,7 @@ var Node = new Class({
         if (!name || name === this.name) {
           return;
         }
-        this.setName(name);
+        graph.replaceNode(this, name, this.dims);
       }.bind(this))
       .call(Node._dragBehavior(graph, this));
 
@@ -174,9 +167,6 @@ var Node = new Class({
       .attr('text-anchor', 'middle')
       .text(this.name);
 
-    // TODO: infer number of input hit areas from full type associated with
-    // node name
-    // TODO: VariadicHitArea?
     this.inputs = [];
     if (this.type === 'function') {
       var params = this._getFunctionParams();
@@ -251,24 +241,6 @@ var Node = new Class({
       params = [params];
     }
     return params;
-  },
-  setName: function(name) {
-    this.name = name;
-    this.type = Fist.blockType(name);
-    this.dims = this._graph.nodeDimensions(name, this.dims);
-    this._rect
-      .attr('class', 'block ' + this.type)
-      .attr('width', this.dims.w)
-      .attr('height', this.dims.h);
-    this._text
-      .attr('class', 'block ' + this.type)
-      .attr('x', this.dims.w / 2)
-      .attr('y', this.dims.h / 2)
-      .attr('dy', '.35em')
-      .attr('text-anchor', 'middle')
-      .text(this.name);
-    FistUI.runViewGraph();
-    return this;
   },
   move: function(dx, dy) {
     this.dims.x += dx;
@@ -467,27 +439,34 @@ var ViewGraph = new Class({
   _addNodeImpl: function(name, pos) {
     var id = this._nextNodeID++;
     this._nodes[id] = new Node(this, this._nodeGroup, name, pos, id);
+    return this._nodes[id];
   },
   addNode: function(name, pos) {
-    this._addNodeImpl(name, pos);
+    var node = this._addNodeImpl(name, pos);
     FistUI.runViewGraph();
+    return node;
   },
   _addEdgeImpl: function(output, input) {
     if (Node.existsPath(input.node, output.node)) {
       console.log('skipping, will create cycle!');
-      return;
+      return null;
     }
     if (input.isFull()) {
       console.log('skipping, input is already being used!');
-      return;
+      return null;
     }
     var edge = new Edge(this, this._edgeGroup, output, input);
     output.node.addEdge(edge);
     input.node.addEdge(edge);
+    if (input.variadic && input.id === input.node.inputs.length - 1) {
+      input.node.addVariadicInput(this);
+    }
+    return edge;
   },
   addEdge: function(output, input) {
-    this._addEdgeImpl(output, input);
+    var edge = this._addEdgeImpl(output, input);
     FistUI.runViewGraph();
+    return edge;
   },
   _deleteNodeImpl: function(node) {
     node.allEdges().each(function(edge) {
@@ -508,6 +487,26 @@ var ViewGraph = new Class({
   },
   deleteEdge: function(edge) {
     this._deleteEdgeImpl(edge);
+    FistUI.runViewGraph();
+  },
+  _replaceNodeImpl: function(node, name, pos) {
+    var newNode = this._addNodeImpl(name, pos);
+    node.allEdgesIn().each(function(edge) {
+      this._deleteEdgeImpl(edge);
+      if (edge.input.id < newNode.inputs.length) {
+        this._addEdgeImpl(edge.output, newNode.inputs[edge.input.id]);
+      }
+    }.bind(this));
+    node.allEdgesOut().each(function(edge) {
+      this._deleteEdgeImpl(edge);
+      if (edge.output.id < newNode.outputs.length) {
+        this._addEdgeImpl(newNode.outputs[edge.output.id], edge.input);
+      }
+    }.bind(this));
+    this._deleteNodeImpl(node);
+  },
+  replaceNode: function(node, name, pos) {
+    this._replaceNodeImpl(node, name, pos);
     FistUI.runViewGraph();
   },
   _emptyImpl: function() {
