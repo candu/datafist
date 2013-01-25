@@ -67,6 +67,48 @@ function _fixBound(bound) {
   }
 }
 
+var ViewUtils = {
+  getProjection: function(data, scale, key) {
+    var proj = {};
+    data.each(function(d) {
+      var p = Math.floor(scale(d[key]));
+      if (proj[p] === undefined) {
+        proj[p] = 0;
+      }
+      proj[p]++;
+    });
+    return proj;
+  },
+  drawVerticalProjectionTicks: function(proj, axis) {
+    var max = d3.max(Object.values(proj)),
+        scale = d3.scale.log().domain([1, max]).range([0.2, 1]);
+    var group = axis.append('svg:g')
+      .attr('class', 'projection');
+    Object.each(proj, function(k, p) {
+      group.append('svg:line')
+        .attr('x1', 2)
+        .attr('y1', p)
+        .attr('x2', 8)
+        .attr('y2', p)
+        .style('opacity', scale(k));
+    });
+  },
+  drawHorizontalProjectionTicks: function(proj, axis) {
+    var max = d3.max(Object.values(proj)),
+        scale = d3.scale.log().domain([1, max]).range([0.2, 1]);
+    var group = axis.append('svg:g')
+      .attr('class', 'projection');
+    Object.each(proj, function(k, p) {
+      group.append('svg:line')
+        .attr('x1', p)
+        .attr('y1', -2)
+        .attr('x2', p)
+        .attr('y2', -8)
+        .style('opacity', scale(k));
+    });
+  }
+};
+
 var LineView = {
   render: function(view, args) {
     // TODO: verify that there's at least one channel
@@ -172,15 +214,8 @@ var LineView = {
         .attr('y2', scaleX(xbounds[i].max));
 
       // projection ticks
-      var projX = axisGroupX.append('svg:g')
-        .attr('class', 'projection');
-      projX.selectAll('line')
-        .data(cds[i])
-        .enter().append('svg:line')
-          .attr('x1', 2)
-          .attr('y1', function (d) { return scaleX(d.x); })
-          .attr('x2', 8)
-          .attr('y2', function (d) { return scaleX(d.x); });
+      var projX = ViewUtils.getProjection(cds[i], cxs[i], 'x');
+      ViewUtils.drawVerticalProjectionTicks(projX, axisGroupX);
     }
 
     // lines
@@ -602,24 +637,11 @@ var PlotView = {
       .attr('y2', scaleY(ybound.max));
 
     // projection ticks
-    var projX = axisGroupX.append('svg:g')
-      .attr('class', 'projection');
-    projX.selectAll('line')
-      .data(data)
-      .enter().append('svg:line')
-        .attr('x1', function (d) { return scaleX(d.x); })
-        .attr('y1', -2)
-        .attr('x2', function (d) { return scaleX(d.x); })
-        .attr('y2', -8);
-    var projY = axisGroupY.append('svg:g')
-      .attr('class', 'projection');
-    projY.selectAll('line')
-      .data(data)
-      .enter().append('svg:line')
-        .attr('x1', 2)
-        .attr('y1', function (d) { return scaleY(d.y); })
-        .attr('x2', 8)
-        .attr('y2', function (d) { return scaleY(d.y); });
+    var projX = ViewUtils.getProjection(data, scaleX, 'x');
+    ViewUtils.drawHorizontalProjectionTicks(projX, axisGroupX);
+
+    var projY = ViewUtils.getProjection(data, scaleY, 'y');
+    ViewUtils.drawVerticalProjectionTicks(projY, axisGroupY);
 
     // plot
     var g = view.append('svg:g')

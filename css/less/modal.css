@@ -41,6 +41,7 @@
   overflow: auto;
 }
 .modal-dialog > div > .modal-content > .step > .table-wrapper > .table {
+  white-space: nowrap;
   height: 200px;
   overflow: auto;
   font-family: "Menlo", monospace;
@@ -51,6 +52,7 @@
   font-size: 80%;
   background-color: #ccc;
   padding: 2px;
+  overflow: hidden;
 }
 .modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.odd {
   background-color: #ddd;

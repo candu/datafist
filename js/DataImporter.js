@@ -244,8 +244,7 @@ var ImportDialog = new Class({
       var line = this._lines[i],
           lineNumber = i + 1;
       var rowElem = new Element('div.data-row');
-      var cell = Element('div.data-cell')
-        .set('text', line)
+      var cell = new Element('div.data-cell')
         .setStyle('width', '99%')
         .toggleClass('odd', lineNumber % 2 === 1)
         .toggleClass('selected', i === selected)
@@ -254,6 +253,10 @@ var ImportDialog = new Class({
           cell.addClass('selected');
           this._picked = {selected: i, limit: i + 10};
         }.bind(this));
+      var text = new Element('div', {
+        text: line
+      });
+      cell.adopt(text);
       rowElem.adopt(cell);
       return rowElem;
     }.bind(this);
@@ -319,7 +322,6 @@ var ImportDialog = new Class({
       var rowElem = new Element('div.data-row');
       row.each(function(col, i) {
         var cell = new Element('div.data-cell')
-          .set('text', col)
           .setStyle('width', 100)
           .addClass('col_' + i)
           .toggleClass('odd', i % 2 === 1);
@@ -341,6 +343,10 @@ var ImportDialog = new Class({
             console.log(JSON.stringify(this._timeColumns));
           }.bind(this));
         }
+        var text = new Element('div', {
+          text: col
+        });
+        cell.adopt(text);
         rowElem.adopt(cell);
       }.bind(this));
       return rowElem;
