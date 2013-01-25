@@ -53,27 +53,6 @@ var DataChannel = new Class({
 
 var Fist = {
   _symbolTable: {},
-  _dummyElem: new Element('div'),
-  _symbolImported: function(name, value, moduleName) {
-    this._dummyElem.fireEvent('symbolimport', [name, value, moduleName]);
-  },
-  _moduleImported: function(moduleName) {
-    this._dummyElem.fireEvent('moduleimport', [moduleName]);
-  },
-  _viewInvoked: function(name, args) {
-    this._dummyElem.fireEvent('viewinvoked', [name, args]);
-  },
-  listen: function(type, callback) {
-    switch (type) {
-      case 'symbolimport':
-      case 'moduleimport':
-      case 'viewinvoked':
-        this._dummyElem.addEvent(type, callback);
-        break;
-      default:
-        throw new Error('unrecognized event type: ' + type);
-    }
-  },
   evaluateAtom: function(atom) {
     if (!atom) {
       throw new Error('empty atom not allowed');
@@ -238,17 +217,15 @@ var Fist = {
     return this.evaluate(sexps[0]);
   },
   registerSymbol: function(name, value, moduleName) {
-    console.log('importing symbol ' + name + ' in module ' + moduleName);
     this._symbolTable[name] = value;
-    this._symbolImported(name, value, moduleName);
+    FistUI.onSymbolImport(name, moduleName);
   },
   importData: function(name, data, source) {
     this.registerSymbol(name, new DataChannel(data, source));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...
-    console.log('importing module ' + module.__fullName);
-    this._moduleImported(module.__fullName);
+    FistUI.onModuleImport(module.__fullName);
     if (module.__exports !== undefined) {
       console.log('found __exports declaration');
       for (var i = 0; i < module.__exports.length; i++) {

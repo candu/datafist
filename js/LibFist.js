@@ -728,13 +728,13 @@ var View = {
   ],
   __fullName: 'Views',
   viewLine: new FistFunction(function(args) {
-    this._viewInvoked('line', args);
+    FistUI.onViewInvoked('line', args);
   }).type('(fn (name (+ channel) "channels") view)')
     .describe(
       'Displays each of its channels as a line chart.'
     ),
   viewHistogram: new FistFunction(function(args) {
-    this._viewInvoked('histogram', args);
+    FistUI.onViewInvoked('histogram', args);
   }).type('(fn (-> (name channel "channel") (name (? channel) "groupBy") (name (? number) "bucket")) view)')
     .describe(
       'Displays its channel as a histogram. If groupBy is ' +
@@ -744,7 +744,7 @@ var View = {
       'histogram buckets.'
     ),
   viewPlot: new FistFunction(function(args) {
-    this._viewInvoked('plot', args);
+    FistUI.onViewInvoked('plot', args);
   }).type('(fn (-> (name channel "x") (name channel "y")) view)')
     .describe(
       'Displays its two channels as an x-y plot. If the correlation ' +

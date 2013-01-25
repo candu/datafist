@@ -784,19 +784,9 @@ var FistUI = {
 
     this._repl = this._root.getElement('#repl');
     this._viewGraph = new ViewGraph(this._viewGraphSVG);
-
-    // register event listeners for Fist events
-    Fist.listen('symbolimport', function(name, value, moduleName) {
-      this.onSymbolImport(name, moduleName);
-    }.bind(this));
-    Fist.listen('moduleimport', function(moduleName) {
-      this.onModuleImport(moduleName);
-    }.bind(this));
-    Fist.listen('viewinvoked', function(name, args) {
-      this.onViewInvoked(name, args);
-    }.bind(this));
   },
   onSymbolImport: function(name, moduleName) {
+    console.log('importing symbol ' + name + ' in module ' + moduleName);
     var type = Fist.blockType(name),
         sexp = SExp.parse(type);
     var block = Element('div.block.' + type, {
@@ -844,6 +834,7 @@ var FistUI = {
     }
   },
   onModuleImport: function(moduleName) {
+    console.log('importing module ' + moduleName);
     var moduleGroup = new Element('div.module-group', {
           name: moduleName
         }),
