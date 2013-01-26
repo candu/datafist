@@ -578,6 +578,31 @@ QUnit.test('OpsSmooth', function() {
   epsilonEqual(c.at(2), 5);
   epsilonEqual(c.at(3), 6);
   epsilonEqual(c.at(4), 7);
+
+  var data = [
+    {t: 0, x: 2},
+    {t: 2, x: 4},
+    {t: 6, x: 5},
+  ];
+  var c = OpsSmooth.rateOfChange.call(Fist, {
+    c: new DataChannel(data),
+    rateUnit: 2
+  });
+  epsilonEqual(c.at(0), 0);
+  epsilonEqual(c.at(2), 2);
+  epsilonEqual(c.at(6), 0.5);
+
+  var data = [
+    {t: 0, x: 2},
+    {t: 1, x: 4},
+    {t: 3, x: 5}
+  ];
+  var c = OpsSmooth.cumulativeSum.call(Fist, {
+    c: new DataChannel(data)
+  });
+  epsilonEqual(c.at(0), 2);
+  epsilonEqual(c.at(1), 6);
+  epsilonEqual(c.at(3), 11);
 });
 
 QUnit.test('OpsFilterValue', function() {
