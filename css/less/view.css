@@ -7,6 +7,11 @@ line.channel-separator {
   stroke-width: 1px;
   stroke: #aaa;
 }
+line.guide {
+  stroke-width: 1.5px;
+  stroke: #999;
+  opacity: 0.6;
+}
 text.caption {
   font-family: "Helvetica Neue", sans-serif;
   font-size: 90%;

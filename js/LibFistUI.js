@@ -106,6 +106,20 @@ var ViewUtils = {
 };
 
 var LineView = {
+  _bisect: d3.bisector(function(d) { return d.t; }).right,
+  _getPointAt: function(cd, t) {
+    t = +t;
+    if (t < cd[0].t) {
+      return cd[0];
+    }
+    if (t >= cd[cd.length - 1].t) {
+      return cd[cd.length - 1];
+    }
+    var j = this._bisect(cd, t);
+    var w = (t - cd[j - 1].t) / (cd[j].t - cd[j - 1].t),
+        x = (1 - w) * cd[j - 1].x + w * cd[j].x;
+    return {t: t, x: x};
+  },
   render: function(view, args) {
     // TODO: verify that there's at least one channel
 
@@ -215,6 +229,11 @@ var LineView = {
     }
 
     // lines
+    this._tGuide = view.append('svg:line')
+      .attr('class', 'channel guide')
+      .attr('y1', 0)
+      .attr('y2', channelH * i);
+    this._xGuides = [];
     for (var i = 0; i < n; i++) {
       var line = d3.svg.line()
         .x(function(d) { return ct(d.t); })
@@ -222,9 +241,9 @@ var LineView = {
       var g = view.append('svg:g')
         .attr('transform', 'translate(' + axisW + ', ' + (channelH * i) + ')');
       g.append('svg:path')
-          .attr('d', line(cds[i]))
-          .attr('class', 'channel')
-          .attr('stroke', cc(i));
+        .attr('d', line(cds[i]))
+        .attr('class', 'channel')
+        .attr('stroke', cc(i));
       if (i > 0) {
         g.append('svg:line')
           .attr('class', 'channel-separator')
@@ -240,6 +259,12 @@ var LineView = {
         .attr('dy', '.71em')
         .attr('text-anchor', 'start')
         .text(_caption(sexps[i]));
+      this._xGuides.push(g.append('svg:line')
+        .attr('class', 'channel guide')
+        .attr('x1', 0)
+        .attr('x2', channelW)
+        .style('stroke', cc(i))
+      );
     }
 
     // time-filtering hit area
@@ -276,7 +301,24 @@ var LineView = {
       .attr('y', 0)
       .attr('width', channelW)
       .attr('height', channelH * n)
-      .call(dragBehavior);
+      .call(dragBehavior)
+      .on('mousemove', function() {
+        var mousePos = $d3(this._dragGroup).getPosition(),
+            tpx = d3.event.pageX - mousePos.x,
+            t = ct.invert(tpx);
+        this._tGuide
+          .attr('x1', tpx + axisW)
+          .attr('x2', tpx + axisW);
+        cds.each(function(cd, i) {
+          var d = this._getPointAt(cd, t),
+              y = cxs[i](d.x);
+          this._xGuides[i]
+            .attr('y1', y)
+            .attr('y2', y);
+        }.bind(this));
+      }.bind(this))
+      .on('mouseout', function() {
+      });
 
     var dragSelectionBehavior = d3.behavior.drag()
       .on('drag', function(d) {
