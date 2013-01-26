@@ -422,7 +422,9 @@ var OpsTime = {
 var OpsSmooth = {
   __exports: [
     ['rollingAverage', 'rolling-average'],
-    ['slidingWindow', 'sliding-window']
+    ['slidingWindow', 'sliding-window'],
+    ['rateOfChange', 'rate-of-change'],
+    ['cumulativeSum', 'cumulative-sum']
   ],
   __fullName: 'Smoothing Operations',
   rollingAverage: new FistFunction(function(args) {
@@ -489,7 +491,59 @@ var OpsSmooth = {
     .describe(
       'Applies a sliding window ' +
       'average to c that uses the last windowSize data points.'
-    )
+    ),
+  rateOfChange: new FistFunction(function(args) {
+    var _iter = args.c.iter(),
+        _rateUnit = TimeDelta.get(args.rateUnit),
+        _last = null,
+        _data = [];
+    while (true) {
+      try {
+        var t = _iter.next(),
+            x = args.c.at(t);
+        if (_last === null) {
+          _last = {t: t - _rateUnit, x: x};
+        }
+        var dt = (t - _last.t) / _rateUnit,
+            dx = x - _last.x;
+        _data.push({t: t, x: dx / dt});
+        _last = {t: t, x: x};
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    return new DataChannel(_data);
+  }).type('(fn (-> (name channel "c") (name (? timedelta) "rateUnit")) channel)')
+    .describe(
+      'Calculates the rate of change of c per rateUnit milliseconds. ' +
+      'For instance, (rate-of-change c "1 hour") is change per hour.'
+    ),
+  cumulativeSum: new FistFunction(function(args) {
+    var _iter = args.c.iter(),
+        _sum = 0,
+        _data = [];
+    while (true) {
+      try {
+        var t = _iter.next(),
+            x = args.c.at(t);
+        _sum += x;
+        _data.push({t: t, x: _sum});
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    return new DataChannel(_data);
+  }).type('(fn (name channel "c") channel)')
+    .describe(
+      'Calculates the cumulative sum of c, or total of all data points ' +
+      'in c up to each point in time.'
+    ),
 };
 
 var OpsJoin = {
@@ -670,7 +724,8 @@ var GensChannel = {
   __exports: [
     ['genRegular', 'gen-regular'],
     ['genUniform', 'gen-uniform'],
-    ['genPoisson', 'gen-poisson']
+    ['genPoisson', 'gen-poisson'],
+    ['genFromChannel', 'gen-from-channel']
   ],
   __fullName: 'Channel Generators',
   genRegular: new FistFunction(function(args) {
@@ -717,6 +772,19 @@ var GensChannel = {
       'The exact timestamps are computed using a Poisson distribution, ' +
       'which models events happening randomly over time (e.g. customers ' +
       'arriving at a store, emails sent to your inbox).'
+    ),
+  genFromChannel: new FistFunction(function(args) {
+    return {
+      at: function(t) {
+        return args.gen(t);
+      },
+      iter: function() {
+        return args.c.iter();
+      }
+    }
+  }).type('(fn (-> (name (fn number number) "gen") (name channel "c")) channel)')
+    .describe(
+      'Produces a channel by evaluating gen at every timestamp present in c.'
     )
 };
 
