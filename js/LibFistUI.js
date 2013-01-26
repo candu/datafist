@@ -5,11 +5,7 @@ function _numTicks(px) {
 }
 
 function _caption(sexp) {
-  var s = SExp.unparse(sexp);
-  if (s.length > 30) {
-    s = s.substring(0, 27) + '...';
-  }
-  return s;
+  return SExp.unparse(sexp);
 }
 
 function _getBucketing(sexp) {
@@ -237,21 +233,12 @@ var LineView = {
           .attr('x2', channelW)
           .attr('y2', 0);
       }
-      g.selectAll('circle')
-        .data(cds[i])
-        .enter().append('svg:circle')
-          .attr('class', 'channel')
-          .attr('cx', function(d) { return ct(d.t); })
-          .attr('cy', function(d) { return cxs[i](d.x); })
-          .attr('fill', d3.rgb(cc(i)).brighter(0.5))
-          .attr('stroke', d3.rgb(cc(i)).darker(0.5))
-          .attr('r', 4);
       g.append('svg:text')
         .attr('class', 'channel caption')
-        .attr('x', channelW - 8)
+        .attr('x', 8)
         .attr('y', 8)
         .attr('dy', '.71em')
-        .attr('text-anchor', 'end')
+        .attr('text-anchor', 'start')
         .text(_caption(sexps[i]));
     }
 
