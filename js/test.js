@@ -561,6 +561,23 @@ QUnit.test('OpsSmooth', function() {
   epsilonEqual(c.at(0), 2);
   epsilonEqual(c.at(1), 3);
   epsilonEqual(c.at(3), 4.5);
+
+  var data = [
+    {t: 0, x: 2},
+    {t: 1, x: 4},
+    {t: 2, x: 6},
+    {t: 3, x: 5},
+    {t: 4, x: 9}
+  ];
+  var c = OpsSmooth.medianFilter.call(Fist, {
+    c: new DataChannel(data),
+    filterSize: 1
+  });
+  epsilonEqual(c.at(0), 3);
+  epsilonEqual(c.at(1), 4);
+  epsilonEqual(c.at(2), 5);
+  epsilonEqual(c.at(3), 6);
+  epsilonEqual(c.at(4), 7);
 });
 
 QUnit.test('OpsFilterValue', function() {

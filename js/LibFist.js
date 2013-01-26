@@ -423,6 +423,7 @@ var OpsSmooth = {
   __exports: [
     ['rollingAverage', 'rolling-average'],
     ['slidingWindow', 'sliding-window'],
+    ['medianFilter', 'median-filter'],
     ['rateOfChange', 'rate-of-change'],
     ['cumulativeSum', 'cumulative-sum']
   ],
@@ -460,7 +461,7 @@ var OpsSmooth = {
     var _iter = args.c.iter(),
         _data = [],
         _buf = new Array(args.windowSize),
-        _i = 0,
+        _i = -1,
         _n = 0,
         _sum = 0;
     while (true) {
@@ -491,6 +492,88 @@ var OpsSmooth = {
     .describe(
       'Applies a sliding window ' +
       'average to c that uses the last windowSize data points.'
+    ),
+  medianFilter: new FistFunction(function(args) {
+    var _iter = args.c.iter(),
+        _data = [],
+        _size = args.filterSize * 2 + 1,
+        _buf = new Array(_size),
+        _i = -1,
+        _j = args.filterSize,
+        _n = 0;
+    while (true) {
+      try {
+        var t = _iter.next(),
+            x = args.c.at(t);
+        _i++;
+        _j++;
+        if (_i === _size) {
+          _i = 0;
+        }
+        if (_j === _size) {
+          _j = 0;
+        }
+        if (_buf[_i] === undefined) {
+          _n++;
+        }
+        _buf[_i] = {t: t, x: x};
+        if (_n <= args.filterSize) {
+          continue;
+        }
+        var jt = _buf[_j].t,
+            filter = _buf.slice(0, _n);
+        filter.sort(function(a, b) { return a.x - b.x; });
+        if (_n % 2 === 0) {
+          var a = filter[_n / 2 - 1].x,
+              b = filter[_n / 2].x;
+          _data.push({t: jt, x: (a + b) / 2});
+        } else {
+          var a = filter[(_n - 1) / 2].x;
+          _data.push({t: jt, x: a});
+        }
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+    while (_n > args.filterSize + 1) {
+      _i++;
+      _j++;
+      if (_i === _size) {
+        _i = 0;
+      }
+      if (_j === _size) {
+        _j = 0;
+      }
+      _buf[_i] = undefined;
+      _n--;
+      var jt = _buf[_j].t,
+          filter = [],
+          k = _i;
+      while (filter.length < _n) {
+        k++;
+        if (k === _size) {
+          k = 0;
+        }
+        filter.push(_buf[k]);
+      }
+      filter.sort(function(a, b) { return a.x - b.x; });
+      if (_n % 2 === 0) {
+        var a = filter[_n / 2 - 1].x,
+            b = filter[_n / 2].x;
+        _data.push({t: jt, x: (a + b) / 2});
+      } else {
+        var a = filter[(_n - 1) / 2].x;
+        _data.push({t: jt, x: a});
+      }
+    }
+    return new DataChannel(_data);
+  }).type('(fn (-> (name channel "c") (name number "filterSize")) channel)')
+    .describe(
+      'Applies a median filter to c that uses the last filterSize ' +
+      'data points. This can be used to reduce noise in data.'
     ),
   rateOfChange: new FistFunction(function(args) {
     var _iter = args.c.iter(),
