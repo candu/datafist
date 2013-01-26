@@ -262,7 +262,6 @@ var Reduce = {
     return this._sum(xs) / this._count(xs);
   },
   get: function(reduce) {
-    console.log(this);
     var fn = this['_' + reduce].bind(this);
     if (fn === undefined) {
       throw new Error('unrecognized reduce operation: ' + args.reduce);
