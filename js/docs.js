@@ -3,12 +3,14 @@
 var Docs = {
   _colorScale: d3.scale.category10(),
   init: function() {
-    Fist.listen('symbolimport', function(name, value, moduleName) {
-      this._onSymbolImport(name, value, moduleName);
-    }.bind(this));
-    Fist.listen('moduleimport', function(moduleName) {
-      this._onModuleImport(moduleName);
-    }.bind(this));
+    // HACK: monkey patch FistUI to route its signals to Docs
+    FistUI.inited = true;
+    FistUI.onSymbolImport = function(name, value, moduleName) {
+      this.onSymbolImport(name, value, moduleName);
+    }.bind(this);
+    FistUI.onModuleImport = function(moduleName) {
+      this.onModuleImport(moduleName);
+    }.bind(this);
 
     this._root = $('docs');
     this._index = this._root.getElement('#index');
@@ -100,7 +102,6 @@ var Docs = {
     params.each(function(param, i) {
       var expression = '\\b' + param.name + '\\b',
           regex = RegExp(expression, 'g');
-      console.log(regex);
       text = text.replace(regex, sep + param.name + sep);
       pindex[param.name] = i;
     }.bind(this));
@@ -119,7 +120,10 @@ var Docs = {
     }.bind(this));
     return desc;
   },
-  _onSymbolImport: function(name, value, moduleName) {
+  _href: function(name) {
+    return name.replace(' ', '_').replace('-', '_').toLowerCase();
+  },
+  onSymbolImport: function(name, value, moduleName) {
     var header = new Element('h3.symbol', {
       text: name,
       id: this._href(name)
@@ -129,10 +133,7 @@ var Docs = {
         descDiv = this._renderDesc(params, value);
     this._content.adopt(header, paramsDiv, descDiv);
   },
-  _href: function(name) {
-    return name.replace(' ', '_').replace('-', '_').toLowerCase();
-  },
-  _onModuleImport: function(moduleName) {
+  onModuleImport: function(moduleName) {
     var link = new Element('a', {
       text: moduleName,
       href: '#' + this._href(moduleName)

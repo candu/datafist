@@ -218,14 +218,18 @@ var Fist = {
   },
   registerSymbol: function(name, value, moduleName) {
     this._symbolTable[name] = value;
-    FistUI.onSymbolImport(name, moduleName);
+    if (FistUI.inited) {
+      FistUI.onSymbolImport(name, value, moduleName);
+    }
   },
   importData: function(name, data, source) {
     this.registerSymbol(name, new DataChannel(data, source));
   },
   importModule: function(namespace, module) {
     // TODO: implement namespacing...
-    FistUI.onModuleImport(module.__fullName);
+    if (FistUI.inited) {
+      FistUI.onModuleImport(module.__fullName);
+    }
     if (module.__exports !== undefined) {
       console.log('found __exports declaration');
       for (var i = 0; i < module.__exports.length; i++) {

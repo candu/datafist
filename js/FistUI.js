@@ -640,6 +640,7 @@ var Status = new Class({
 var FistUI = {
   _viewTable: {},
   _fistCode: '',
+  inited: false,
   runViewGraph: function(options) {
     options = options || {};
     var rebuild = options.rebuild || true;
@@ -784,12 +785,13 @@ var FistUI = {
 
     this._repl = this._root.getElement('#repl');
     this._viewGraph = new ViewGraph(this._viewGraphSVG);
+
+    this.inited = true;
   },
-  onSymbolImport: function(name, moduleName) {
+  onSymbolImport: function(name, value, moduleName) {
     console.log('importing symbol ' + name + ' in module ' + moduleName);
     var type = Fist.blockType(name),
         sexp = SExp.parse(type);
-    // ensure uniques...
     this._palette.getElements('div.block[name=' + name + ']').destroy();
     var block = new Element('div.block.' + type, {
       text: name,
@@ -801,7 +803,6 @@ var FistUI = {
       title: 'text',
       text: function(element) {
         if (type === 'function' || type === 'channel') {
-          var value = Fist.evaluateAtom(element.get('text'));
           if (value.describe === undefined) {
             return type;
           }
