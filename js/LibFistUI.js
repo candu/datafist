@@ -359,11 +359,8 @@ var HistogramView = {
       try {
         var t = it.next(),
             x = c.at(t),
-            g;
-        if (groupBy === undefined) {
-          g = x;
-          x = 1;
-        } else {
+            g = x;
+        if (groupBy !== undefined) {
           g = groupBy.at(t);
         }
         if (bucketing !== undefined) {
@@ -380,17 +377,19 @@ var HistogramView = {
     data.sort(function(d1, d2) { return d1.g - d2.g; });
     return data;
   },
-  _getHist: function(data) {
+  _getHist: function(data, reduce) {
     var hist = [],
         n = 0;
     data.each(function(d) {
-      if (n === 0 || d.g > hist[n - 1].x) {
-        hist.push({x: d.g, freq: 0});
+      if (n === 0 || d.g > hist[n - 1].g) {
+        hist.push({g: d.g, xs: []});
         n++;
       }
-      hist[n - 1].freq += d.x;
+      hist[n - 1].xs.push(d.x);
     });
-    return hist;
+    return hist.map(function(d) {
+      return {x: d.g, freq: reduce(d.xs)};
+    });
   },
   render: function(view, args) {
     var w = view.attr('width'),
@@ -406,8 +405,18 @@ var HistogramView = {
         bucketing = _getBucketing(args.__sexps.groupBy);
       }
     }
+    var reduce = args.reduce;
+    if (reduce === undefined) {
+      if (args.groupBy === undefined) {
+        reduce = 'count';
+      } else {
+        reduce = 'sum';
+      }
+    }
+    reduce = Reduce.get(reduce);
+
     var data = this._getData(args.channel, args.groupBy, bucketing),
-        hist = this._getHist(data),
+        hist = this._getHist(data, reduce),
         xs = hist.map(function(p) { return p.x; }),
         xmin = d3.min(xs) || 0,
         xmax = d3.max(xs) || 0,

@@ -302,38 +302,12 @@ var OpsTime = {
       'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
       'whereas (time-shift c "-1 minute") shifts c back one minute.'
     ),
-  _count: function(xs) {
-    return xs.length;
-  },
-  _sum: function(xs) {
-    var x = 0;
-    for (var i = 0; i < xs.length; i++) {
-      x += xs[i];
-    }
-    return x;
-  },
-  _average: function(xs) {
-    return this._sum(xs) / this._count(xs);
-  },
   timeBucket: new FistFunction(function(args) {
     var _iter = args.c.iter(),
         _dt = TimeDelta.get(args.dt),
         _data = [],
-        _reduce = null,
+        _reduce = Reduce.get(args.reduce),
         _n = 0;
-    switch (args.reduce) {
-      case 'count':
-        _reduce = this._count;
-        break;
-      case 'sum':
-        _reduce = this._sum;
-        break;
-      case 'average':
-        _reduce = this._average;
-        break;
-      default:
-        throw new Error('unrecognized reduce operation: ' + args.reduce);
-    }
     while (true) {
       try {
         var t = _iter.next(),
@@ -886,13 +860,15 @@ var View = {
     ),
   viewHistogram: new FistFunction(function(args) {
     FistUI.onViewInvoked('histogram', args);
-  }).type('(fn (-> (name channel "channel") (name (? channel) "groupBy") (name (? number) "bucket")) view)')
+  }).type('(fn (-> (name channel "channel") (name (? channel) "groupBy") (name (? number) "bucket") (name (? string) "reduce")) view)')
     .describe(
       'Displays its channel as a histogram. If groupBy is ' +
       'provided, the values of channel are grouped by the ' +
       'values of groupBy at the same timestamps. ' +
       'If bucket is provided, it is used as the width of the ' +
-      'histogram buckets.'
+      'histogram buckets. If provided, reduce can be one of ' +
+      '"count", "sum", or "average", which specifies how values ' +
+      'in each bucket are to be combined.'
     ),
   viewPlot: new FistFunction(function(args) {
     FistUI.onViewInvoked('plot', args);
