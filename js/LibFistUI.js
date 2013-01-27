@@ -627,6 +627,14 @@ var PlotView = {
         d.y = args.y.at(t);
         if (hasArea) {
           d.A = args.area.at(t);
+          // HACK: allow only color (without area)
+          if (typeOf(d.A) === 'string') {
+            delete d.A;
+            args.color = args.area;
+            args.area = undefined;
+            hasColor = true;
+            hasArea = false;
+          }
         }
         if (hasColor) {
           d.c = args.color.at(t);
