@@ -848,6 +848,7 @@ var GensChannel = {
 var View = {
   __exports: [
     ['viewLine', 'view-line'],
+    ['viewCrossfilter', 'view-crossfilter'],
     ['viewHistogram', 'view-histogram'],
     ['viewPlot', 'view-plot']
   ],
@@ -856,7 +857,17 @@ var View = {
     FistUI.onViewInvoked('line', args);
   }).type('(fn (name (+ channel) "channels") view)')
     .describe(
-      'Displays each of its channels as a line chart.'
+      'Displays its channels as line charts.'
+    ),
+  viewCrossfilter: new FistFunction(function(args) {
+    FistUI.onViewInvoked('crossfilter', args);
+  }).type('(fn (name (+ channel) "channels") view)')
+    .describe(
+      'Displays its channels as a series of distribution bar charts. ' +
+      'Each chart can be filtered, which updates all other charts to ' +
+      'show the filtered distribution across dimensions. Numeric data ' +
+      'allows for range filtering, whereas categorical data is filtered ' +
+      'by exact match against one or more categories.'
     ),
   viewHistogram: new FistFunction(function(args) {
     FistUI.onViewInvoked('histogram', args);

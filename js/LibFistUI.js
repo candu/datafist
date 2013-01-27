@@ -316,9 +316,7 @@ var LineView = {
             .attr('y1', y)
             .attr('y2', y);
         }.bind(this));
-      }.bind(this))
-      .on('mouseout', function() {
-      });
+      }.bind(this));
 
     var dragSelectionBehavior = d3.behavior.drag()
       .on('drag', function(d) {
@@ -345,6 +343,12 @@ var LineView = {
         $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this))
       .call(dragSelectionBehavior);
+  }
+};
+
+var CrossfilterView = {
+  render: function(view, args) {
+    // TODO: implement this
   }
 };
 
@@ -645,7 +649,6 @@ var PlotView = {
             categories[d.c] = lastCategory++;
           }
         }
-        console.log(d);
         data.push(d);
       } catch(e) {
         if (!(e instanceof StopIteration)) {
@@ -855,6 +858,7 @@ var PlotView = {
 var LibFistUI = {
   import: function() {
     FistUI.importView('line', LineView);
+    FistUI.importView('crossfilter', CrossfilterView);
     FistUI.importView('histogram', HistogramView);
     FistUI.importView('plot', PlotView);
   }
