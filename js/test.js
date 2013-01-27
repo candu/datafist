@@ -1157,4 +1157,18 @@ QUnit.test('Fist', function() {
   equal(args.c1, Fist.execute('c1'));
   equal(args.c2, undefined);
   equal(args.n, 42);
+
+  Fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
+  var args = Fist._bindArgs(
+    SExp.parse('(-> (name channel "a") (name channel "b") (name (? channel) "c") (name (? channel) "d"))'),
+    SExp.parse('(c1 c1 c1 c1)')
+  );
+  equal(args.__sexps.a, 'c1');
+  equal(args.__sexps.b, 'c1');
+  equal(args.__sexps.c, 'c1');
+  equal(args.__sexps.d, 'c1');
+  equal(args.a, Fist.execute('c1'));
+  equal(args.b, Fist.execute('c1'));
+  equal(args.c, Fist.execute('c1'));
+  equal(args.d, Fist.execute('c1'));
 });

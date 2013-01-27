@@ -26,6 +26,16 @@ Error.prototype.trap = function(type) {
   }
 };
 
+String.prototype.hash = function() {
+  var hash = 0;
+  for (var i = 0; i < this.length; i++) {
+    var c = this.charCodeAt(i);
+    hash = (hash << 5) - hash + this.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return hash;
+};
+
 /**
  * Converts the result of a call to d3.select() into a mootools $() object.
  * (d3 plays nicely with mootools, jQuery, etc. objects already.)

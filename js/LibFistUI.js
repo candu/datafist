@@ -608,7 +608,9 @@ var PlotView = {
         iters = [args.x.iter(), args.y.iter()],
         hasArea = args.area !== undefined,
         hasColor = args.color !== undefined,
-        colorIsCategorical = null;
+        colorIsCategorical = null,
+        categories = {},
+        lastCategory = 0;
     if (hasArea) {
       iters.push(args.area.iter());
     }
@@ -629,9 +631,13 @@ var PlotView = {
         if (hasColor) {
           d.c = args.color.at(t);
           if (colorIsCategorical === null) {
-            colorIsCategorical = Fist.evaluateType(d.c) === 'string';
+            colorIsCategorical = typeOf(d.c) === 'string';
+          }
+          if (colorIsCategorical && categories[d.c] === undefined) {
+            categories[d.c] = lastCategory++;
           }
         }
+        console.log(d);
         data.push(d);
       } catch(e) {
         if (!(e instanceof StopIteration)) {
@@ -671,9 +677,17 @@ var PlotView = {
       .domain([bounds.y.min, bounds.y.max])
       .nice()
       .range([plotH, 0]);
-
-    // color scale!
-    var cc = d3.scale.category10();
+    if (hasArea) {
+      scales.r = d3.scale.sqrt()
+        .domain([bounds.A.min, bounds.A.max])
+        .range([2, 20]);
+    }
+    scales.c = d3.scale.category10();
+    if (hasColor && !colorIsCategorical) {
+      scales.c = d3.scale.linear()
+        .domain(['#f00', '#00f'])
+        .range([bounds.c.min, bounds.c.max]);
+    }
 
     // axes
     var axisX = d3.svg.axis()
@@ -716,14 +730,28 @@ var PlotView = {
     // plot
     var g = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
-    g.selectAll('circle')
-      .data(data)
-      .enter().append('svg:circle')
-        .attr('cx', function (d) { return scales.x(d.x); })
-        .attr('cy', function (d) { return scales.y(d.y); })
-        .attr('r', 3)
-        .attr('fill', d3.rgb(cc(0)).brighter(0.5))
-        .attr('stroke', d3.rgb(cc(0)).darker(0.5))
+    data.each(function(d) {
+      var circle = g.append('svg:circle')
+        .attr('cx', scales.x(d.x))
+        .attr('cy', scales.y(d.y));
+      var r = 3;
+      if (hasArea) {
+        r = scales.r(d.A);
+      }
+      circle.attr('r', r);
+      var colorIndex = 0;
+      if (hasColor) {
+        if (colorIsCategorical) {
+          colorIndex = categories[d.c];
+        } else {
+          colorIndex = d.c;
+        }
+      }
+      var color = d3.rgb(scales.c(colorIndex));
+      circle
+        .attr('fill', color.brighter(0.5))
+        .attr('stroke', color.darker(0.5));
+    });
     g.append('svg:text')
       .attr('class', 'plot caption')
       .attr('x', plotW - 8)

@@ -752,7 +752,7 @@ var GensData = {
     return function(t) {
       return Random.choice(args.values);
     };
-  }).type('(fn (name (+ number) "values") (fn number number))')
+  }).type('(fn (name (+ (| number string)) "values") (fn number number))')
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns a value selected at random from values.'
