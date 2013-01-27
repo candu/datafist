@@ -872,10 +872,15 @@ var View = {
     ),
   viewPlot: new FistFunction(function(args) {
     FistUI.onViewInvoked('plot', args);
-  }).type('(fn (-> (name channel "x") (name channel "y")) view)')
+  }).type('(fn (-> (name channel "x") (name channel "y") (name (? channel) "area") (name (? channel) "color")) view)')
     .describe(
-      'Displays its two channels as an x-y plot. If the correlation ' +
-      'R value is high enough, also displays the line of best fit.'
+      'Uses the x and y channels to make an x-y plot. If x and y are ' +
+      'highly correlated, also displays the line of best fit. If area is ' +
+      'provided, it is used to determine the area of the (x, y) points. ' +
+      'If color is provided, it is used to determine the color of the ' +
+      '(x, y) points. Categorical data for color will use one color for ' +
+      'each unique value, whereas numeric data will use a color gradient ' +
+      'over the value range.'
     )
 };
 

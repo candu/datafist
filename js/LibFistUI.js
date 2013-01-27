@@ -591,6 +591,12 @@ var PlotView = {
       .attr('y2', scaleY(regress.L(xbound.max)))
       .attr('opacity', Math.abs(regress.R));
   },
+  _getBound: function(data, key) {
+    return {
+      min: d3.min(data, function(d) { return d[key]; }),
+      max: d3.max(data, function(d) { return d[key]; })
+    };
+  },
   render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
@@ -598,14 +604,35 @@ var PlotView = {
         axisW = 60;
 
     // extract data from channels
-    var data = [];
-    var it = IntersectionIterator([args.x.iter(), args.y.iter()]);
+    var data = [],
+        iters = [args.x.iter(), args.y.iter()],
+        hasArea = args.area !== undefined,
+        hasColor = args.color !== undefined,
+        colorIsCategorical = null;
+    if (hasArea) {
+      iters.push(args.area.iter());
+    }
+    if (hasColor) {
+      iters.push(args.color.iter());
+    }
+    var it = IntersectionIterator(iters);
+
     while (true) {
       try {
         var t = it.next(),
-            x = args.x.at(t),
-            y = args.y.at(t);
-        data.push({x: x, y: y});
+            d = {};
+        d.x = args.x.at(t);
+        d.y = args.y.at(t);
+        if (hasArea) {
+          d.A = args.area.at(t);
+        }
+        if (hasColor) {
+          d.c = args.color.at(t);
+          if (colorIsCategorical === null) {
+            colorIsCategorical = Fist.evaluateType(d.c) === 'string';
+          }
+        }
+        data.push(d);
       } catch(e) {
         if (!(e instanceof StopIteration)) {
           throw e;
@@ -616,27 +643,32 @@ var PlotView = {
 
     // get bounds
     var xfiltering = _getFiltering(args.__sexps.x, 'value-between'),
-        xbound = xfiltering || {min: Infinity, max: -Infinity},
         yfiltering = _getFiltering(args.__sexps.y, 'value-between'),
-        ybound = yfiltering || {min: Infinity, max: -Infinity};
-    for (var i = 0; i < data.length; i++) {
-      xbound.min = Math.min(data[i].x, xbound.min);
-      xbound.max = Math.max(data[i].x, xbound.max);
-      ybound.min = Math.min(data[i].y, ybound.min);
-      ybound.max = Math.max(data[i].y, ybound.max);
+        bounds = {};
+
+    bounds.x = xfiltering || this._getBound(data, 'x');
+    _fixBound(bounds.x);
+    bounds.y = yfiltering || this._getBound(data, 'y');
+    _fixBound(bounds.y);
+    if (hasArea) {
+      bounds.A = this._getBound(data, 'A');
+      _fixBound(bounds.A);
     }
-    _fixBound(xbound);
-    _fixBound(ybound);
+    if (hasColor && colorIsCategorical) {
+      bounds.c = this._getBound(data, 'c');
+      _fixBound(bounds.c);
+    }
 
     // create scales
     var plotH = h - 2 * axisH,
-        plotW = w - 2 * axisW;
-    var scaleX = d3.scale.linear()
-      .domain([xbound.min, xbound.max])
+        plotW = w - 2 * axisW,
+        scales = {};
+    scales.x = d3.scale.linear()
+      .domain([bounds.x.min, bounds.x.max])
       .nice()
       .range([0, plotW]);
-    var scaleY = d3.scale.linear()
-      .domain([ybound.min, ybound.max])
+    scales.y = d3.scale.linear()
+      .domain([bounds.y.min, bounds.y.max])
       .nice()
       .range([plotH, 0]);
 
@@ -645,7 +677,7 @@ var PlotView = {
 
     // axes
     var axisX = d3.svg.axis()
-      .scale(scaleX)
+      .scale(scales.x)
       .ticks(_numTicks(plotW))
       .tickSize(0);
     var axisGroupX = view.append('svg:g')
@@ -654,12 +686,12 @@ var PlotView = {
       .call(axisX);
     axisGroupX.append('svg:line')
       .attr('class', 'range')
-      .attr('x1', scaleX(xbound.min))
+      .attr('x1', scales.x(bounds.x.min))
       .attr('y1', 0)
-      .attr('x2', scaleX(xbound.max))
+      .attr('x2', scales.x(bounds.x.max))
       .attr('y2', 0);
     var axisY = d3.svg.axis()
-      .scale(scaleY)
+      .scale(scales.y)
       .orient('left')
       .ticks(_numTicks(plotH))
       .tickSize(0);
@@ -670,15 +702,15 @@ var PlotView = {
     axisGroupY.append('svg:line')
       .attr('class', 'range')
       .attr('x1', 0)
-      .attr('y1', scaleY(ybound.min))
+      .attr('y1', scales.y(bounds.y.min))
       .attr('x2', 0)
-      .attr('y2', scaleY(ybound.max));
+      .attr('y2', scales.y(bounds.y.max));
 
     // projection ticks
-    var projX = ViewUtils.getProjection(data, scaleX, 'x');
+    var projX = ViewUtils.getProjection(data, scales.x, 'x');
     ViewUtils.drawHorizontalProjectionTicks(projX, axisGroupX);
 
-    var projY = ViewUtils.getProjection(data, scaleY, 'y');
+    var projY = ViewUtils.getProjection(data, scales.y, 'y');
     ViewUtils.drawVerticalProjectionTicks(projY, axisGroupY);
 
     // plot
@@ -687,8 +719,8 @@ var PlotView = {
     g.selectAll('circle')
       .data(data)
       .enter().append('svg:circle')
-        .attr('cx', function (d) { return scaleX(d.x); })
-        .attr('cy', function (d) { return scaleY(d.y); })
+        .attr('cx', function (d) { return scales.x(d.x); })
+        .attr('cy', function (d) { return scales.y(d.y); })
         .attr('r', 3)
         .attr('fill', d3.rgb(cc(0)).brighter(0.5))
         .attr('stroke', d3.rgb(cc(0)).darker(0.5))
@@ -706,7 +738,7 @@ var PlotView = {
       .text(_caption(args.__sexps.y));
 
     // regression line
-    this._drawRegressionLine(data, g, scaleX, scaleY, xbound);
+    this._drawRegressionLine(data, g, scales.x, scales.y, bounds.x);
 
     // region-filtering hit area
     // TODO: merge this with time-filtering code from LineView
@@ -767,10 +799,10 @@ var PlotView = {
       .on('click', function(d) {
         var x1 = parseFloat(this._dragSelectionArea.attr('x')),
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]),
+            x = Interval.nice([+(scales.x.invert(x1)), +(scales.x.invert(x2))]),
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
             y2 = y1 + parseFloat(this._dragSelectionArea.attr('height')),
-            y = Interval.nice([+(scaleY.invert(y2)), +(scaleY.invert(y1))]),
+            y = Interval.nice([+(scales.y.invert(y2)), +(scales.y.invert(y1))]),
             sexpX = _stripFilters(args.__sexps.x, 'value-between'),
             sexpY = _stripFilters(args.__sexps.y, 'value-between');
         var filteredSexp = [
