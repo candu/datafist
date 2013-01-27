@@ -635,7 +635,9 @@ var PlotView = {
           if (typeOf(d.A) === 'string') {
             delete d.A;
             args.color = args.area;
+            args.__sexps.color = args.__sexps.area;
             args.area = undefined;
+            args.__sexps.area = undefined;
             hasColor = true;
             hasArea = false;
           }
@@ -844,12 +846,18 @@ var PlotView = {
             y = Interval.nice([+(scales.y.invert(y2)), +(scales.y.invert(y1))]),
             sexpX = _stripFilters(args.__sexps.x, 'value-between'),
             sexpY = _stripFilters(args.__sexps.y, 'value-between');
-        var filteredSexp = [
+        var filteredSExp = [
           'view-plot',
           ['value-between', sexpX, _format(x[0]), _format(x[1])],
           ['value-between', sexpY, _format(y[0]), _format(y[1])]
         ]
-        $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
+        if (hasArea) {
+          filteredSExp.push(args.__sexps.area);
+        }
+        if (hasColor) {
+          filteredSExp.push(args.__sexps.color);
+        }
+        $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
       }.bind(this))
       .call(dragSelectionBehavior);
   }
