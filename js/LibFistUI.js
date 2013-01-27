@@ -347,8 +347,88 @@ var LineView = {
 };
 
 var CrossfilterView = {
+  _BUCKETS: 20,
+  _determineGrid: function(w, h, n) {
+    var ratio = w / h,
+        cols = 0,
+        rows = 0;
+    do {
+      cols++;
+      rows = Math.floor(cols / ratio);
+    } while (cols * rows < n);
+    rows = Math.ceil(n / cols);
+    var size = w / cols,
+        offset = (h - size * rows) / 2;
+    return {
+      cols: cols,
+      rows: rows,
+      size: size,
+      offset: offset
+    };
+  },
   render: function(view, args) {
-    // TODO: implement this
+    var w = view.attr('width'),
+        h = view.attr('height'),
+        n = args.channels.length;
+    if (n > 32) {
+      throw new Error('crossfilter only supports up to 32 dimensions!');
+    }
+
+    var it = IntersectionIterator(args.channels.map(function(c) {
+      return c.iter();
+    }));
+    var data = [];
+    while (true) {
+      try {
+        var t = it.next();
+        var xs = args.channels.map(function(c) {
+          return c.at(t);
+        });
+        data.push(xs);
+      } catch (e) {
+        if (!(e instanceof StopIteration)) {
+          throw e;
+        }
+        break;
+      }
+    }
+
+    // TODO: also deal with categorical data
+    var filter = crossfilter(data),
+        bounds = [],
+        dims = [],
+        groups = [],
+        buckets = Math.min(Math.ceil(Math.sqrt(data.length)), this._BUCKETS);
+    for (var i = 0; i < n; i++) {
+      bounds.push({
+        min: d3.max(data, function(d) { return d[i]; }),
+        max: d3.max(data, function(d) { return d[i]; })
+      });
+      dims.push(filter.dimension(function(d) { return d[i]; }));
+      groups.push(dims[i].group(function(x) {
+        var bucketSize = (bounds[i].max - bounds[i].min) / buckets,
+            b = (x[i] - bounds[i].min) / bucketSize;
+        return Math.min(b, buckets - 1);
+      }));
+    }
+
+    var grid = this._determineGrid(w, h, n),
+        cc = d3.scale.category10();
+    console.log(grid);
+    for (var i = 0; i < n; i++) {
+      var col = i % grid.cols,
+          row = (i - col) / grid.cols,
+          gx = col * grid.size,
+          gy = row * grid.size + grid.offset;
+      var g = view.append('svg:g')
+        .attr('transform', 'translate(' + gx + ', ' + gy + ')');
+      g.append('svg:rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', grid.size)
+        .attr('height', grid.size)
+        .style('fill', cc(i));
+    }
   }
 };
 
