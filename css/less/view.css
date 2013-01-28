@@ -51,6 +51,11 @@ line.regression {
   stroke-width: 1.5px;
 }
 path.crossfilter.bar {
-  stroke: #f00;
+  stroke-width: 0;
   fill: #f00;
+}
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
 }

@@ -442,6 +442,19 @@ var CrossfilterView = {
       g.append('path')
         .attr('class', 'crossfilter bar')
         .attr('d', path.join(''));
+
+      var brush = d3.svg.brush()
+        .x(scaleX)
+        .on('brush', function() {
+          console.log(brush.extent());
+        });
+
+      g.append('g')
+        .attr('class', 'brush')
+        .call(brush)
+        .selectAll('rect')
+          .attr('y', 0)
+          .attr('height', grid.size);
     }
   }
 };
