@@ -35,6 +35,9 @@ g.axis g.projection line {
   stroke: #000;
   stroke-width: 1px;
 }
+g.axis.crossfilter.category {
+  opacity: 0.6;
+}
 rect.hit-area {
   fill: #000;
   stroke: none;

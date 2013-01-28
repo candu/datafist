@@ -431,9 +431,18 @@ var CrossfilterView = {
       .scale(_scaleAxis)
       .tickSize(0);
     _g.append('svg:g')
-      .attr('class', 'axis')
+      .attr('class', 'crossfilter category axis')
       .attr('transform', 'translate(0, ' + _size + ')')
-      .call(_axis);
+      .call(_axis)
+      .selectAll('text').each(function(d) {
+        var parent = this.getParent(),
+            transform = parent.get('transform');
+        parent.set('transform', transform + 'rotate(-90)');
+        d3.select(this)
+          .attr('x', 10)
+          .attr('y', -4)
+          .attr('text-anchor', 'start')
+      });
 
     _g.append('svg:text')
       .attr('class', 'crossfilter caption')
