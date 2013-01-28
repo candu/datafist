@@ -347,7 +347,7 @@ var LineView = {
 };
 
 var CrossfilterView = {
-  _BUCKETS: 20,
+  _BUCKETS: 10,
   _determineGrid: function(w, h, n) {
     var ratio = w / h,
         cols = 0,
@@ -357,8 +357,8 @@ var CrossfilterView = {
       rows = Math.floor(cols / ratio);
     } while (cols * rows < n);
     rows = Math.ceil(n / cols);
-    var size = w / cols,
-        offset = (h - size * rows) / 2;
+    var size = Math.ceil(w / cols),
+        offset = Math.floor((h - size * rows) / 2);
     return {
       cols: cols,
       rows: rows,
@@ -395,39 +395,53 @@ var CrossfilterView = {
 
     // TODO: also deal with categorical data
     var filter = crossfilter(data),
-        bounds = [],
-        dims = [],
-        groups = [],
-        buckets = Math.min(Math.ceil(Math.sqrt(data.length)), this._BUCKETS);
-    for (var i = 0; i < n; i++) {
-      bounds.push({
-        min: d3.max(data, function(d) { return d[i]; }),
-        max: d3.max(data, function(d) { return d[i]; })
-      });
-      dims.push(filter.dimension(function(d) { return d[i]; }));
-      groups.push(dims[i].group(function(x) {
-        var bucketSize = (bounds[i].max - bounds[i].min) / buckets,
-            b = (x[i] - bounds[i].min) / bucketSize;
-        return Math.min(b, buckets - 1);
-      }));
-    }
-
-    var grid = this._determineGrid(w, h, n),
+        grid = this._determineGrid(w, h, n),
         cc = d3.scale.category10();
-    console.log(grid);
     for (var i = 0; i < n; i++) {
+      var bound = {
+        min: d3.min(data, function(d) { return d[i]; }),
+        max: d3.max(data, function(d) { return d[i]; })
+      };
+      var dim = filter.dimension(function(d) { return d[i]; });
+      var group = dim.group(function(x) {
+        var bw = (bound.max - bound.min) / this._BUCKETS,
+            b = Math.floor((x - bound.min) / bw);
+        return Math.min(b, this._BUCKETS - 1);
+      }.bind(this));
+
       var col = i % grid.cols,
           row = (i - col) / grid.cols,
           gx = col * grid.size,
           gy = row * grid.size + grid.offset;
       var g = view.append('svg:g')
         .attr('transform', 'translate(' + gx + ', ' + gy + ')');
-      g.append('svg:rect')
+      // TODO: brush
+      console.log(JSON.stringify(group.all()));
+      var scaleX = d3.scale.linear()
+        .domain([0, this._BUCKETS])
+        .range([0, grid.size]);
+      var scaleY = d3.scale.linear()
+        .domain([0, group.top(1)[0].value])
+        .range([grid.size, 0]);
+      var path = [];
+      group.all().each(function(d) {
+        path.push(
+          'M', Math.floor(scaleX(d.key)) + 0.5, ',', grid.size,
+          'V', Math.floor(scaleY(d.value)) + 0.5,
+          'H', Math.floor(scaleX(d.key + 1)) - 1.5,
+          'V', grid.size
+        );
+      });
+      g.append('rect')
         .attr('x', 0)
         .attr('y', 0)
         .attr('width', grid.size)
         .attr('height', grid.size)
-        .style('fill', cc(i));
+        .style('fill', cc(i))
+        .style('opacity', 0.3);
+      g.append('path')
+        .attr('class', 'crossfilter bar')
+        .attr('d', path.join(''));
     }
   }
 };

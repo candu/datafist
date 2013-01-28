@@ -50,3 +50,7 @@ line.regression {
   stroke: #f33;
   stroke-width: 1.5px;
 }
+path.crossfilter.bar {
+  stroke: #f00;
+  fill: #f00;
+}
