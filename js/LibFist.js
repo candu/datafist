@@ -816,8 +816,9 @@ var OpsFilterString = {
   endsWith: new FistFunction(function(args) {
     var _suffixLen = args.suffix.length;
     return _filterOp(args.c, function(t) {
-      var s = args.c.at(t);
-      return s.lastIndexOf(args.suffix) === s.length - _suffixLen;
+      var s = args.c.at(t),
+          i = s.lastIndexOf(args.suffix);
+      return i !== -1 && i === s.length - _suffixLen;
     });
   }).type('(fn (-> (name channel "c") (name string "suffix")) channel)')
     .describe(
