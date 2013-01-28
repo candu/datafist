@@ -349,6 +349,7 @@ var LineView = {
 var CrossfilterView = {
   _BUCKETS: 10,
   _PADDING: 5,
+  _colorScale: d3.scale.category10(),
   _determineGrid: function(w, h, n) {
     var ratio = w / h,
         cols = 0,
@@ -396,7 +397,8 @@ var CrossfilterView = {
       .attr('transform', 'translate(' + _gx + ', ' + _gy + ')');
 
     var _path = _g.append('path')
-      .attr('class', 'crossfilter bar');
+      .attr('class', 'crossfilter bar')
+      .style('fill', this._colorScale(i));
 
     var _scaleBrush = d3.scale.linear()
       .domain([_bound.min, _bound.max])
