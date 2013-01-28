@@ -347,8 +347,8 @@ var LineView = {
 };
 
 var CrossfilterView = {
-  _BUCKETS: 10,
-  _PADDING: 5,
+  _BUCKETS: 20,
+  _PADDING: 10,
   _colorScale: d3.scale.category10(),
   _determineGrid: function(w, h, n) {
     var ratio = w / h,
@@ -415,6 +415,15 @@ var CrossfilterView = {
           chart.draw();
         });
       });
+
+    var _axis = d3.svg.axis()
+      .scale(_scaleBrush)
+      .ticks(_numTicks(_size))
+      .tickSize(0);
+    _g.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(0, ' + _size + ')')
+      .call(_axis);
 
     _g.append('g')
       .attr('class', 'brush')
