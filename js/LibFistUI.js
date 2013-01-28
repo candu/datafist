@@ -434,7 +434,7 @@ var CrossfilterView = {
           var path = [
             'M', Math.floor(_scaleX(ci)) + 0.5, ',', _size,
             'V', Math.floor(_scaleY(d.value)) + 0.5,
-            'H', Math.floor(_scaleX(ci + 1)) - 1.5,
+            'H', Math.floor(_scaleX(ci + 1)) - 0.5,
             'V', _size
           ];
           return path.join('');
@@ -523,7 +523,7 @@ var CrossfilterView = {
         path.push(
           'M', Math.floor(_scaleX(d.key)) + 0.5, ',', _size,
           'V', Math.floor(_scaleY(d.value)) + 0.5,
-          'H', Math.floor(_scaleX(d.key + 1)) - 1.5,
+          'H', Math.floor(_scaleX(d.key + 1)) - 0.5,
           'V', _size
         );
       });
