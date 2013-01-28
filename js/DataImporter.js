@@ -369,7 +369,7 @@ var ImportDialog = new Class({
     Object.each(channels, function(channelData, suffix) {
       var fileName = this._file.name,
           prefix = fileName.substring(0, fileName.lastIndexOf('.')),
-          lowerSuffix = suffix.toLowerCase(),
+          lowerSuffix = suffix.toLowerCase().replace(' ', '-'),
           name = prefix + '-' + lowerSuffix;
       Fist.importData(name, channelData, fileName);
     }.bind(this));
