@@ -12,16 +12,22 @@ function _getBucketing(sexp) {
   if (SExp.isAtom(sexp)) {
     return undefined;
   }
-  if (sexp[0] === '//*') {
-    return parseFloat(sexp[2]);
+  switch (sexp[0]) {
+    case '//*':
+      return parseFloat(sexp[2]);
+    case 'hour-of-day':
+    case 'day-of-week':
+    case 'month-of-year':
+      return 1;
+    default:
+      for (var i = 1; i < sexp.length; i++) {
+        var bucketing = _getBucketing(sexp[i]);
+        if (bucketing) {
+          return bucketing;
+        }
+      }
+      return undefined;
   }
-  for (var i = 1; i < sexp.length; i++) {
-    var bucketing = _getBucketing(sexp[i]);
-    if (bucketing) {
-      return bucketing;
-    }
-  }
-  return undefined;
 }
 
 function _format(x) {
