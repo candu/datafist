@@ -368,7 +368,7 @@ var CrossfilterView = {
       offset: offset
     };
   },
-  _makeBarChart: function(view, filter, data, grid, charts) {
+  _makeBarChart: function(view, filter, data, grid, sexp, charts) {
     var i = charts.length;
     var _bound = {
       min: d3.min(data, function(d) { return d[i]; }),
@@ -423,6 +423,14 @@ var CrossfilterView = {
         .attr('y', 0)
         .attr('height', _size);
 
+    _g.append('svg:text')
+      .attr('class', 'crossfilter caption')
+      .attr('x', 8)
+      .attr('y', 8)
+      .attr('dy', '.71em')
+      .attr('text-anchor', 'start')
+      .text(_caption(sexp));
+
     function _barPath() {
       var path = [];
       _group.all().each(function(d) {
@@ -476,7 +484,8 @@ var CrossfilterView = {
         grid = this._determineGrid(w, h, n),
         charts = [];
     for (var i = 0; i < n; i++) {
-      this._makeBarChart(view, filter, data, grid, charts);
+      var sexp = args.__sexps.channels[i];
+      this._makeBarChart(view, filter, data, grid, sexp, charts);
       charts[i].draw();
     }
   }
