@@ -83,6 +83,9 @@ var ChannelExtractor = {
     x = x.replace(/,/g, '');
     // kill currency symbols
     x = x.replace(/[$€£]/, '');
+    if (isNaN(x)) {
+      return NaN;
+    }
     return parseFloat(x);
   },
   _getValue: function(x) {

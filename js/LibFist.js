@@ -266,7 +266,37 @@ var OpsMath = {
     )
 };
 
-var OpsString = {};
+// TODO: allow these to operate directly on strings
+var OpsString = {
+  __fullName: 'String Operations',
+  substring: new FistFunction(function(args) {
+    return _unaryOp(args.c, function(s) {
+      var n = s.length,
+          start = args.start,
+          end = args.end || n;
+      if (start < 0) {
+        start += n;
+      }
+      if (end < 0) {
+        end += n;
+      }
+      return s.substring(start, end);
+    });
+  }).type('(fn (-> (name channel "c") (name number "start") (name (? number) "end")) channel)')
+    .describe(
+      'Produces a channel whose values are fixed-position substrings of ' +
+      'the values of c.'
+    ),
+  length: new FistFunction(function(args) {
+    return _unaryOp(args.c, function(s) {
+      return s.length;
+    });
+  }).type('(fn (name channel "c") channel)')
+    .describe(
+      'Produces a channel whose values are the lengths, or number of ' +
+      'characters, of the values of c.'
+    )
+};
 
 var OpsTime = {
   __exports: [
@@ -734,6 +764,33 @@ var OpsFilterTime = {
     )
 };
 
+var OpsFilterString = {
+  __exports: [
+    ['startsWith', 'starts-with'],
+    ['endsWith', 'ends-with']
+  ],
+  __fullName: 'String Filters',
+  startsWith: new FistFunction(function(args) {
+    return _filterOp(args.c, function(t) {
+      var s = args.c.at(t);
+      return s.indexOf(args.prefix) === 0;
+    });
+  }).type('(fn (-> (name channel "c") (name string "prefix")) channel)')
+    .describe(
+      'Filters c to contain only values that start with prefix.'
+    ),
+  endsWith: new FistFunction(function(args) {
+    var _suffixLen = args.suffix.length;
+    return _filterOp(args.c, function(t) {
+      var s = args.c.at(t);
+      return s.lastIndexOf(args.suffix) === s.length - _suffixLen;
+    });
+  }).type('(fn (-> (name channel "c") (name string "suffix")) channel)')
+    .describe(
+      'Filters c to contain only values that end with suffix.'
+    )
+};
+
 var OpsFilterLocation = {};
 var OpsFilterRegion = {};
 
@@ -910,12 +967,13 @@ var LibFist = {
     View,
     OpsArith,
     OpsMath,
-    //OpsString,
+    OpsString,
     OpsTime,
     OpsSmooth,
     OpsJoin,
     OpsFilterValue,
     OpsFilterTime,
+    OpsFilterString,
     //OpsFilterLocation,
     //OpsFilterRegion,
     GensData,
