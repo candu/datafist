@@ -1008,7 +1008,7 @@ var PlotView = {
       bounds.A = _getBound(data, 'A');
       _fixBound(bounds.A);
     }
-    if (hasColor && colorIsCategorical) {
+    if (hasColor && !colorIsCategorical) {
       bounds.c = _getBound(data, 'c');
       _fixBound(bounds.c);
     }
@@ -1033,8 +1033,8 @@ var PlotView = {
     scales.c = d3.scale.category10();
     if (hasColor && !colorIsCategorical) {
       scales.c = d3.scale.linear()
-        .domain(['#f00', '#00f'])
-        .range([bounds.c.min, bounds.c.max]);
+        .domain([bounds.c.min, (bounds.c.min + bounds.c.max) / 2, bounds.c.max])
+        .range(['rgb(239,138,98)','rgb(247,247,247)','rgb(103,169,207)']);
     }
 
     // axes
