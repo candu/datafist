@@ -348,6 +348,7 @@ var LineView = {
 
 var CrossfilterView = {
   _BUCKETS: 10,
+  _PADDING: 5,
   _determineGrid: function(w, h, n) {
     var ratio = w / h,
         cols = 0,
@@ -381,14 +382,15 @@ var CrossfilterView = {
 
     var _col = i % grid.cols,
         _row = (i - _col) / grid.cols,
-        _gx = _col * grid.size,
-        _gy = _row * grid.size + grid.offset;
+        _gx = _col * grid.size + this._PADDING,
+        _gy = _row * grid.size + grid.offset + this._PADDING,
+        _size = grid.size - 2 * this._PADDING;
     var _scaleX = d3.scale.linear()
       .domain([0, this._BUCKETS])
-      .range([0, grid.size]);
+      .range([0, _size]);
     var _scaleY = d3.scale.linear()
       .domain([0, _group.top(1)[0].value])
-      .range([grid.size, 0]);
+      .range([_size, 0]);
 
     var _g = view.append('svg:g')
       .attr('transform', 'translate(' + _gx + ', ' + _gy + ')');
@@ -398,7 +400,7 @@ var CrossfilterView = {
 
     var _scaleBrush = d3.scale.linear()
       .domain([_bound.min, _bound.max])
-      .range([0, grid.size]);
+      .range([0, _size]);
     var _brush = d3.svg.brush()
       .x(_scaleBrush)
       .on('brush', function() {
@@ -417,16 +419,16 @@ var CrossfilterView = {
       .call(_brush)
       .selectAll('rect')
         .attr('y', 0)
-        .attr('height', grid.size);
+        .attr('height', _size);
 
     function _barPath() {
       var path = [];
       _group.all().each(function(d) {
         path.push(
-          'M', Math.floor(_scaleX(d.key)) + 0.5, ',', grid.size,
+          'M', Math.floor(_scaleX(d.key)) + 0.5, ',', _size,
           'V', Math.floor(_scaleY(d.value)) + 0.5,
           'H', Math.floor(_scaleX(d.key + 1)) - 1.5,
-          'V', grid.size
+          'V', _size
         );
       });
       return path.join('');
@@ -437,7 +439,7 @@ var CrossfilterView = {
     }
 
     charts.push({
-      draw: draw,
+      draw: draw
     });
   },
   render: function(view, args) {
