@@ -52,6 +52,13 @@ function _getFiltering(sexp, filterName) {
   return undefined;
 }
 
+function _getBound(data, key) {
+  return {
+    min: d3.min(data, function(d) { return d[key]; }),
+    max: d3.max(data, function(d) { return d[key]; })
+  };
+}
+
 function _fixBound(bound) {
   if (!isFinite(bound.min) || !isFinite(bound.max)) {
     bound.min = 0;
@@ -591,7 +598,6 @@ var CrossfilterView = {
       }
     }
 
-    // TODO: also deal with categorical data
     var filter = crossfilter(data),
         grid = this._determineGrid(w, h, n),
         charts = [];
@@ -604,6 +610,86 @@ var CrossfilterView = {
       }
       charts[i].draw();
     }
+  }
+};
+
+var MapView = {
+  _colorScale: d3.scale.category10(),
+  _determineViewFit: function(w, h, b) {
+    var dLng = b.lng.max - b.lng.min,
+        dLat = b.lat.max - b.lat.min,
+        ratioLng = w / dLng,
+        ratioLat = h / dLat,
+        ratio = Math.min(ratioLng, ratioLat);
+    var size = {
+      x: Math.floor(ratio * dLng),
+      y: Math.floor(ratio * dLat)
+    };
+    var offset = {
+      x: Math.floor((w - size.x) / 2),
+      y: Math.floor((h - size.y) / 2)
+    };
+    return {
+      size: size,
+      offset: offset
+    };
+  },
+  render: function(view, args) {
+    var w = view.attr('width'),
+        h = view.attr('height'),
+        n = args.channels.length;
+    if (n < 2) {
+      throw new Error('need at least two channels to display map data');
+    }
+
+    // extract data from channels
+    var data = [];
+    for (var i = 0; i < n - 1; i += 2) {
+      var cLat = args.channels[i],
+          cLng = args.channels[i + 1],
+          it = IntersectionIterator([cLat.iter(), cLng.iter()]);
+      while (true) {
+        try {
+          var t = it.next(),
+              lat = cLat.at(t),
+              lng = cLng.at(t),
+              c = i / 2;
+          data.push({lat: lat, lng: lng, c: c});
+        } catch (e) {
+          if (!(e instanceof StopIteration)) {
+            throw e;
+          }
+          break;
+        }
+      }
+    }
+
+    var bounds = {};
+    bounds.lng = _getBound(data, 'lng');
+    _fixBound(bounds.lng);
+    bounds.lat = _getBound(data, 'lat');
+    _fixBound(bounds.lat);
+
+    var fit = this._determineViewFit(w, h, bounds);
+    var scales = {};
+    scales.lng = d3.scale.linear()
+      .domain([bounds.lng.min, bounds.lng.max])
+      .range([0, fit.size.x]);
+    scales.lat = d3.scale.linear()
+      .domain([bounds.lat.min, bounds.lat.max])
+      .range([fit.size.y, 0]);
+
+    var g = view.append('svg:g')
+      .attr('transform', 'translate(' + fit.offset.x + ', ' + fit.offset.y + ')');
+    data.each(function(d) {
+      var color = d3.rgb(this._colorScale(d.c));
+      var circle = g.append('svg:circle')
+        .attr('cx', scales.lng(d.lng))
+        .attr('cy', scales.lat(d.lat))
+        .attr('r', 3)
+        .style('fill', color.brighter(0.5))
+        .style('stroke', color.darker(0.5));
+    }.bind(this));
   }
 };
 
@@ -850,12 +936,6 @@ var PlotView = {
       .attr('y2', scaleY(regress.L(xbound.max)))
       .attr('opacity', Math.abs(regress.R));
   },
-  _getBound: function(data, key) {
-    return {
-      min: d3.min(data, function(d) { return d[key]; }),
-      max: d3.max(data, function(d) { return d[key]; })
-    };
-  },
   render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
@@ -920,16 +1000,16 @@ var PlotView = {
         yfiltering = _getFiltering(args.__sexps.y, 'value-between'),
         bounds = {};
 
-    bounds.x = xfiltering || this._getBound(data, 'x');
+    bounds.x = xfiltering || _getBound(data, 'x');
     _fixBound(bounds.x);
-    bounds.y = yfiltering || this._getBound(data, 'y');
+    bounds.y = yfiltering || _getBound(data, 'y');
     _fixBound(bounds.y);
     if (hasArea) {
-      bounds.A = this._getBound(data, 'A');
+      bounds.A = _getBound(data, 'A');
       _fixBound(bounds.A);
     }
     if (hasColor && colorIsCategorical) {
-      bounds.c = this._getBound(data, 'c');
+      bounds.c = _getBound(data, 'c');
       _fixBound(bounds.c);
     }
 
@@ -1122,6 +1202,7 @@ var LibFistUI = {
   import: function() {
     FistUI.importView('line', LineView);
     FistUI.importView('crossfilter', CrossfilterView);
+    FistUI.importView('map', MapView);
     FistUI.importView('histogram', HistogramView);
     FistUI.importView('plot', PlotView);
   }
