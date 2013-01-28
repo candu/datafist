@@ -359,8 +359,14 @@ var CrossfilterView = {
       rows = Math.floor(cols / ratio);
     } while (cols * rows < n);
     rows = Math.ceil(n / cols);
-    var size = Math.ceil(w / cols),
-        offset = Math.floor((h - size * rows) / 2);
+    var size = Math.ceil(w / cols);
+    var offset = {
+      x: 0,
+      y: Math.floor((h - size * rows) / 2)
+    };
+    if (rows === 1) {
+      offset.x = Math.floor((w - size * n) / 2);
+    }
     return {
       cols: cols,
       rows: rows,
@@ -377,12 +383,12 @@ var CrossfilterView = {
 
     var _col = i % grid.cols,
         _row = (i - _col) / grid.cols,
-        _gx = _col * grid.size + this._PADDING,
-        _gy = _row * grid.size + grid.offset + this._PADDING,
+        _gx = _col * grid.size + grid.offset.x + this._PADDING,
+        _gy = _row * grid.size + grid.offset.y + this._PADDING,
         _size = grid.size - 2 * this._PADDING;
     var _scaleC = d3.scale.ordinal()
       .domain(_cats)
-      .rangePoints([0, _cats.length - 1]);
+      .rangeBands([0, _cats.length]);
     var _scaleX = d3.scale.linear()
       .domain([0, _cats.length])
       .range([0, _size]);
@@ -417,6 +423,17 @@ var CrossfilterView = {
             chart.draw();
           });
         });
+
+    var _scaleAxis = d3.scale.ordinal()
+      .domain(_cats)
+      .rangeBands([0, _size]);
+    var _axis = d3.svg.axis()
+      .scale(_scaleAxis)
+      .tickSize(0);
+    _g.append('svg:g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(0, ' + _size + ')')
+      .call(_axis);
 
     _g.append('svg:text')
       .attr('class', 'crossfilter caption')
@@ -460,8 +477,8 @@ var CrossfilterView = {
 
     var _col = i % grid.cols,
         _row = (i - _col) / grid.cols,
-        _gx = _col * grid.size + this._PADDING,
-        _gy = _row * grid.size + grid.offset + this._PADDING,
+        _gx = _col * grid.size + grid.offset.x + this._PADDING,
+        _gy = _row * grid.size + grid.offset.y + this._PADDING,
         _size = grid.size - 2 * this._PADDING;
     var _scaleX = d3.scale.linear()
       .domain([0, this._BUCKETS])
