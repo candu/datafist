@@ -36,6 +36,14 @@ String.prototype.hash = function() {
   return hash;
 };
 
+Number.prototype.toRad = function() {
+  return this * Math.PI / 180;
+};
+
+Number.prototype.toDeg = function() {
+  return this * 180 / Math.PI;
+};
+
 /**
  * Converts the result of a call to d3.select() into a mootools $() object.
  * (d3 plays nicely with mootools, jQuery, etc. objects already.)

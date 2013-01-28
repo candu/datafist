@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: have separate constructs for categorical, spatial channels
+
 var _unaryOp = function(a, op) {
   if (typeOf(a) === 'number') {
     return op(a);
@@ -295,6 +297,38 @@ var OpsString = {
     .describe(
       'Produces a channel whose values are the lengths, or number of ' +
       'characters, of the values of c.'
+    )
+};
+
+var OpsLocation = {
+  __exports: [
+    ['distanceFrom', 'distance-from']
+  ],
+  __fullName: 'Location Operations',
+  distanceFrom: new FistFunction(function(args) {
+    var _plat = args.pointLat.toRad(),
+        _plng = args.pointLng.toRad(),
+        _R = 6371009.0;   // mean Earth radius, in meters
+    return {
+      at: function(t) {
+        var lat = args.lat.at(t).toRad(),
+            lng = args.lng.at(t).toRad(),
+            dLat = lat - _plat,
+            dLng = lng - _plng;
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.sin(dLng / 2) * Math.sin(dLng / 2) *
+                Math.cos(_plat) * Math.cos(lat);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return _R * c;
+      },
+      iter: function() {
+        return IntersectionIterator([args.lat.iter(), args.lng.iter()]);
+      }
+    };
+  }).type('(fn (-> (name channel "lat") (name channel "lng") (name number "pointLat") (name number "pointLng")) channel)')
+    .describe(
+      'Produces a channel whose values are the distances of each data ' +
+      'point (lat, lng) from (pointLat, pointLng).'
     )
 };
 
@@ -968,6 +1002,7 @@ var LibFist = {
     OpsArith,
     OpsMath,
     OpsString,
+    OpsLocation,
     OpsTime,
     OpsSmooth,
     OpsJoin,
