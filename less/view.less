@@ -62,6 +62,13 @@ line.regression {
 
 path.crossfilter.bar {
   stroke-width: 0;
+  &.category {
+    cursor: pointer;
+    opacity: 0.7;
+    &.selected {
+      opacity: 1.0;
+    }
+  }
 }
 
 .brush .extent {

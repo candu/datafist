@@ -368,7 +368,84 @@ var CrossfilterView = {
       offset: offset
     };
   },
-  _makeBarChart: function(view, filter, data, grid, sexp, charts) {
+  _makeCategoricalBarChart: function(view, filter, data, grid, sexp, charts) {
+    var i = charts.length,
+        _dim = filter.dimension(function(d) { return d[i]; }),
+        _group = _dim.group(),
+        _order = _group.top(Infinity),
+        _cats = _order.map(function(d) { return d.key; });
+
+    var _col = i % grid.cols,
+        _row = (i - _col) / grid.cols,
+        _gx = _col * grid.size + this._PADDING,
+        _gy = _row * grid.size + grid.offset + this._PADDING,
+        _size = grid.size - 2 * this._PADDING;
+    var _scaleC = d3.scale.ordinal()
+      .domain(_cats)
+      .rangePoints([0, _cats.length - 1]);
+    var _scaleX = d3.scale.linear()
+      .domain([0, _cats.length])
+      .range([0, _size]);
+    var _scaleY = d3.scale.linear()
+      .domain([0, _order[0].value])
+      .range([_size, 0]);
+
+    var _g = view.append('svg:g')
+      .attr('transform', 'translate(' + _gx + ', ' + _gy + ')');
+
+    var _selected = null;
+    var _paths = _g.selectAll('.crossfilter.bar')
+      .data(_group.all(), function(d) { return d.key; })
+      .enter().append('path')
+        .attr('class', 'crossfilter bar category')
+        .style('fill', this._colorScale(i))
+        .on('click', function(d) {
+          if (d.key === _selected) {
+            d3.select(this)
+              .attr('class', 'crossfilter bar category');
+            _selected = null;
+            _dim.filterAll();
+          } else {
+            _g.selectAll('.crossfilter.bar')
+              .attr('class', 'crossfilter bar category');
+            d3.select(this)
+              .attr('class', 'crossfilter bar category selected');
+            _selected = d.key;
+            _dim.filterExact(_selected);
+          }
+          charts.each(function(chart) {
+            chart.draw();
+          });
+        });
+
+    _g.append('svg:text')
+      .attr('class', 'crossfilter caption')
+      .attr('x', 8)
+      .attr('y', 8)
+      .attr('dy', '.71em')
+      .attr('text-anchor', 'start')
+      .text(_caption(sexp));
+
+    function draw() {
+      _g.selectAll('.crossfilter.bar')
+        .data(_group.all(), function(d) { return d.key; })
+        .attr('d', function(d) {
+          var ci = _scaleC(d.key);
+          var path = [
+            'M', Math.floor(_scaleX(ci)) + 0.5, ',', _size,
+            'V', Math.floor(_scaleY(d.value)) + 0.5,
+            'H', Math.floor(_scaleX(ci + 1)) - 1.5,
+            'V', _size
+          ];
+          return path.join('');
+        });
+    }
+
+    charts.push({
+      draw: draw
+    });
+  },
+  _makeNumericBarChart: function(view, filter, data, grid, sexp, charts) {
     var i = charts.length;
     var _bound = {
       min: d3.min(data, function(d) { return d[i]; }),
@@ -494,7 +571,11 @@ var CrossfilterView = {
         charts = [];
     for (var i = 0; i < n; i++) {
       var sexp = args.__sexps.channels[i];
-      this._makeBarChart(view, filter, data, grid, sexp, charts);
+      if (typeOf(data[0][i]) === 'string') {
+        this._makeCategoricalBarChart(view, filter, data, grid, sexp, charts);
+      } else {
+        this._makeNumericBarChart(view, filter, data, grid, sexp, charts);
+      }
       charts[i].draw();
     }
   }
