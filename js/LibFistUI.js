@@ -366,6 +366,80 @@ var CrossfilterView = {
       offset: offset
     };
   },
+  _makeBarChart: function(view, filter, data, grid, charts) {
+    var i = charts.length;
+    var _bound = {
+      min: d3.min(data, function(d) { return d[i]; }),
+      max: d3.max(data, function(d) { return d[i]; })
+    };
+    var _dim = filter.dimension(function(d) { return d[i]; });
+    var _group = _dim.group(function(x) {
+      var bw = (_bound.max - _bound.min) / this._BUCKETS,
+          b = Math.floor((x - _bound.min) / bw);
+      return Math.min(b, this._BUCKETS - 1);
+    }.bind(this));
+
+    var _col = i % grid.cols,
+        _row = (i - _col) / grid.cols,
+        _gx = _col * grid.size,
+        _gy = _row * grid.size + grid.offset;
+    var _scaleX = d3.scale.linear()
+      .domain([0, this._BUCKETS])
+      .range([0, grid.size]);
+    var _scaleY = d3.scale.linear()
+      .domain([0, _group.top(1)[0].value])
+      .range([grid.size, 0]);
+
+    var _g = view.append('svg:g')
+      .attr('transform', 'translate(' + _gx + ', ' + _gy + ')');
+
+    var _path = _g.append('path')
+      .attr('class', 'crossfilter bar');
+
+    var _scaleBrush = d3.scale.linear()
+      .domain([_bound.min, _bound.max])
+      .range([0, grid.size]);
+    var _brush = d3.svg.brush()
+      .x(_scaleBrush)
+      .on('brush', function() {
+        if (_brush.empty()) {
+          _dim.filterAll();
+        } else {
+          _dim.filterRange(_brush.extent());
+        }
+        charts.each(function(chart) {
+          chart.draw();
+        });
+      });
+
+    _g.append('g')
+      .attr('class', 'brush')
+      .call(_brush)
+      .selectAll('rect')
+        .attr('y', 0)
+        .attr('height', grid.size);
+
+    function _barPath() {
+      var path = [];
+      _group.all().each(function(d) {
+        path.push(
+          'M', Math.floor(_scaleX(d.key)) + 0.5, ',', grid.size,
+          'V', Math.floor(_scaleY(d.value)) + 0.5,
+          'H', Math.floor(_scaleX(d.key + 1)) - 1.5,
+          'V', grid.size
+        );
+      });
+      return path.join('');
+    }
+
+    function draw() {
+      _path.attr('d', _barPath());
+    }
+
+    charts.push({
+      draw: draw,
+    });
+  },
   render: function(view, args) {
     var w = view.attr('width'),
         h = view.attr('height'),
@@ -396,65 +470,10 @@ var CrossfilterView = {
     // TODO: also deal with categorical data
     var filter = crossfilter(data),
         grid = this._determineGrid(w, h, n),
-        cc = d3.scale.category10();
+        charts = [];
     for (var i = 0; i < n; i++) {
-      var bound = {
-        min: d3.min(data, function(d) { return d[i]; }),
-        max: d3.max(data, function(d) { return d[i]; })
-      };
-      var dim = filter.dimension(function(d) { return d[i]; });
-      var group = dim.group(function(x) {
-        var bw = (bound.max - bound.min) / this._BUCKETS,
-            b = Math.floor((x - bound.min) / bw);
-        return Math.min(b, this._BUCKETS - 1);
-      }.bind(this));
-
-      var col = i % grid.cols,
-          row = (i - col) / grid.cols,
-          gx = col * grid.size,
-          gy = row * grid.size + grid.offset;
-      var g = view.append('svg:g')
-        .attr('transform', 'translate(' + gx + ', ' + gy + ')');
-      // TODO: brush
-      console.log(JSON.stringify(group.all()));
-      var scaleX = d3.scale.linear()
-        .domain([0, this._BUCKETS])
-        .range([0, grid.size]);
-      var scaleY = d3.scale.linear()
-        .domain([0, group.top(1)[0].value])
-        .range([grid.size, 0]);
-      var path = [];
-      group.all().each(function(d) {
-        path.push(
-          'M', Math.floor(scaleX(d.key)) + 0.5, ',', grid.size,
-          'V', Math.floor(scaleY(d.value)) + 0.5,
-          'H', Math.floor(scaleX(d.key + 1)) - 1.5,
-          'V', grid.size
-        );
-      });
-      g.append('rect')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', grid.size)
-        .attr('height', grid.size)
-        .style('fill', cc(i))
-        .style('opacity', 0.3);
-      g.append('path')
-        .attr('class', 'crossfilter bar')
-        .attr('d', path.join(''));
-
-      var brush = d3.svg.brush()
-        .x(scaleX)
-        .on('brush', function() {
-          console.log(brush.extent());
-        });
-
-      g.append('g')
-        .attr('class', 'brush')
-        .call(brush)
-        .selectAll('rect')
-          .attr('y', 0)
-          .attr('height', grid.size);
+      this._makeBarChart(view, filter, data, grid, charts);
+      charts[i].draw();
     }
   }
 };
