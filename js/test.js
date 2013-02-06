@@ -730,9 +730,10 @@ QUnit.test('OpsFilterValue', function() {
 
 QUnit.test('OpsFilterTime', function() {
   // since
-  var c = Fist.execute(
-    '(time-since (gen-regular (constant 1) 0 10 10) 3)'
-  );
+  var c = Fist.evaluate({
+    op: 'time-since',
+    args: {c: TestUtils.makeChannel(1, 10), since: 3}
+  });
   for (var t = 0; t < 10; t++) {
     if (t >= 3) {
       equal(c.at(t), 1);
@@ -742,9 +743,10 @@ QUnit.test('OpsFilterTime', function() {
   }
 
   // until
-  var c = Fist.execute(
-    '(time-until (gen-regular (constant 1) 0 10 10) 7)'
-  );
+  var c = Fist.evaluate({
+    op: 'time-until',
+    args: {c: TestUtils.makeChannel(1, 10), until: 7}
+  });
   for (var t = 0; t < 10; t++) {
     if (t < 7) {
       equal(c.at(t), 1);
@@ -754,9 +756,10 @@ QUnit.test('OpsFilterTime', function() {
   }
 
   // between
-  var c = Fist.execute(
-    '(time-between (gen-regular (constant 1) 0 10 10) 3 7)'
-  );
+  var c = Fist.evaluate({
+    op: 'time-between',
+    args: {c: TestUtils.makeChannel(1, 10), since: 3, until: 7}
+  });
   for (var t = 0; t < 10; t++) {
     if (t >= 3 && t < 7) {
       equal(c.at(t), 1);
@@ -769,7 +772,7 @@ QUnit.test('OpsFilterTime', function() {
 QUnit.test('GensData', function() {
   var FOUR_NINES_SIG = 3.89;
 
-  var constant = Fist.execute('(constant 42)');
+  var constant = Fist.evaluate({op: 'constant', args: {x: 42}});
   ok(constant instanceof Function);
   var N = 1000,
       foundMismatch = false;
@@ -781,7 +784,7 @@ QUnit.test('GensData', function() {
   }
   ok(!foundMismatch);
 
-  var uniform = Fist.execute('(uniform 1 3)');
+  var uniform = Fist.evaluate({op: 'uniform', args: {min: 1, max: 3}});
   ok(uniform instanceof Function);
   var total = 0,
       N = 1000;
@@ -792,7 +795,7 @@ QUnit.test('GensData', function() {
   var limit = FOUR_NINES_SIG * Math.sqrt(1 / (3 * N));
   ok(error < limit);
 
-  var choice = Fist.execute('(choice 0 0 0 1 1)');
+  var choice = Fist.evaluate({op: 'choice', args: {values: [0, 0, 0, 1, 1]}});
   ok(choice instanceof Function);
   var N = 1000,
       p = 0.6,
@@ -804,7 +807,7 @@ QUnit.test('GensData', function() {
   var limit = FOUR_NINES_SIG * Math.sqrt(N * p * (1 - p));
   ok(error < limit);
 
-  var gaussian = Fist.execute('(gaussian 4 1)');
+  var gaussian = Fist.evaluate({op: 'gaussian', args: {mu: 4, sigma: 1}});
   ok(gaussian instanceof Function);
   var total = 0,
       N = 1000;
@@ -818,15 +821,22 @@ QUnit.test('GensData', function() {
 
 // TODO: test iteration
 QUnit.test('GensChannel', function() {
-  var FOUR_NINES_SIG = 3.89;
+  var FOUR_NINES_SIG = 3.89,
+      constant = {op: 'constant', args: {x: 42}};
 
-  var c = Fist.execute('(gen-regular (constant 42) 0 60 10)');
+  var c = Fist.evaluate({
+    op: 'gen-regular',
+    args: {gen: constant, since: 0, until: 60, n: 10}
+  });
   for (var t = 0; t < 60; t += 6) {
     equal(c.at(t), 42);
   }
 
-  var c = Fist.execute('(gen-uniform (constant 42) 0 60 10)'),
-      pointsFound = 0;
+  var c = Fist.evaluate({
+    op: 'gen-uniform',
+    args: {gen: constant, since: 0, until: 60, n: 10}
+  });
+  var pointsFound = 0;
   for (var t = 0; t < 60; t++) {
     if (c.at(t) === 42) {
       pointsFound++;
@@ -834,8 +844,11 @@ QUnit.test('GensChannel', function() {
   }
   equal(pointsFound, 10);
 
-  var c = Fist.execute('(gen-poisson (constant 42) 0 10000 10)'),
-      N = 10000,
+  var c = Fist.evaluate({
+    op: 'gen-poisson',
+    args: {gen: constant, since: 0, until: 10000, rate: 10}
+  });
+  var N = 10000,
       rate = 10,
       pointsFound = 0;
   for (var t = 0; t < N; t++) {
