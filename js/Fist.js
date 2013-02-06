@@ -82,7 +82,6 @@ var Fist = {
     }
     var args = {__code: {}};
     Object.each(code.args, function(arg, name) {
-      console.log('eval: ' + name);
       args.__code[name] = arg;
       if (arg === undefined) {
         args[name] = undefined;

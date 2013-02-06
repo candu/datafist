@@ -1,5 +1,21 @@
 'use strict';
 
+var TestUtils = {
+  makeChannel: function(x, until, n) {
+    until = until || 3;
+    n = n || until;
+    return {
+      op: 'gen-regular',
+      args: {
+        gen: {op: 'constant', args: {x: x}},
+        since: 0,
+        until: until,
+        n: n
+      }
+    };
+  }
+};
+
 QUnit.test('Object', function() {
   equal(Object.isEmpty({}), true);
   equal(Object.isEmpty({a:{}}), false);
@@ -368,22 +384,17 @@ QUnit.test('SExp', function() {
 });
 
 QUnit.test('evaluateAtom', function() {
-  // empty
-  throws(function() { Fist.evaluateAtom(''); }, /empty atom not allowed/);
-
   // number
   equal(Fist.evaluateAtom('1'), 1);
   equal(Fist.evaluateAtom('-1'), -1);
   equal(Fist.evaluateAtom('3.25'), 3.25);
 
   // boolean
-  equal(Fist.evaluateAtom('true'), true);
-  equal(Fist.evaluateAtom('false'), false);
+  equal(Fist.evaluateAtom(true), true);
+  equal(Fist.evaluateAtom(false), false);
 
   // string
-  equal(Fist.evaluateAtom('"foo"'), 'foo');
-  equal(Fist.evaluateAtom('"foo: \\"bar\\""'), 'foo: "bar"');
-  throws(function() { Fist.evaluateAtom("'foo'"); }, /unrecognized atom/);
+  equal(Fist.evaluateAtom('foo'), 'foo');
 
   // ops
   equal(Fist.evaluateAtom('+'), OpsArith.add);
@@ -435,50 +446,38 @@ QUnit.test('OpsArith', function() {
     args: {values: [{op: '//', args: {a: 19, b: 8}}, 8]}
   }));
 
-  var makeChannel = function(x) {
-    return {
-      op: 'gen-regular',
-      args: {
-        gen: {op: 'constant', args: {x: x}},
-        since: 0,
-        until: 3,
-        n: 3
-      }
-    };
-  };
-
   // channel
   var c = Fist.evaluate({
     op: '+',
-    args: {values: [makeChannel(1), makeChannel(2)]}
+    args: {values: [TestUtils.makeChannel(1), TestUtils.makeChannel(2)]}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
   var c = Fist.evaluate({
     op: '-',
-    args: {a: makeChannel(45), b: makeChannel(3)}
+    args: {a: TestUtils.makeChannel(45), b: TestUtils.makeChannel(3)}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
   var c = Fist.evaluate({
     op: '*',
-    args: {values: [makeChannel(5), makeChannel(7)]}
+    args: {values: [TestUtils.makeChannel(5), TestUtils.makeChannel(7)]}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 35);
   }
   var c = Fist.evaluate({
     op: '/',
-    args: {a: makeChannel(19), b: makeChannel(8)}
+    args: {a: TestUtils.makeChannel(19), b: TestUtils.makeChannel(8)}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
   var c = Fist.evaluate({
     op: '//',
-    args: {a: makeChannel(19), b: makeChannel(8)}
+    args: {a: TestUtils.makeChannel(19), b: TestUtils.makeChannel(8)}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
@@ -487,49 +486,49 @@ QUnit.test('OpsArith', function() {
   // mixed
   var c = Fist.evaluate({
     op: '+',
-    args: {values: [35, makeChannel(1), 4, makeChannel(2)]}
+    args: {values: [35, TestUtils.makeChannel(1), 4, TestUtils.makeChannel(2)]}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
   var c = Fist.evaluate({
     op: '-',
-    args: {a: 10, b: makeChannel(2)}
+    args: {a: 10, b: TestUtils.makeChannel(2)}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 8);
   }
   var c = Fist.evaluate({
     op: '*',
-    args: {values: [makeChannel(2), 73]}
+    args: {values: [TestUtils.makeChannel(2), 73]}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 146);
   }
   var c = Fist.evaluate({
     op: '/',
-    args: {a: makeChannel(19), b: 8}
+    args: {a: TestUtils.makeChannel(19), b: 8}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
   var c = Fist.evaluate({
     op: '//',
-    args: {a: makeChannel(19), b: 8}
+    args: {a: TestUtils.makeChannel(19), b: 8}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
   }
   var c = Fist.evaluate({
     op: '%',
-    args: {a: makeChannel(19), b: 8}
+    args: {a: TestUtils.makeChannel(19), b: 8}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
   var c = Fist.evaluate({
     op: '//*',
-    args: {a: makeChannel(19), b: 8}
+    args: {a: TestUtils.makeChannel(19), b: 8}
   });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 16);
@@ -543,32 +542,33 @@ QUnit.test('OpsMath', function() {
   }
 
   // number
-  equal(Fist.execute('(sqrt 289)'), 17);
-  equal(Fist.execute('(pow 2 8)'), 256);
-  epsilonEqual(Fist.execute('(exp 0)'), 1);
-  epsilonEqual(Fist.execute('(exp 1)'), Math.E);
-  equal(Fist.execute('(exp 3 4)'), 64);
-  epsilonEqual(Fist.execute('(log 1)'), 0);
-  epsilonEqual(Fist.execute('(log 2.7182818)'), 1);
-  equal(Fist.execute('(log 64 4)'), 3);
-  equal(Fist.execute('(abs -73)'), 73);
-  equal(Fist.execute('(abs 42)'), 42);
-  equal(Fist.execute('(floor 2)'), 2);
-  equal(Fist.execute('(floor 2.3)'), 2);
-  equal(Fist.execute('(floor 2.7)'), 2);
-  equal(Fist.execute('(round 2)'), 2);
-  equal(Fist.execute('(round 2.3)'), 2);
-  equal(Fist.execute('(round 2.7)'), 3);
-  equal(Fist.execute('(ceil 2)'), 2);
-  equal(Fist.execute('(ceil 2.3)'), 3);
-  equal(Fist.execute('(ceil 2.7)'), 3);
+  equal(Fist.evaluate({op: 'sqrt', args: {x: 289}}), 17);
+  equal(Fist.evaluate({op: 'pow', args: {x: 2, a: 8}}), 256);
+  epsilonEqual(Fist.evaluate({op: 'exp', args: {x: 0}}), 1);
+  epsilonEqual(Fist.evaluate({op: 'exp', args: {x: 1}}), Math.E);
+  equal(Fist.evaluate({op: 'exp', args: {a: 4, x: 3}}), 64);
+  epsilonEqual(Fist.evaluate({op: 'log', args: {x: 1}}), 0);
+  epsilonEqual(Fist.evaluate({op: 'log', args: {x: 2.7182818}}), 1);
+  equal(Fist.evaluate({op: 'log', args: {x: 64, b: 4}}), 3);
+  equal(Fist.evaluate({op: 'abs', args: {x: -73}}), 73);
+  equal(Fist.evaluate({op: 'abs', args: {x: 42}}), 42);
+  equal(Fist.evaluate({op: 'floor', args: {x: 2}}), 2);
+  equal(Fist.evaluate({op: 'floor', args: {x: 2.3}}), 2);
+  equal(Fist.evaluate({op: 'floor', args: {x: 2.7}}), 2);
+  equal(Fist.evaluate({op: 'round', args: {x: 2}}), 2);
+  equal(Fist.evaluate({op: 'round', args: {x: 2.3}}), 2);
+  equal(Fist.evaluate({op: 'round', args: {x: 2.7}}), 3);
+  equal(Fist.evaluate({op: 'ceil', args: {x: 2}}), 2);
+  equal(Fist.evaluate({op: 'ceil', args: {x: 2.3}}), 3);
+  equal(Fist.evaluate({op: 'ceil', args: {x: 2.7}}), 3);
 });
 
 QUnit.test('OpsTime', function() {
   // simultaneous iteration
-  var c = Fist.execute(
-    '(time-shift (gen-regular (constant 42) 0 3 3) -7)'
-  );
+  var c = Fist.evaluate({
+    op: 'time-shift',
+    args: {c: TestUtils.makeChannel(42), dt: -7}
+  });
   var it1 = c.iter(),
       it2 = c.iter();
   for (var i = 0; i < 3; i++) {
@@ -662,10 +662,20 @@ QUnit.test('OpsFilterValue', function() {
       TWO_DEV_PROB = 0.954499736104;
 
   function checkInequality(filter, args, p) {
-    var c = Fist.execute(
-      '(' + filter + ' (gen-regular (gaussian 3 1) 0 1000 1000) ' + args.join(' ') + ')'
-    );
-    var found = 0,
+    var filterArgs = {
+      c: {
+        op: 'gen-regular',
+        args: {
+          gen: {op: 'gaussian', args: {mu: 3, sigma: 1}},
+          since: 0,
+          until: 1000,
+          n: 1000
+        }
+      }
+    };
+    Object.append(filterArgs, args);
+    var c = Fist.evaluate({op: filter, args: filterArgs}),
+        found = 0,
         N = 1000,
         it = c.iter();
     while (true) {
@@ -686,16 +696,21 @@ QUnit.test('OpsFilterValue', function() {
     ok(error < limit);
   }
 
-  checkInequality('value-less-than', [1], (1 - TWO_DEV_PROB) / 2);
-  checkInequality('value-at-most', [1], (1 - TWO_DEV_PROB) / 2);
-  checkInequality('value-at-least', [5], (1 - TWO_DEV_PROB) / 2);
-  checkInequality('value-more-than', [5], (1 - TWO_DEV_PROB) / 2);
-  checkInequality('value-between', [1, 5], TWO_DEV_PROB);
+  checkInequality('value-less-than', {x: 1}, (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-at-most', {x: 1}, (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-at-least', {x: 5}, (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-more-than', {x: 5}, (1 - TWO_DEV_PROB) / 2);
+  checkInequality('value-between', {x1: 1, x2: 5}, TWO_DEV_PROB);
 
-  var c = Fist.execute(
-    '(value-is (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
-  );
+  var innerChannel = {
+    op: '+',
+    args: {
+      values: [TestUtils.makeChannel(1, 10), TestUtils.makeChannel(1, 10, 5)],
+    }
+  };
+  var c = Fist.evaluate({op: 'value-is', args: {c: innerChannel, x: 1}});
   for (var t = 0; t < 10; t++) {
+    console.log(t, c.at(t));
     if (t % 2 == 0) {
       equal(c.at(t), 0);
     } else {
@@ -703,9 +718,7 @@ QUnit.test('OpsFilterValue', function() {
     }
   }
 
-  var c = Fist.execute(
-    '(value-is-not (+ (gen-regular (constant 1) 0 10 10) (gen-regular (constant 1) 0 10 5)) 1)'
-  );
+  var c = Fist.evaluate({op: 'value-is-not', args: {c: innerChannel, x: 1}});
   for (var t = 0; t < 10; t++) {
     if (t % 2 == 0) {
       equal(c.at(t), 2);
