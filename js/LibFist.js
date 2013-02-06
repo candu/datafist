@@ -1,9 +1,9 @@
 'use strict';
 
-// TODO: have separate constructs for categorical, spatial channels
+// TODO: deal with non-numeric channels in these higher-order functions
 
 var _unaryOp = function(a, op) {
-  if (typeOf(a) === 'number') {
+  if (Type.fromValue(a) === NumberType) {
     return op(a);
   }
   return {
@@ -12,6 +12,9 @@ var _unaryOp = function(a, op) {
     },
     iter: function() {
       return a.iter();
+    },
+    type: function() {
+      return ChannelType(NumberType);
     }
   };
 };
@@ -19,21 +22,20 @@ var _unaryOp = function(a, op) {
 var _filterOp = function(a, p) {
   return {
     at: function(t) {
-      if (p(t)) {
-        return a.at(t);
-      }
-      // TODO: deal with non-numeric values
-      return 0;
+      return p(t) ? a.at(t) : 0;
     },
     iter: function() {
       return FilterIterator(a.iter(), p);
+    },
+    type: function() {
+      return ChannelType(NumberType);
     }
   };
 };
 
 var _binaryOp = function(a, b, op) {
-  if (typeOf(a) === 'number') {
-    if (typeOf(b) === 'number') {
+  if (Type.fromValue(a) === NumberType) {
+    if (Type.fromValue(b) === NumberType) {
       return op(a, b);
     }
     return {
@@ -42,16 +44,22 @@ var _binaryOp = function(a, b, op) {
       },
       iter: function() {
         return b.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     };
   }
-  if (typeOf(b) === 'number') {
+  if (Type.fromValue(b) === NumberType) {
     return {
       at: function(t) {
         return op(a.at(t), b);
       },
       iter: function() {
         return a.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     };
   }
@@ -61,6 +69,9 @@ var _binaryOp = function(a, b, op) {
     },
     iter: function() {
       return UnionIterator([a.iter(), b.iter()]);
+    },
+    type: function() {
+      return ChannelType(NumberType);
     }
   };
 };
@@ -80,9 +91,8 @@ var OpsArith = {
     var channels = [],
         numberSum = 0;
     for (var i = 0; i < args.values.length; i++) {
-      var arg = args.values[i],
-          argType = Fist.evaluateType(args.__sexps.values[i]);
-      if (argType === 'number') {
+      var arg = args.values[i];
+      if (Type.fromValue(arg) === NumberType) {
         numberSum += arg;
       } else {
         channels.push(arg);
@@ -101,9 +111,14 @@ var OpsArith = {
       },
       iter: function() {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     };
-  }).type('(fn (name (+ channel?) "values") (max (ref "values")))')
+  }).type(FunctionType({
+      values: ListType(MaybeChannelType(NumberType))
+    }, MaxType(RefType('values'))))
     .describe('Takes the sum of its values.'),
   multiply: new FistFunction(function(args) {
     var channels = [],

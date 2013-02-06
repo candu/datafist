@@ -389,16 +389,16 @@ QUnit.test('evaluateAtom', function() {
   equal(Fist.evaluateAtom('+'), OpsArith.add);
 });
 
-QUnit.test('Keywords', function() {
-  // define
-  equal(Fist.execute('(define x 21)'), null);
-  equal(Fist.execute('(+ x x)'), 42);
-});
-
 QUnit.test('OpsArith', function() {
   // number
-  equal(Fist.execute('(+ 1 2)'), 3);
-  equal(Fist.execute('(+ 1 2 3)'), 6);
+  equal(Fist.evaluate({
+    op: '+',
+    args: {'values': [1, 2]}
+  }), 3);
+  equal(Fist.evaluate({
+    op: '+',
+    args: {'values': [1, 2, 3]}
+  }), 6);
   equal(Fist.execute('(- 73)'), -73);
   equal(Fist.execute('(- 45 3)'), 42);
   equal(Fist.execute('(* 2 3 5 7)'), 210);

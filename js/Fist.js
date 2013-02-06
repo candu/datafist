@@ -34,6 +34,12 @@ var DataChannel = new Class({
       this._index[this._data[i].t] = this._data[i].x;
     }
     this._source = source || 'Fist command line';
+    // TODO: maybe identify type when channel is created?
+    var dataType = NumberType;
+    if (this._data.length > 0) {
+      dataType = Type.fromValue(this._data[0].x);
+    }
+    this._type = ChannelType(dataType);
   },
   at: function(t) {
     if (!this._index.hasOwnProperty(t)) {
@@ -45,6 +51,9 @@ var DataChannel = new Class({
     return Iterator(this._data.map(function(a) {
       return a.t;
     }));
+  },
+  type: function() {
+    return this._type;
   },
   describe: function() {
     return 'imported from ' + this._source;
@@ -76,145 +85,41 @@ var Fist = {
     }
     throw new Error('unrecognized atom: ' + atom);
   },
-  _bindArgs: function(paramsType, sexps) {
-    var sexpTypes = sexps.map(function(sexp) {
-      return this.evaluateType(sexp);
-    }.bind(this));
-    var boundValues = {},
-        i = 0;
-    var match = function(type) {
-      if (SExp.isAtom(type)) {
-        if (i >= sexps.length) {
-          return null;
-        }
-        switch (type) {
-          case 'channel?':
-            return match(['|', 'number', 'channel']);
-          case 'time':
-          case 'timedelta':
-            return match(['|', 'number', 'string']);
-          case 'number':
-          case 'string':
-          case 'channel':
-          case 'view':
-            if (sexpTypes[i] === type) {
-              return i++;
-            }
-            return null;
-          default:
-            throw new Error('unrecognized atomic type: ' + type);
-        }
-      }
-      switch (type[0]) {
-        case 'name':
-          var value = match(type[1]),
-              name = this.evaluateAtom(type[2]);
-          boundValues[name] = value;
-          return value;
-        case '->':
-          var thenValue = [];
-          for (var j = 1; j < type.length; j++) {
-            var value = match(type[j]);
-            if (value === null) {
-              return null;
-            }
-            thenValue.push(value);
-          }
-          return thenValue;
-        case '|':
-          for (var j = 1; j < type.length; j++) {
-            var old_i = i,
-                value = match(type[j]);
-            if (value !== null) {
-              return value;
-            }
-            i = old_i;
-          }
-          return null;
-        case '?':
-          var old_i = i,
-              value = match(type[1]);
-          if (value === null) {
-            i = old_i;
-            return undefined;
-          }
-          return value;
-        case '+':
-          var value = [];
-          while (true) {
-            var old_i = i,
-                subValue = match(type[1]);
-            if (subValue === null) {
-              i = old_i;
-              break;
-            }
-            value.push(subValue);
-          }
-          if (value.length === 0) {
-            return null;
-          }
-          return value;
-        case 'fn':
-          if (SExp.equal(sexpTypes[i], type)) {
-            return i++;
-          }
-          return null;
-        default:
-          throw new Error('unrecognized param type operator: ' + type[0]);
-      }
-    }.bind(this);
-    match(paramsType);
-    var args = {__sexps: {}};
-    Object.each(boundValues, function(value, name) {
-      if (value === undefined) {
-        args.__sexps[name] = undefined;
-        args[name] = undefined;
-      } else if (value instanceof Array) {
-        args.__sexps[name] = value.map(function(index) {
-          return sexps[index];
-        });
-        args[name] = args.__sexps[name].map(function(sexp) {
-          return this.evaluate(sexp);
-        }.bind(this));
-      } else {
-        args.__sexps[name] = sexps[value];
-        args[name] = this.evaluate(args.__sexps[name]);
-      }
-    }.bind(this));
-    return args;
+  isFunction: function(code) {
+    return code instanceof Object;
   },
-  evaluate: function(sexp) {
-    if (SExp.isAtom(sexp)) {
-      return this.evaluateAtom(sexp);
+  isAtom: function(code) {
+    return !this.isFunction(code);
+  },
+  evaluate: function(code) {
+    console.log(JSON.stringify(code));
+    if (this.isAtom(code)) {
+      return this.evaluateAtom(code);
     }
-    if (sexp.length === 0) {
-      throw new Error('expected operation');
-    }
-    switch (sexp[0]) {
-      case 'define':
-        if (sexp.length !== 3) {
-          throw new Error('expected (define <name> <value>)');
-        }
-        var name = sexp[1],
-            value = this.evaluate(sexp[2]);
-        this.registerSymbol(name, value);
-        return null;
-    }
-    var op = this.evaluate(sexp[0]);
+    var op = this.evaluate(code.op);
     if (!(op instanceof FistFunction)) {
       throw new Error('expected operation, got ' + typeOf(op));
     }
-    var opType = SExp.parse(op.type()),
-        paramsType = opType[1],
-        args = this._bindArgs(paramsType, sexp.slice(1));
+    var args = {__code: {}};
+    Object.each(code.args, function(arg, name) {
+      args.__code[name] = arg;
+      if (arg === undefined) {
+        args[name] = undefined;
+      } else if (arg instanceof Array) {
+        args[name] = args.__code[name].map(this.evaluate.bind(this));
+      } else {
+        args[name] = this.evaluate(args.__code[name]);
+      }
+    }.bind(this));
+    console.log(args);
     return op.call(this, args);
   },
   execute: function(command) {
-    var sexps = SExp.parseMany(command);
-    if (sexps.length === 0) {
+    var code = JSON.parse(command);
+    if (code.length === 0) {
       return null;
     }
-    return this.evaluate(sexps[0]);
+    return this.evaluate(code[0]);
   },
   registerSymbol: function(name, value, moduleName) {
     this._symbolTable[name] = value;
@@ -256,183 +161,35 @@ var Fist = {
       }
     }
   },
-  _maxType: function(types) {
-    var maxType = 'number';
-    types.each(function(type) {
-      if (type instanceof Array) {
-        type = this._maxType(type);
-      }
-      switch (type) {
-        case 'number':
-          break;
-        case 'channel':
-          maxType = 'channel';
-          break;
-        default:
-          throw new Error('invalid type argument to max: ' + type);
-      }
-    }.bind(this));
-    return maxType;
-  },
-  _resolveTypeRefs: function(returnType, boundTypes) {
-    if (SExp.isAtom(returnType)) {
-      return returnType;
-    }
-    switch (returnType[0]) {
-      case 'max':
-        var subTypes = [];
-        for (var i = 1; i < returnType.length; i++) {
-          subTypes.push(this._resolveTypeRefs(returnType[i], boundTypes));
-        }
-        return this._maxType(subTypes);
-      case 'ref':
-        var refName = this.evaluateAtom(returnType[1]),
-            refType = boundTypes[refName];
-        if (refName === undefined) {
-          throw new Error('no type bound for name: ' + refName);
-        }
-        return refType;
-      case 'fn':
-        return returnType;
-      default:
-        throw new Error('unrecognized return type operator: ' + returnType[0]);
-    }
-  },
   _applyTypes: function(opType, argTypes) {
-    var paramsType = opType[1],
-        returnType = opType[2],
-        boundTypes = {},
-        i = 0;
-    var match = function(type) {
-      if (SExp.isAtom(type)) {
-        if (i >= argTypes.length) {
-          return null;
-        }
-        switch (type) {
-          case 'channel?':
-            return match(['|', 'number', 'channel']);
-          case 'time':
-          case 'timedelta':
-            return match(['|', 'number', 'string']);
-          case 'number':
-          case 'string':
-          case 'channel':
-          case 'view':
-            if (argTypes[i] === type) {
-              i++;
-              return type;
-            }
-            return null;
-          default:
-            throw new Error('unrecognized atomic type: ' + type);
-        }
+    var paramNames = Object.keys(opType.params),
+        boundTypes = {};
+    for (var i = 0; i < paramNames.length; i++) {
+      var name = paramNames[i],
+          type = opType.params[name],
+          matchType = type.match(argTypes[name]);
+      if (matchType === null) {
+        return null;
       }
-      switch (type[0]) {
-        case 'name':
-          var subType = match(type[1]),
-              name = this.evaluateAtom(type[2]);
-          boundTypes[name] = subType;
-          return subType;
-        case '->':
-          var thenType = [];
-          for (var j = 1; j < type.length; j++) {
-            var subType = match(type[j]);
-            if (subType === null) {
-              return null;
-            }
-            thenType.push(subType);
-          }
-          return thenType;
-        case '|':
-          for (var j = 1; j < type.length; j++) {
-            var old_i = i,
-                subType = match(type[j]);
-            if (subType !== null) {
-              return subType;
-            }
-            i = old_i;
-          }
-          return null;
-        case '?':
-          var old_i = i,
-              subType = match(type[1]);
-          if (subType === null) {
-            i = old_i;
-            return undefined;
-          }
-          return subType;
-        case '+':
-          var variadicType = [];
-          while (true) {
-            var old_i = i,
-                subType = match(type[1]);
-            if (subType === null) {
-              i = old_i;
-              break;
-            }
-            variadicType.push(subType);
-          }
-          if (variadicType.length === 0) {
-            return null;
-          }
-          return variadicType;
-        case 'fn':
-          if (SExp.equal(argTypes[i], type)) {
-            i++;
-            return type;
-          }
-          return null;
-        default:
-          throw new Error('unrecognized param type operator: ' + type[0]);
-      }
-    }.bind(this);
-    var matchedType = match(paramsType);
-    if (matchedType === null || i !== argTypes.length) {
-      return null;
+      boundTypes[name] = matchType;
     }
-    return this._resolveTypeRefs(returnType, boundTypes);
+    return opType.returnType.resolve(boundTypes);
   },
-  evaluateType: function(sexp) {
-    if (SExp.isAtom(sexp)) {
-      var value = this.evaluateAtom(sexp),
-          type = typeOf(value);
-      switch (type) {
-        case 'object':
-          if (value instanceof FistFunction) {
-            return value.type();
-          }
-          if (value.at !== undefined && value.iter !== undefined) {
-            return 'channel';
-          }
-          throw new Error('object of unrecognized type');
-        case 'number':
-        case 'string':
-          return type;
-        default:
-          throw new Error('value of unrecognized type: ' + type);
-      }
+  evaluateType: function(code) {
+    if (this.isAtom(code)) {
+      return Type.fromValue(this.evaluateAtom(atom));
     }
-    if (sexp.length === 0) {
-      throw new Error('expected operation');
-    }
-    // TODO: handle define
-    var opType = SExp.parse(this.evaluateType(sexp[0]));
-    if (!SExp.isList(opType) || opType.length !== 3 || opType[0] !== 'fn') {
-      throw new Error('expected valid fn type, got ' + opType);
-    }
-    var argTypes = [];
-    for (var i = 1; i < sexp.length; i++) {
-      argTypes.push(this.evaluateType(sexp[i]));
-    }
+    var opType = this.evaluateType(code.op),
+        argTypes = Object.map(code.args, this.evaluateType.bind(this));
     return this._applyTypes(opType, argTypes);
   },
   executeType: function(command) {
-    var sexps = SExp.parseMany(command);
-    if (sexps.length === 0) {
+    var code = JSON.parse(command);
+    if (code.length === 0) {
       return null;
     }
     try {
-      return this.evaluateType(sexps[0]);
+      return this.evaluateType(code[0]);
     } catch (e) {
       console.log(e);
       return null;
@@ -443,13 +200,6 @@ var Fist = {
     if (type === null) {
       return null;
     }
-    var sexp = SExp.parse(type);
-    if (SExp.isAtom(sexp)) {
-      return sexp;
-    }
-    if (sexp[0] === 'fn') {
-      return 'function';
-    }
-    return null;
+    return type.node();
   }
 };
