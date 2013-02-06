@@ -124,9 +124,8 @@ var OpsArith = {
     var channels = [],
         numberProd = 1;
     for (var i = 0; i < args.values.length; i++) {
-      var arg = args.values[i],
-          argType = Fist.evaluateType(args.__sexps.values[i]);
-      if (argType === 'number') {
+      var arg = args.values[i];
+      if (Type.fromValue(arg) === NumberType) {
         numberProd *= arg;
       } else {
         channels.push(arg);

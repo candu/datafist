@@ -393,93 +393,144 @@ QUnit.test('OpsArith', function() {
   // number
   equal(Fist.evaluate({
     op: '+',
-    args: {'values': [1, 2]}
+    args: {values: [1, 2]}
   }), 3);
   equal(Fist.evaluate({
     op: '+',
-    args: {'values': [1, 2, 3]}
+    args: {values: [1, 2, 3]}
   }), 6);
-  equal(Fist.execute('(- 73)'), -73);
-  equal(Fist.execute('(- 45 3)'), 42);
-  equal(Fist.execute('(* 2 3 5 7)'), 210);
-  equal(Fist.execute('(/ 19 8)'), 2.375);
-  equal(Fist.execute('(// 19 8)'), 2);
-  equal(Fist.execute('(% 19 8)'), 3);
-  equal(Fist.execute('(//* 19 8)'), 16);
-  equal(Fist.execute('(//* 19 8)'), Fist.execute('(* (// 19 8) 8)'));
+  equal(Fist.evaluate({
+    op: '-',
+    args: {a: 73}
+  }), -73);
+  equal(Fist.evaluate({
+    op: '-',
+    args: {a: 45, b: 3}
+  }), 42);
+  equal(Fist.evaluate({
+    op: '*',
+    args: {values: [2, 3, 5, 7]}
+  }), 210);
+  equal(Fist.evaluate({
+    op: '/',
+    args: {a: 19, b: 8}
+  }), 2.375);
+  equal(Fist.evaluate({
+    op: '//',
+    args: {a: 19, b: 8}
+  }), 2);
+  equal(Fist.evaluate({
+    op: '%',
+    args: {a: 19, b: 8}
+  }), 3);
+  equal(Fist.evaluate({
+    op: '//*',
+    args: {a: 19, b: 8}
+  }), 16);
+  equal(Fist.evaluate({
+    op: '//*',
+    args: {a: 19, b: 8}
+  }), Fist.evaluate({
+    op: '*',
+    args: {values: [{op: '//', args: {a: 19, b: 8}}, 8]}
+  }));
+
+  var makeChannel = function(x) {
+    return {
+      op: 'gen-regular',
+      args: {
+        gen: {op: 'constant', args: {x: x}},
+        since: 0,
+        until: 3,
+        n: 3
+      }
+    };
+  };
 
   // channel
-  var c = Fist.execute(
-    '(+ (gen-regular (constant 1) 0 3 3) (gen-regular (constant 2) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '+',
+    args: {values: [makeChannel(1), makeChannel(2)]}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
-  var c = Fist.execute(
-    '(- (gen-regular (constant 45) 0 3 3) (gen-regular (constant 3) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '-',
+    args: {a: makeChannel(45), b: makeChannel(3)}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
-  var c = Fist.execute(
-    '(* (gen-regular (constant 5) 0 3 3) (gen-regular (constant 7) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '*',
+    args: {values: [makeChannel(5), makeChannel(7)]}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 35);
   }
-  var c = Fist.execute(
-    '(/ (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '/',
+    args: {a: makeChannel(19), b: makeChannel(8)}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
-  var c = Fist.execute(
-    '(// (gen-regular (constant 19) 0 3 3) (gen-regular (constant 8) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '//',
+    args: {a: makeChannel(19), b: makeChannel(8)}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
   }
 
   // mixed
-  var c = Fist.execute(
-    '(+ 35 (gen-regular (constant 1) 0 3 3) 4 (gen-regular (constant 2) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '+',
+    args: {values: [35, makeChannel(1), 4, makeChannel(2)]}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 42);
   }
-  var c = Fist.execute(
-    '(- 10 (gen-regular (constant 2) 0 3 3))'
-  );
+  var c = Fist.evaluate({
+    op: '-',
+    args: {a: 10, b: makeChannel(2)}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 8);
   }
-  var c = Fist.execute(
-    '(* (gen-regular (constant 2) 0 3 3) 73)'
-  );
+  var c = Fist.evaluate({
+    op: '*',
+    args: {values: [makeChannel(2), 73]}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 146);
   }
-  var c = Fist.execute(
-    '(/ (gen-regular (constant 19) 0 3 3) 8)'
-  );
+  var c = Fist.evaluate({
+    op: '/',
+    args: {a: makeChannel(19), b: 8}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2.375);
   }
-  var c = Fist.execute(
-    '(// (gen-regular (constant 19) 0 3 3) 8)'
-  );
+  var c = Fist.evaluate({
+    op: '//',
+    args: {a: makeChannel(19), b: 8}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 2);
   }
-  var c = Fist.execute(
-    '(% (gen-regular (constant 19) 0 3 3) 8)'
-  );
+  var c = Fist.evaluate({
+    op: '%',
+    args: {a: makeChannel(19), b: 8}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 3);
   }
-  var c = Fist.execute(
-    '(//* (gen-regular (constant 19) 0 3 3) 8)'
-  );
+  var c = Fist.evaluate({
+    op: '//*',
+    args: {a: makeChannel(19), b: 8}
+  });
   for (var i = 0; i < 3; i++) {
     equal(c.at(i), 16);
   }

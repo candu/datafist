@@ -63,27 +63,7 @@ var DataChannel = new Class({
 var Fist = {
   _symbolTable: {},
   evaluateAtom: function(atom) {
-    if (!atom) {
-      throw new Error('empty atom not allowed');
-    }
-    var symbolValue = this._symbolTable[atom];
-    if (symbolValue !== undefined) {
-      return symbolValue;
-    }
-    var floatValue = parseFloat(atom);
-    if (!isNaN(floatValue)) {
-      return floatValue;
-    }
-    if (atom === 'true') {
-      return true;
-    }
-    if (atom === 'false') {
-      return false;
-    }
-    if (/"(.*)"/.test(atom)) {
-      return atom.replace(/"(.*)"/, '$1').replace(/\\"/g, '"');
-    }
-    throw new Error('unrecognized atom: ' + atom);
+    return this._symbolTable[atom] || atom;
   },
   isFunction: function(code) {
     return code instanceof Object;
@@ -102,6 +82,7 @@ var Fist = {
     }
     var args = {__code: {}};
     Object.each(code.args, function(arg, name) {
+      console.log('eval: ' + name);
       args.__code[name] = arg;
       if (arg === undefined) {
         args[name] = undefined;
@@ -111,7 +92,6 @@ var Fist = {
         args[name] = this.evaluate(args.__code[name]);
       }
     }.bind(this));
-    console.log(args);
     return op.call(this, args);
   },
   execute: function(command) {
