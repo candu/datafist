@@ -156,10 +156,16 @@ var Fist = {
   },
   evaluateType: function(code) {
     if (this.isAtom(code)) {
-      return Type.fromValue(this.evaluateAtom(atom));
+      return Type.fromValue(this.evaluateAtom(code));
     }
     var opType = this.evaluateType(code.op),
-        argTypes = Object.map(code.args, this.evaluateType.bind(this));
+        argTypes = Object.map(code.args, function(arg, name) {
+          console.log('arg: ', arg, name);
+          if (arg instanceof Array) {
+            return arg.map(this.evaluateType.bind(this));
+          }
+          return this.evaluateType(arg);
+        }.bind(this));
     return this._applyTypes(opType, argTypes);
   },
   executeType: function(command) {

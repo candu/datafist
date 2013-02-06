@@ -13,6 +13,13 @@ var Type = {
       default:
         throw new Error('value of unrecognized type: ' + type);
     }
+  },
+  equal: function(t1, t2) {
+    if (t1 === null || t1 === undefined ||
+        t2 === null || t2 === undefined) {
+      return t1 === t2;
+    }
+    return t1.toString() === t2.toString();
   }
 };
 
@@ -28,6 +35,12 @@ var PrimitiveType = new Class({
    * with values of this type.
    */
   node: function() {
+    return this._nodeType;
+  },
+  /**
+   * Called to retrieve a human-readable representation of this type.
+   */
+  toString: function() {
     return this._nodeType;
   },
   /**
@@ -58,6 +71,9 @@ var TimeType = {
   node: function() {
     return 'time';
   },
+  toString: function() {
+    return 'time';
+  },
   match: function(type) {
     return NumberType.match(type) || StringType.match(type);
   },
@@ -68,6 +84,9 @@ var TimeType = {
 
 var TimeDeltaType = {
   node: function() {
+    return 'timedelta';
+  },
+  toString: function() {
     return 'timedelta';
   },
   match: function(type) {
@@ -83,6 +102,9 @@ function ChannelType(dataType) {
     dataType: dataType,
     node: function() {
       return 'channel';
+    },
+    toString: function() {
+      return 'channel(' + dataType.toString() + ')';
     },
     match: function(type) {
       return dataType.match(type.dataType);
@@ -112,10 +134,16 @@ function FunctionType(params, returnType) {
   };
   return {
     params: params,
+    returnType: returnType,
     node: function() {
       return 'function';
     },
-    returnType: returnType,
+    toString: function() {
+      var paramString = Object.keys(params).sort().map(function(name) {
+        return name + ': ' + params[name].toString();
+      }).join(', ');
+      return 'function({' + paramString + '}, ' + returnType.toString() + ')';
+    },
     match: function(type) {
       return _meta(function(name) {
         return params[name].match(type.params[name]);
@@ -139,6 +167,12 @@ function OrType(subTypes) {
   // NOTE: return types must use the RefType type variable mechanism to
   // achieve polymorphism! resolve() is not provided here.
   return {
+    toString: function() {
+      var subTypeString = subTypes.map(function(type) {
+        return type.toString();
+      }).sort().join(', ')
+      return 'or([' + subTypeString + '])';
+    },
     match: function(type) {
       for (var i = 0; i < subTypes.length; i++) {
         var matchType = subTypes[i].match(type);
@@ -153,6 +187,9 @@ function OrType(subTypes) {
 
 function MaybeType(subType) {
   return {
+    toString: function() {
+      return 'maybe(' + subType.toString() + ')';
+    },
     match: function(type) {
       var matchType = subType.match(type);
       if (matchType === null) {
@@ -165,6 +202,9 @@ function MaybeType(subType) {
 
 function ListType(subType) {
   return {
+    toString: function() {
+      return 'list(' + subType.toString() + ')';
+    },
     match: function(type) {
       if (!type instanceof Array) {
         return null;
@@ -188,24 +228,35 @@ function RefType(name) {
   // NOTE: parameter types cannot back-reference other parameter names!
   // match() is not provided here.
   return {
+    toString: function() {
+      return 'ref(' + name + ')';
+    },
     resolve: function(boundTypes) {
-      return boundTypes[name];
+      return boundTypes[name] || null;
     }
   };
 }
 
 function MaxType(subTypes) {
   return {
+    toString: function() {
+      var subTypeString = subTypes.map(function(type) {
+        return type.toString();
+      }).sort().join(', ')
+      return 'max([' + subTypeString + '])';
+    },
     resolve: function(boundTypes) {
-      var dataType = undefined,
+      var dataType = null,
           hasChannel = false;
       for (var i = 0; i < subTypes.length; i++) {
         var subType = subTypes[i];
         if (subType instanceof Array) {
           subType = MaxType(subType).resolve(boundTypes);
+        } else {
+          subType = subType.resolve(boundTypes);
         }
         var subDataType = subType.dataType || subType;
-        if (dataType === undefined) {
+        if (dataType === null) {
           dataType = subDataType;
         } else {
           if (subDataType !== dataType) {
@@ -224,5 +275,5 @@ function MaxType(subTypes) {
 // type shortcuts
 
 function MaybeChannelType(dataType) {
-  return OrType(dataType, ChannelType(dataType));
+  return OrType([dataType, ChannelType(dataType)]);
 }

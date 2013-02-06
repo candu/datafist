@@ -13,6 +13,9 @@ var TestUtils = {
         n: n
       }
     };
+  },
+  typeEqual: function(t1, t2) {
+    ok(Type.equal(t1, t2));
   }
 };
 
@@ -1082,170 +1085,99 @@ QUnit.test('ChannelExtractor', function() {
   */
 });
 
+QUnit.test('Type', function() {
+  // RefType
+  TestUtils.typeEqual(RefType('a').resolve({'a': NumberType}), NumberType);
+  TestUtils.typeEqual(RefType('a').resolve({'b': NumberType}), null);
+
+  // MaxType
+  TestUtils.typeEqual(MaxType([]).resolve({}), null);
+  TestUtils.typeEqual(MaxType([StringType]).resolve({}), StringType);
+
+  TestUtils.typeEqual(
+    MaxType([NumberType, NumberType]).resolve({}),
+    NumberType
+  );
+  TestUtils.typeEqual(
+    MaxType([NumberType, ChannelType(NumberType)]).resolve({}),
+    ChannelType(NumberType)
+  );
+  TestUtils.typeEqual(
+    MaxType([ChannelType(NumberType), NumberType]).resolve({}),
+    ChannelType(NumberType)
+  );
+  TestUtils.typeEqual(
+    MaxType([ChannelType(NumberType), ChannelType(NumberType)]).resolve({}),
+    ChannelType(NumberType)
+  );
+
+  TestUtils.typeEqual(
+    MaxType([RefType('a'), RefType('b')]).resolve({
+      a: NumberType,
+      b: ChannelType(NumberType)
+    }),
+    ChannelType(NumberType)
+  );
+
+});
+
 QUnit.test('Fist', function() {
-  // atoms
-  equal(Fist.executeType('42'), 'number');
-  equal(Fist.executeType('3.14'), 'number');
-  equal(Fist.executeType('6.18e-1'), 'number');
-  equal(Fist.executeType('"foo"'), 'string');
-
-  // invalid atoms
-  equal(Fist.executeType('blargh'), null);
-
-  // views
-  equal(Fist.executeType(
-    '(view-line (/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10)))'
-  ), 'view');
-
-  // channels
-  equal(Fist.executeType('(gen-regular (constant 1) 0 10 10)'), 'channel');
-  equal(Fist.executeType(
-    '(/ (gen-regular (constant 2) 0 10 10) (gen-regular (constant 0.5) 0 10 10))'
-  ), 'channel');
-
-  // filters
-  equal(Fist.executeType('(value-more-than (gen-regular (constant 1) 0 10 10) 9000)'), 'channel');
+  TestUtils.typeEqual(
+    Fist.evaluateType('+'),
+    FunctionType({
+      values: ListType(MaybeChannelType(NumberType))
+    }, MaxType([RefType('values')]))
+  );
 
   // _applyTypes
-  equal(Fist._applyTypes(
-    SExp.parse('(fn number string)'),
-    ['number']
-  ), 'string');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn number string)'),
-    ['channel']
-  ), null);
+  TestUtils.typeEqual(Fist._applyTypes(
+    FunctionType({x: NumberType}, NumberType),
+    {x: NumberType}
+  ), NumberType);
+  TestUtils.typeEqual(Fist._applyTypes(
+    FunctionType({x: OrType([NumberType, StringType])}, RefType('x')),
+    {x: StringType}
+  ), StringType);
+  TestUtils.typeEqual(Fist._applyTypes(
+    FunctionType({xs: ListType(MaybeChannelType(NumberType))}, MaxType([RefType('xs')])),
+    {xs: [StringType, ChannelType(StringType)]}
+  ), ChannelType(StringType));
 
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number number) number)'),
-    ['number']
-  ), null);
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number number) number)'),
-    ['number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number number) number)'),
-    ['number', 'string']
-  ), null);
+  /*
+  // atoms
+  TestUtils.typeEqual(Fist.evaluateType(42), NumberType);
+  TestUtils.typeEqual(Fist.evaluateType(3.14), NumberType);
+  TestUtils.typeEqual(Fist.evaluateType(6.18e-1), NumberType);
+  TestUtils.typeEqual(Fist.evaluateType('foo'), StringType);
 
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number (? number)) number)'),
-    ['number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number (? number)) number)'),
-    ['number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> number (? number)) number)'),
-    ['number', 'string']
-  ), null);
+  // arithmetic operations on numbers
+  TestUtils.typeEqual(Fist.evaluateType({
+    op: '+',
+    args: {values: [1, 3, 5]}
+  }), NumberType);
 
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (+ number) number)'),
-    []
-  ), null);
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (+ number) number)'),
-    ['number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (+ number) number)'),
-    ['number', 'number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (+ number) number)'),
-    ['number', 'number', 'string']
-  ), null);
+  // progressive buildup to view
+  TestUtils.typeEqual(Fist.evaluateType(
+    TestUtils.makeChannel(42)
+  ), ChannelType(NumberType));
+  TestUtils.typeEqual(Fist.evaluateType({
+    op: '/',
+    args: {a: TestUtils.makeChannel(2, 10), b: TestUtils.makeChannel(0.5, 10)}
+  }), ChannelType(NumberType));
+  TestUtils.typeEqual(Fist.evaluateType({
+    op: 'view-line',
+    args: {
+      channels: [{
+        op: '/',
+        args: {a: TestUtils.makeChannel(2, 10), b: TestUtils.makeChannel(0.5, 10)}
+      }]
+    }
+  }), ViewType);
 
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
-    ['number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name number "b")) (ref "a"))'),
-    ['channel', 'number']
-  ), 'channel');
-
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
-    ['number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
-    ['number', 'channel']
-  ), 'channel');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
-    ['channel', 'number']
-  ), 'channel');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))'),
-    ['channel', 'channel']
-  ), 'channel');
-
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
-    ['number', 'number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (name (+ channel?) "xs") (max (ref "xs")))'),
-    ['number', 'number', 'channel']
-  ), 'channel');
-
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
-    []
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
-    ['number']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
-    ['string']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
-    ['number', 'string']
-  ), 'number');
-  equal(Fist._applyTypes(
-    SExp.parse('(fn (-> (name (? number) "num") (name (? string) "str")) number)'),
-    ['string', 'number']
-  ), null);
-
-  // _bindArgs
-  var args = Fist._bindArgs(
-    SExp.parse('(name number "a")'),
-    SExp.parse('(42)')
-  );
-  equal(args.__sexps.a, '42');
-  equal(args.a, 42);
-
-  Fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
-  var args = Fist._bindArgs(
-    SExp.parse('(-> (name channel "c1") (name (? channel) "c2") (name (? number) "n"))'),
-    SExp.parse('(c1 42)')
-  );
-  equal(args.__sexps.c1, 'c1');
-  equal(args.__sexps.c2, undefined);
-  equal(args.__sexps.n, '42');
-  equal(args.c1, Fist.execute('c1'));
-  equal(args.c2, undefined);
-  equal(args.n, 42);
-
-  Fist.execute('(define c1 (gen-regular (constant 42) 0 10 10))');
-  var args = Fist._bindArgs(
-    SExp.parse('(-> (name channel "a") (name channel "b") (name (? channel) "c") (name (? channel) "d"))'),
-    SExp.parse('(c1 c1 c1 c1)')
-  );
-  equal(args.__sexps.a, 'c1');
-  equal(args.__sexps.b, 'c1');
-  equal(args.__sexps.c, 'c1');
-  equal(args.__sexps.d, 'c1');
-  equal(args.a, Fist.execute('c1'));
-  equal(args.b, Fist.execute('c1'));
-  equal(args.c, Fist.execute('c1'));
-  equal(args.d, Fist.execute('c1'));
+  // filters
+  TestUtils.typeEqual(Fist.evaluateType({
+    op: 'value-more-than',
+    args: {c: TestUtils.makeChannel(1, 10), x: 9000}
+  }), ChannelType(NumberType));
+  */
 });

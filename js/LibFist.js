@@ -118,7 +118,7 @@ var OpsArith = {
     };
   }).type(FunctionType({
       values: ListType(MaybeChannelType(NumberType))
-    }, MaxType(RefType('values'))))
+    }, MaxType([RefType('values')])))
     .describe('Takes the sum of its values.'),
   multiply: new FistFunction(function(args) {
     var channels = [],
@@ -166,7 +166,10 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return a / b;
     })
-  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
+  }).type(FunctionType({
+      a: MaybeChannelType(NumberType),
+      b: MaybeChannelType(NumberType)
+    }, MaxType([RefType('a'), RefType('b')])))
     .describe(
       'Produces the quotient a / b including any fractional part.'
     ),
@@ -849,7 +852,9 @@ var GensData = {
     return function(t) {
       return args.x;
     };
-  }).type('(fn (name number "x") (fn number number))')
+  }).type(FunctionType({
+      x: NumberType
+    }, FunctionType({t: TimeType}, NumberType)))
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns x.'
@@ -900,7 +905,12 @@ var GensChannel = {
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "n")) channel)')
+  }).type(FunctionType({
+      gen: FunctionType({t: TimeType}, NumberType),
+      since: TimeType,
+      until: TimeType,
+      n: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel by evaluating gen at n evenly spaced timestamps ' +
       'between since (inclusive) and until (exclusive).'
@@ -962,7 +972,9 @@ var View = {
   __fullName: 'Views',
   viewLine: new FistFunction(function(args) {
     FistUI.onViewInvoked('line', args);
-  }).type('(fn (name (+ channel) "channels") view)')
+  }).type(FunctionType({
+      channels: ListType(ChannelType(NumberType))
+    }, ViewType))
     .describe(
       'Displays its channels as line charts.'
     ),
