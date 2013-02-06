@@ -118,7 +118,7 @@ var OpsArith = {
     };
   }).type(FunctionType({
       values: ListType(MaybeChannelType(NumberType))
-    }, MaxType([RefType('values')])))
+    }, MaxType(RefType('values'))))
     .describe('Takes the sum of its values.'),
   multiply: new FistFunction(function(args) {
     var channels = [],
@@ -169,7 +169,7 @@ var OpsArith = {
   }).type(FunctionType({
       a: MaybeChannelType(NumberType),
       b: MaybeChannelType(NumberType)
-    }, MaxType([RefType('a'), RefType('b')])))
+    }, MaxType(RefType('a'), RefType('b'))))
     .describe(
       'Produces the quotient a / b including any fractional part.'
     ),
@@ -761,7 +761,10 @@ var OpsFilterValue = {
     return _filterOp(args.c, function(t) {
       return args.c.at(t) > args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      x: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Filters c to contain only values greater than x.'
     ),
@@ -854,7 +857,7 @@ var GensData = {
     };
   }).type(FunctionType({
       x: NumberType
-    }, FunctionType({t: TimeType}, NumberType)))
+    }, FunctionType({t: NumberType}, NumberType)))
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns x.'
@@ -906,9 +909,9 @@ var GensChannel = {
     }
     return new DataChannel(_data);
   }).type(FunctionType({
-      gen: FunctionType({t: TimeType}, NumberType),
-      since: TimeType,
-      until: TimeType,
+      gen: FunctionType({t: NumberType}, NumberType),
+      since: NumberType,
+      until: NumberType,
       n: NumberType
     }, ChannelType(NumberType)))
     .describe(

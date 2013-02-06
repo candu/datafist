@@ -1086,51 +1086,127 @@ QUnit.test('ChannelExtractor', function() {
 });
 
 QUnit.test('Type', function() {
-  // RefType
+  // PrimitiveType.match()
+  TestUtils.typeEqual(NumberType.match(NumberType), NumberType);
+  TestUtils.typeEqual(NumberType.match(StringType), null);
+
+  // TimeType.match(), TimeDeltaType.match()
+  TestUtils.typeEqual(TimeType.match(NumberType), NumberType);
+  TestUtils.typeEqual(TimeDeltaType.match(StringType), StringType);
+  TestUtils.typeEqual(TimeType.match(LocationType), null);
+
+  // ChannelType.match()
+  TestUtils.typeEqual(ChannelType(NumberType).match(NumberType), null);
+  TestUtils.typeEqual(
+    ChannelType(NumberType).match(ChannelType(NumberType)),
+    ChannelType(NumberType)
+  );
+
+  // FunctionType.match()
+  var t1 = FunctionType({x: NumberType}, StringType),
+      t2 = FunctionType({x: StringType}, StringType),
+      t3 = FunctionType({x: NumberType}, NumberType);
+  TestUtils.typeEqual(t1.match(t1), t1);
+  TestUtils.typeEqual(t1.match(t2), null);
+  TestUtils.typeEqual(t1.match(t3), null);
+
+  // OrType.match()
+  TestUtils.typeEqual(
+    OrType(NumberType, StringType).match(NumberType),
+    NumberType
+  );
+  TestUtils.typeEqual(
+    OrType(NumberType, StringType).match(StringType),
+    StringType
+  );
+  TestUtils.typeEqual(
+    OrType(NumberType, StringType).match(LocationType),
+    null
+  );
+  TestUtils.typeEqual(
+    MaybeChannelType(NumberType).match(NumberType),
+    NumberType
+  );
+  TestUtils.typeEqual(
+    MaybeChannelType(NumberType).match(ChannelType(NumberType)),
+    ChannelType(NumberType)
+  );
+  TestUtils.typeEqual(
+    MaybeChannelType(OrType(NumberType, StringType)).match(
+      ChannelType(StringType)
+    ),
+    ChannelType(StringType)
+  );
+
+  // MaybeType.match()
+  TestUtils.typeEqual(MaybeType(NumberType).match(NumberType), NumberType);
+  TestUtils.typeEqual(MaybeType(NumberType).match(undefined), undefined);
+  TestUtils.typeEqual(MaybeType(NumberType).match(StringType), null);
+
+  // ListType.match()
+  TestUtils.typeEqual(ListType(NumberType).match([]), null);
+  TestUtils.typeEqual(ListType(NumberType).match([NumberType]), [NumberType]);
+  TestUtils.typeEqual(
+    ListType(NumberType).match([NumberType, NumberType]),
+    [NumberType, NumberType]
+  );
+  TestUtils.typeEqual(
+    ListType(OrType(NumberType, StringType)).match([StringType, NumberType]),
+    [StringType, NumberType]
+  );
+
+  // RefType.resolve()
   TestUtils.typeEqual(RefType('a').resolve({'a': NumberType}), NumberType);
   TestUtils.typeEqual(RefType('a').resolve({'b': NumberType}), null);
   TestUtils.typeEqual(RefType('a').resolve({'a': undefined}), undefined);
 
-  // MaxType
-  TestUtils.typeEqual(MaxType([]).resolve({}), null);
-  TestUtils.typeEqual(MaxType([StringType]).resolve({}), StringType);
+  // MaxType.resolve()
+  TestUtils.typeEqual(MaxType().resolve({}), null);
+  TestUtils.typeEqual(MaxType(StringType).resolve({}), StringType);
 
   TestUtils.typeEqual(
-    MaxType([NumberType, StringType]).resolve({}),
+    MaxType(NumberType, StringType).resolve({}),
     null
   );
   TestUtils.typeEqual(
-    MaxType([ChannelType(NumberType), StringType]).resolve({}),
+    MaxType(ChannelType(NumberType), StringType).resolve({}),
     null
   );
 
   TestUtils.typeEqual(
-    MaxType([NumberType, NumberType]).resolve({}),
+    MaxType(NumberType, NumberType).resolve({}),
     NumberType
   );
   TestUtils.typeEqual(
-    MaxType([NumberType, ChannelType(NumberType)]).resolve({}),
+    MaxType(NumberType, ChannelType(NumberType)).resolve({}),
     ChannelType(NumberType)
   );
   TestUtils.typeEqual(
-    MaxType([ChannelType(NumberType), NumberType]).resolve({}),
+    MaxType(ChannelType(NumberType), NumberType).resolve({}),
     ChannelType(NumberType)
   );
   TestUtils.typeEqual(
-    MaxType([ChannelType(NumberType), ChannelType(NumberType)]).resolve({}),
+    MaxType(ChannelType(NumberType), ChannelType(NumberType)).resolve({}),
     ChannelType(NumberType)
   );
 
   TestUtils.typeEqual(
-    MaxType([RefType('a'), RefType('b')]).resolve({
+    MaxType(RefType('a'), RefType('b')).resolve({
       a: NumberType,
       b: ChannelType(NumberType)
     }),
     ChannelType(NumberType)
   );
   TestUtils.typeEqual(
-    MaxType([RefType('xs')]).resolve({
+    MaxType(RefType('xs')).resolve({
       xs: [NumberType, ChannelType(NumberType)]
+    }),
+    ChannelType(NumberType)
+  );
+  TestUtils.typeEqual(
+    MaxType(RefType('xs'), RefType('y')).resolve({
+      xs: [NumberType, NumberType],
+      y: ChannelType(NumberType)
     }),
     ChannelType(NumberType)
   );
@@ -1141,7 +1217,7 @@ QUnit.test('Fist', function() {
     Fist.evaluateType('+'),
     FunctionType({
       values: ListType(MaybeChannelType(NumberType))
-    }, MaxType([RefType('values')]))
+    }, MaxType(RefType('values')))
   );
 
   // _applyTypes
@@ -1150,15 +1226,14 @@ QUnit.test('Fist', function() {
     {x: NumberType}
   ), NumberType);
   TestUtils.typeEqual(Fist._applyTypes(
-    FunctionType({x: OrType([NumberType, StringType])}, RefType('x')),
+    FunctionType({x: OrType(NumberType, StringType)}, RefType('x')),
     {x: StringType}
   ), StringType);
   TestUtils.typeEqual(Fist._applyTypes(
-    FunctionType({xs: ListType(MaybeChannelType(NumberType))}, MaxType([RefType('xs')])),
-    {xs: [StringType, ChannelType(StringType)]}
-  ), ChannelType(StringType));
+    FunctionType({xs: ListType(MaybeChannelType(NumberType))}, MaxType(RefType('xs'))),
+    {xs: [NumberType, ChannelType(NumberType)]}
+  ), ChannelType(NumberType));
 
-  /*
   // atoms
   TestUtils.typeEqual(Fist.evaluateType(42), NumberType);
   TestUtils.typeEqual(Fist.evaluateType(3.14), NumberType);
@@ -1194,5 +1269,4 @@ QUnit.test('Fist', function() {
     op: 'value-more-than',
     args: {c: TestUtils.makeChannel(1, 10), x: 9000}
   }), ChannelType(NumberType));
-  */
 });
