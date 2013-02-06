@@ -517,7 +517,8 @@ var ViewGraph = new Class({
   empty: function() {
     FistUI.runViewGraph();
   },
-  _depthSExp: function(node) {
+  _depthCode: function(node) {
+    /*
     var S = node.allEdgesIn().map(function(edge) {
       return edge.output.node;
     });
@@ -525,30 +526,34 @@ var ViewGraph = new Class({
       return node.name;
     }
     return [node.name].append(S.map(this._depthSExp.bind(this)));
+    */
+    // TODO: fix this
+    return node.name;
   },
-  toSExps: function() {
+  toCodes: function() {
     var T = Object.values(this._nodes).filter(function(node) {
       return node.allEdgesOut().length === 0;
     });
-    return T.map(this._depthSExp.bind(this));
+    return T.map(this._depthCode.bind(this));
   },
-  toFistCode: function() {
-    return this.toSExps().map(SExp.unparse.bind(SExp)).join(' ');
-  },
-  _buildGrid: function(sexp, level, parent, input, grid) {
-    if (SExp.isAtom(sexp)) {
-      grid.push({name: sexp, level: level, parent: parent, input: input});
+  _buildGrid: function(code, level, parent, input, grid) {
+    if (Fist.isAtom(code)) {
+      grid.push({name: code, level: level, parent: parent, input: input});
       return;
     }
-    this._buildGrid(sexp[0], level, parent, input, grid);
+    /*
+    this._buildGrid(code.op, level, parent, input, grid);
     var last = grid.length - 1;
     for (var i = 1; i < sexp.length; i++) {
       this._buildGrid(sexp[i], level + 1, last, i - 1, grid);
     }
+    */
+    // TODO: fix this; it needs to connect to specific inputs based on which argument
+    // is being used
   },
-  fromSExp: function(sexp) {
+  fromCode: function(code) {
     var grid = [];
-    this._buildGrid(sexp, 0, null, null, grid);
+    this._buildGrid(code, 0, null, null, grid);
     var gridPadding = 20,
         depth = d3.max(grid, function(item) { return item.level; }),
         xs = {};
@@ -570,12 +575,6 @@ var ViewGraph = new Class({
       }
     }.bind(this));
     FistUI.runViewGraph();
-  },
-  toJSON: function() {
-    // TODO: implement this
-  },
-  fromJSON: function(json) {
-    // TODO: implement this
   },
   isInViewer: function(elem) {
     var svgRoot = $d3(this._svg);
@@ -815,7 +814,7 @@ var FistUI = {
     */
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
-      block.tips.fireEvent('hide');
+      //block.tips.fireEvent('hide');
       evt.dataTransfer.effectAllowed = 'move';
       evt.dataTransfer.setData('application/json', JSON.stringify({
         name: name,
