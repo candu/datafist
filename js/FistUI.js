@@ -790,14 +790,14 @@ var FistUI = {
   },
   onSymbolImport: function(name, value, moduleName) {
     console.log('importing symbol ' + name + ' in module ' + moduleName);
-    var type = Fist.blockType(name),
-        sexp = SExp.parse(type);
+    var type = Fist.blockType(name);
     this._palette.getElements('div.block[name=' + name + ']').destroy();
     var block = new Element('div.block.' + type, {
       text: name,
       name: name,
       draggable: true,
     });
+    /*
     block.tips = new Tips(block, {
       className: 'fistdocs',
       title: 'text',
@@ -810,8 +810,9 @@ var FistUI = {
         } else {
           return type;
         }
-      }.bind(this)
+      }
     });
+    */
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
       block.tips.fireEvent('hide');

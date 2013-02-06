@@ -11,7 +11,7 @@ var Type = {
       case 'string':
         return StringType;
       default:
-        throw new Error('value of unrecognized type: ' + type);
+        return null;
     }
   },
   equal: function(t1, t2) {

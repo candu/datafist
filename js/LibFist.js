@@ -146,7 +146,9 @@ var OpsArith = {
         return UnionIterator(channels.map(function(c) { return c.iter(); }));
       }
     };
-  }).type('(fn (name (+ channel?) "values") (max (ref "values")))')
+  }).type(FunctionType({
+      values: ListType(MaybeChannelType(NumberType))
+    }, MaxType(RefType('values'))))
     .describe('Takes the product of its values.'),
   subtract: new FistFunction(function(args) {
     if (args.b === undefined) {
@@ -157,7 +159,10 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return a - b;
     });
-  }).type('(fn (-> (name channel? "a") (name (? channel?) "b")) (max (ref "a") (ref "b")))')
+  }).type(FunctionType({
+      a: MaybeChannelType(NumberType),
+      b: MaybeType(MaybeChannelType(NumberType))
+    }, MaxType(RefType('a'), RefType('b'))))
     .describe(
       'If only a is provided, negates a. ' +
       'If (a, b) are both provided, produces the difference a - b.'
@@ -177,7 +182,10 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return Math.floor(a / b);
     });
-  }).type('(fn (-> (name channel? "a") (name channel? "b")) (max (ref "a") (ref "b")))')
+  }).type(FunctionType({
+      a: MaybeChannelType(NumberType),
+      b: MaybeChannelType(NumberType)
+    }, MaxType(RefType('a'), RefType('b'))))
     .describe(
       'Produces the quotient a / b rounded down to the nearest integer.'
     ),
@@ -185,7 +193,10 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return a % b;
     });
-  }).type('(fn (-> (name channel? "a") (name number "b")) (max (ref "a") (ref "b")))')
+  }).type(FunctionType({
+      a: MaybeChannelType(NumberType),
+      b: NumberType
+    }, RefType('a')))
     .describe(
       'Produces the modulus a % b, or the remainder left over from ' +
       'the quotient a / b. For instance, (% 8 5) is 3.'
@@ -194,7 +205,10 @@ var OpsArith = {
     return _binaryOp(args.a, args.b, function(a, b) {
       return Math.floor(a / b) * b;
     });
-  }).type('(fn (-> (name channel? "a") (name number "b")) (ref "a"))')
+  }).type(FunctionType({
+      a: MaybeChannelType(NumberType),
+      b: NumberType
+    }, RefType('a')))
     .describe(
       'Produces the highest multiple of b less ' +
       'than a. For instance, (//* 19 5) is 15. This can be ' +
@@ -208,7 +222,9 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.sqrt(x);
     });
-  }).type('(fn (-> (name channel? "x")) (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'Takes the square root of x.'
     ),
@@ -216,7 +232,10 @@ var OpsMath = {
     return _binaryOp(args.x, args.a, function(x, a) {
       return Math.pow(x, a);
     });
-  }).type('(fn (-> (name channel? "x") (name number "a")) (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType),
+      a: NumberType
+    }, RefType('x')))
     .describe(
       'With two parameters (x, a), produces x^a ' +
       '(x to the power of a).'
@@ -230,7 +249,10 @@ var OpsMath = {
     return _binaryOp(args.x, args.a, function(x, a) {
       return Math.pow(a, x);
     });
-  }).type('(fn (-> (name channel? "x") (name (? number) "a")) (ref "x"))')
+  }).type(FunctionType({
+      a: MaybeType(NumberType),
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'If only x is provided, produces e^x (e to the power of x, ' +
       'where e is roughly 2.718). If both (x, a) are provided, ' +
@@ -245,7 +267,10 @@ var OpsMath = {
     return _binaryOp(args.x, args.b, function(x, b) {
       return Math.log(x) / Math.log(b);
     });
-  }).type('(fn (-> (name channel? "x") (name (? number) "b")) (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType),
+      b: MaybeType(NumberType)
+    }, RefType('x')))
     .describe(
       'If only x is provided, produces ln x (the logarithm of x base e, ' +
       'where e is roughly 2.718). If both (x, b) are provided, ' +
@@ -255,7 +280,9 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.abs(x);
     });
-  }).type('(fn (name channel? "x") (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'Produces the absolute value of x.'
     ),
@@ -263,7 +290,9 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.floor(x);
     });
-  }).type('(fn (name channel? "x") (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'Rounds x down to the nearest integer.'
     ),
@@ -271,7 +300,9 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.round(x);
     });
-  }).type('(fn (name channel? "x") (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'Rounds x up or down to the nearest integer.'
     ),
@@ -279,7 +310,9 @@ var OpsMath = {
     return _unaryOp(args.x, function(x) {
       return Math.ceil(x);
     });
-  }).type('(fn (name channel? "x") (ref "x"))')
+  }).type(FunctionType({
+      x: MaybeChannelType(NumberType)
+    }, RefType('x')))
     .describe(
       'Rounds x up to the nearest integer.'
     )
@@ -983,7 +1016,9 @@ var View = {
     ),
   viewCrossfilter: new FistFunction(function(args) {
     FistUI.onViewInvoked('crossfilter', args);
-  }).type('(fn (name (+ channel) "channels") view)')
+  }).type(FunctionType({
+      channels: ListType(ChannelType(OrType(NumberType, StringType)))
+    }, ViewType))
     .describe(
       'Displays its channels as a series of distribution bar charts. ' +
       'Each chart can be filtered, which updates all other charts to ' +
@@ -993,7 +1028,9 @@ var View = {
     ),
   viewMap: new FistFunction(function(args) {
     FistUI.onViewInvoked('map', args);
-  }).type('(fn (name (+ channel) "channels") view)')
+  }).type(FunctionType({
+      channels: ListType(ChannelType(LocationType))
+    }, ViewType))
     .describe(
       'Displays each pair of channels as (lat, lng) points on a ' +
       'Mercator projection. If datafist is running in server mode and a ' +
@@ -1002,7 +1039,12 @@ var View = {
     ),
   viewHistogram: new FistFunction(function(args) {
     FistUI.onViewInvoked('histogram', args);
-  }).type('(fn (-> (name channel "channel") (name (? channel) "groupBy") (name (? number) "bucket") (name (? string) "reduce")) view)')
+  }).type(FunctionType({
+      channel: ChannelType(NumberType),
+      groupBy: MaybeType(ChannelType(NumberType)),
+      bucket: MaybeType(NumberType),
+      reduce: MaybeType(StringType)
+    }, ViewType))
     .describe(
       'Displays its channel as a histogram. If groupBy is ' +
       'provided, the values of channel are grouped by the ' +
@@ -1014,7 +1056,12 @@ var View = {
     ),
   viewPlot: new FistFunction(function(args) {
     FistUI.onViewInvoked('plot', args);
-  }).type('(fn (-> (name channel "x") (name channel "y") (name (? channel) "area") (name (? channel) "color")) view)')
+  }).type(FunctionType({
+      x: ChannelType(NumberType),
+      y: ChannelType(NumberType),
+      area: MaybeType(ChannelType(NumberType)),
+      color: MaybeType(ChannelType(OrType(NumberType, StringType)))
+    }, ViewType))
     .describe(
       'Uses the x and y channels to make an x-y plot. If x and y are ' +
       'highly correlated, also displays the line of best fit. If area is ' +

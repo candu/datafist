@@ -180,11 +180,8 @@ var Fist = {
       return null;
     }
   },
-  blockType: function(command) {
-    var type = this.executeType(command);
-    if (type === null) {
-      return null;
-    }
-    return type.node();
+  blockType: function(name) {
+    var type = Type.fromValue(this.evaluateAtom(name));
+    return type && type.node();
   }
 };
