@@ -334,7 +334,11 @@ var OpsString = {
       }
       return s.substring(start, end);
     });
-  }).type('(fn (-> (name channel "c") (name number "start") (name (? number) "end")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(StringType),
+      start: NumberType,
+      end: MaybeType(NumberType)
+    }, ChannelType(StringType)))
     .describe(
       'Produces a channel whose values are fixed-position substrings of ' +
       'the values of c.'
@@ -343,7 +347,9 @@ var OpsString = {
     return _unaryOp(args.c, function(s) {
       return s.length;
     });
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(StringType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the lengths, or number of ' +
       'characters, of the values of c.'
@@ -356,13 +362,14 @@ var OpsLocation = {
   ],
   __fullName: 'Location Operations',
   distanceFrom: new FistFunction(function(args) {
-    var _plat = args.pointLat.toRad(),
-        _plng = args.pointLng.toRad(),
+    var _plat = args.p.lat.toRad(),
+        _plng = args.p.lng.toRad(),
         _R = 6371009.0;   // mean Earth radius, in meters
     return {
       at: function(t) {
-        var lat = args.lat.at(t).toRad(),
-            lng = args.lng.at(t).toRad(),
+        var cp = args.c.at(t),
+            lat = cp.lat.toRad(),
+            lng = cp.lng.toRad(),
             dLat = lat - _plat,
             dLng = lng - _plng;
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -372,10 +379,13 @@ var OpsLocation = {
         return _R * c;
       },
       iter: function() {
-        return IntersectionIterator([args.lat.iter(), args.lng.iter()]);
+        return args.c.iter();
       }
     };
-  }).type('(fn (-> (name channel "lat") (name channel "lng") (name number "pointLat") (name number "pointLng")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(LocationType),
+      p: LocationType
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the distances of each data ' +
       'point (lat, lng) from (pointLat, pointLng).'
@@ -410,7 +420,10 @@ var OpsTime = {
         };
       }
     };
-  }).type('(fn (-> (name channel "c") (name timedelta "dt")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      dt: TimeDeltaType
+    }, RefType('c')))
     .describe(
       'Time-shifts c by dt milliseconds. ' +
       'For instance, (time-shift c 3600000) shifts c forward one hour, ' +
@@ -443,7 +456,11 @@ var OpsTime = {
       return {t: bucket.t, x: _reduce(bucket.xs)};
     });
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name string "reduce") (name timedelta "dt")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      reduce: StringType,
+      dt: TimeDeltaType
+    }, ChannelType(NumberType)))
     .describe(
       'Groups the data from c into time buckets of width dt, then ' +
       'combines the data in each bucket according to reduce. ' +
@@ -459,7 +476,9 @@ var OpsTime = {
         return args.c.iter();
       }
     }
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the timestamps of c.'
     ),
@@ -472,7 +491,9 @@ var OpsTime = {
         return args.c.iter();
       }
     }
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the hours of day (0-23) ' +
       'corresponding to the timestamps of c.'
@@ -486,7 +507,9 @@ var OpsTime = {
         return args.c.iter();
       }
     }
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the days of week (0-6) ' +
       'corresponding to the timestamps of c.'
@@ -500,7 +523,9 @@ var OpsTime = {
         return args.c.iter();
       }
     }
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel whose values are the months of year (1-12) ' +
       'corresponding to the timestamps of c.'
@@ -540,7 +565,10 @@ var OpsSmooth = {
       }
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name timedelta "halfLife")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      halfLife: TimeDeltaType
+    }, ChannelType(NumberType)))
     .describe(
       'Applies a rolling average to c ' +
       'that decays by 50% over halfLife milliseconds.'
@@ -576,7 +604,10 @@ var OpsSmooth = {
       }
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name number "windowSize")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      windowSize: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Applies a sliding window ' +
       'average to c that uses the last windowSize data points.'
@@ -658,7 +689,10 @@ var OpsSmooth = {
       }
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name number "filterSize")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      filterSize: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Applies a median filter to c that uses the last filterSize ' +
       'data points. This can be used to reduce noise in data.'
@@ -687,7 +721,10 @@ var OpsSmooth = {
       }
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name channel "c") (name (? timedelta) "rateUnit")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      rateUnit: TimeDeltaType
+    }, ChannelType(NumberType)))
     .describe(
       'Calculates the rate of change of c per rateUnit milliseconds. ' +
       'For instance, (rate-of-change c "1 hour") is change per hour.'
@@ -710,7 +747,9 @@ var OpsSmooth = {
       }
     }
     return new DataChannel(_data);
-  }).type('(fn (name channel "c") channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType)
+    }, ChannelType(NumberType)))
     .describe(
       'Calculates the cumulative sum of c, or total of all data points ' +
       'in c up to each point in time.'
@@ -730,7 +769,10 @@ var OpsJoin = {
         return IntersectionIterator(iters);
       }
     }
-  }).type('(fn (-> (name channel "c") (name (+ channel) "joins")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      joins: ListType(ChannelType(AnyDataType))
+    }, RefType('c')))
     .describe(
       'Produces a channel with values from c, filtered to only those ' +
       'timestamps present in both c and each of the joins channels.'

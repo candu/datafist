@@ -280,3 +280,5 @@ function MaxType(/* subType, ... */) {
 function MaybeChannelType(dataType) {
   return OrType(dataType, ChannelType(dataType));
 }
+
+var AnyDataType = OrType(NumberType, StringType, LocationType);
