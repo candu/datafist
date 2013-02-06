@@ -19,6 +19,7 @@ var Type = {
         t2 === null || t2 === undefined) {
       return t1 === t2;
     }
+    console.log(t1.toString(), t2.toString());
     return t1.toString() === t2.toString();
   }
 };
@@ -232,7 +233,7 @@ function RefType(name) {
       return 'ref(' + name + ')';
     },
     resolve: function(boundTypes) {
-      return boundTypes[name] || null;
+      return boundTypes.hasOwnProperty(name) ? boundTypes[name] : null;
     }
   };
 }
@@ -249,11 +250,9 @@ function MaxType(subTypes) {
       var dataType = null,
           hasChannel = false;
       for (var i = 0; i < subTypes.length; i++) {
-        var subType = subTypes[i];
+        var subType = subTypes[i].resolve(boundTypes);
         if (subType instanceof Array) {
           subType = MaxType(subType).resolve(boundTypes);
-        } else {
-          subType = subType.resolve(boundTypes);
         }
         var subDataType = subType.dataType || subType;
         if (dataType === null) {

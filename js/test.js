@@ -1089,10 +1089,20 @@ QUnit.test('Type', function() {
   // RefType
   TestUtils.typeEqual(RefType('a').resolve({'a': NumberType}), NumberType);
   TestUtils.typeEqual(RefType('a').resolve({'b': NumberType}), null);
+  TestUtils.typeEqual(RefType('a').resolve({'a': undefined}), undefined);
 
   // MaxType
   TestUtils.typeEqual(MaxType([]).resolve({}), null);
   TestUtils.typeEqual(MaxType([StringType]).resolve({}), StringType);
+
+  TestUtils.typeEqual(
+    MaxType([NumberType, StringType]).resolve({}),
+    null
+  );
+  TestUtils.typeEqual(
+    MaxType([ChannelType(NumberType), StringType]).resolve({}),
+    null
+  );
 
   TestUtils.typeEqual(
     MaxType([NumberType, NumberType]).resolve({}),
@@ -1118,7 +1128,12 @@ QUnit.test('Type', function() {
     }),
     ChannelType(NumberType)
   );
-
+  TestUtils.typeEqual(
+    MaxType([RefType('xs')]).resolve({
+      xs: [NumberType, ChannelType(NumberType)]
+    }),
+    ChannelType(NumberType)
+  );
 });
 
 QUnit.test('Fist', function() {
