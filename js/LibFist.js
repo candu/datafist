@@ -794,7 +794,10 @@ var OpsFilterValue = {
     return _filterOp(args.c, function(t) {
       return args.c.at(t) < args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      x: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Filters c to contain only values less than x.'
     ),
@@ -802,7 +805,10 @@ var OpsFilterValue = {
     return _filterOp(args.c, function(t) {
       return args.c.at(t) <= args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      x: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Filters c to contain only values less than or equal to x.'
     ),
@@ -811,7 +817,10 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return args.c.at(t) === args.x;
     });
-  }).type('(fn (-> (name channel "c") (name (| number string) "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      x: AnyDataType
+    }, RefType('c')))
     .describe(
       'Filters c to contain only values equal to x.'
     ),
@@ -820,7 +829,10 @@ var OpsFilterValue = {
       // TODO: this won't work properly for dates or other objects
       return args.c.at(t) !== args.x;
     });
-  }).type('(fn (-> (name channel "c") (name (| number string) "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      x: AnyDataType
+    }, RefType('c')))
     .describe(
       'Filters c to contain only values not equal to x.'
     ),
@@ -828,7 +840,10 @@ var OpsFilterValue = {
     return _filterOp(args.c, function(t) {
       return args.c.at(t) >= args.x;
     });
-  }).type('(fn (-> (name channel "c") (name number "x")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      x: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Filters c to contain only values greater than or equal to x.'
     ),
@@ -848,7 +863,11 @@ var OpsFilterValue = {
       var x = args.c.at(t);
       return x >= args.x1 && x < args.x2;
     });
-  }).type('(fn (-> (name channel "c") (name number "x1") (name number "x2")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(NumberType),
+      x1: NumberType,
+      x2: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Filters c to contain only values between x1 (inclusive) and ' +
       'x2 (exclusive).'
@@ -867,7 +886,10 @@ var OpsFilterTime = {
     return _filterOp(args.c, function(t) {
       return t >= _since;
     });
-  }).type('(fn (-> (name channel "c") (name time "since")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      since: TimeType
+    }, RefType('c')))
     .describe(
       'Filters c to contain only data points from on or after since.'
     ),
@@ -876,7 +898,10 @@ var OpsFilterTime = {
     return _filterOp(args.c, function(t) {
       return t < _until;
     });
-  }).type('(fn (-> (name channel "c") (name time "until")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      until: TimeType
+    }, RefType('c')))
     .describe(
       'Filters c to contain only data points from before until.'
     ),
@@ -886,7 +911,11 @@ var OpsFilterTime = {
     return _filterOp(args.c, function(t) {
       return t >= _since && t < _until;
     });
-  }).type('(fn (-> (name channel "c") (name time "since") (name time "until")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(AnyDataType),
+      since: TimeType,
+      until: TimeType
+    }, RefType('c')))
     .describe(
       'Filters c to contain only data points from between since ' +
       '(inclusive) and until (exclusive).'
@@ -904,7 +933,10 @@ var OpsFilterString = {
       var s = args.c.at(t);
       return s.indexOf(args.prefix) === 0;
     });
-  }).type('(fn (-> (name channel "c") (name string "prefix")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(StringType),
+      prefix: StringType
+    }, ChannelType(StringType)))
     .describe(
       'Filters c to contain only values that start with prefix.'
     ),
@@ -915,7 +947,10 @@ var OpsFilterString = {
           i = s.lastIndexOf(args.suffix);
       return i !== -1 && i === s.length - _suffixLen;
     });
-  }).type('(fn (-> (name channel "c") (name string "suffix")) channel)')
+  }).type(FunctionType({
+      c: ChannelType(StringType),
+      suffix: StringType
+    }, ChannelType(StringType)))
     .describe(
       'Filters c to contain only values that end with suffix.'
     )
@@ -941,7 +976,9 @@ var GensData = {
     return function(t) {
       return Random.choice(args.values);
     };
-  }).type('(fn (name (+ (| number string)) "values") (fn number number))')
+  }).type(FunctionType({
+      values: ListType(AnyDataType)
+    }, FunctionType({t: NumberType}, MaxType(RefType('values')))))
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns a value selected at random from values.'
@@ -950,7 +987,10 @@ var GensData = {
     return function(t) {
       return Random.uniform(args.min, args.max);
     };
-  }).type('(fn (-> (name number "min") (name number "max")) (fn number number))')
+  }).type(FunctionType({
+      min: NumberType,
+      max: NumberType
+    }, FunctionType({t: NumberType}, NumberType)))
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns a random value between min (inclusive) and max (exclusive).'
@@ -959,7 +999,10 @@ var GensData = {
     return function(t) {
       return args.mu + args.sigma * Random.gaussian();
     };
-  }).type('(fn (-> (name number "mu") (name number "sigma")) (fn number number))')
+  }).type(FunctionType({
+      mu: NumberType,
+      sigma: NumberType
+    }, FunctionType({t: NumberType}, NumberType)))
     .describe(
       'Produces a data generator that, when evaluated at a timestamp, ' +
       'returns a normally distributed value with mean mu and ' +
@@ -1001,7 +1044,12 @@ var GensChannel = {
       _data.push({t: _t, x: args.gen(_t)});
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "n")) channel)')
+  }).type(FunctionType({
+      gen: FunctionType({t: NumberType}, NumberType),
+      since: NumberType,
+      until: NumberType,
+      n: NumberType
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel by evaluating gen at n timestamps selected ' +
       'randomly from between since (inclusive) and until (exclusive).'
@@ -1016,7 +1064,12 @@ var GensChannel = {
       _t += _dt;
     }
     return new DataChannel(_data);
-  }).type('(fn (-> (name (fn number number) "gen") (name number "since") (name number "until") (name number "rate")) channel)')
+  }).type(FunctionType({
+      gen: FunctionType({t: NumberType}, NumberType),
+      since: NumberType,
+      until: NumberType,
+      rate: TimeDeltaType
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel by evaluating gen roughly once every rate ' +
       'milliseconds between since (inclusive) and until (exclusive). ' +
@@ -1033,7 +1086,10 @@ var GensChannel = {
         return args.c.iter();
       }
     }
-  }).type('(fn (-> (name (fn number number) "gen") (name channel "c")) channel)')
+  }).type(FunctionType({
+      gen: FunctionType({t: NumberType}, NumberType),
+      c: ChannelType(NumberType)
+    }, ChannelType(NumberType)))
     .describe(
       'Produces a channel by evaluating gen at every timestamp present in c.'
     )
