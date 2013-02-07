@@ -72,7 +72,6 @@ var InputHitArea = new Class({
     }
   },
   isFull: function() {
-    // TODO: this will not work
     return this.node.edgeIn(this.id) !== undefined;
   }
 });
@@ -191,8 +190,8 @@ var Node = new Class({
     this.inputs = [];
     this.inputColors = d3.scale.category10();
     if (this.type === 'function') {
-      Object.each(Fist.evaluateType(name).params, function(type, name) {
-        this.inputs.push(new InputHitArea(graph, this, this.inputs.length, name, !!type.variadic));
+      Object.each(Fist.evaluateType(name).params, function(type, param) {
+        this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, !!type.variadic));
       }.bind(this));
     }
     this.outputs = [];
@@ -205,7 +204,12 @@ var Node = new Class({
       this.outputs.push(new OutputHitArea(graph, this, 0));
     }
   },
-  addVariadicInput: function(graph) {
+  addVariadicInput: function(graph, param) {
+    var last = this.inputs.length - 1;
+    for (; last >= 0 && this.inputs[last].param !== param; i--) {}
+    if (last < 0) {
+      throw new Error('cannot add param ' + name + ' to node');
+    }
     this.inputs.push(new InputHitArea(graph, this, this.inputs.length, true));
   },
   move: function(dx, dy) {
@@ -424,8 +428,8 @@ var ViewGraph = new Class({
     var edge = new Edge(this, this._edgeGroup, output, input);
     output.node.addEdge(edge);
     input.node.addEdge(edge);
-    if (input.variadic && input.id === input.node.inputs.length - 1) {
-      input.node.addVariadicInput(this);
+    if (input.variadic) {
+      input.node.addVariadicInput(this, input.param);
     }
     return edge;
   },
@@ -580,9 +584,6 @@ var Status = new Class({
   initialize: function(statusWrapper) {
     this._statusWrapper = statusWrapper;
     this._messageBox = this._statusWrapper.getElement('#message');
-    this._importBox = this._statusWrapper.getElement('#import');
-    this._filenameBox = this._statusWrapper.getElement('#filename');
-    this._progressBar = this._statusWrapper.getElement('#progress');
   },
   _msg: function(cls, msg) {
     this._statusWrapper.set('class', cls);
@@ -596,15 +597,6 @@ var Status = new Class({
   },
   notOK: function(err) {
     this._msg('not-ok', err.toString());
-  },
-  progressStart: function(file, total) {
-    this._filenameBox.set('text', file.name);
-    this._progressBar.set('value', 0);
-    this._progressBar.set('max', total);
-    this._importBox.removeClass('hidden');
-  },
-  progress: function(file, loaded) {
-    this._progressBar.set('value', loaded);
   }
 });
 
@@ -769,7 +761,6 @@ var FistUI = {
       name: name,
       draggable: true,
     });
-    /*
     block.tips = new Tips(block, {
       className: 'fistdocs',
       title: 'text',
@@ -784,10 +775,9 @@ var FistUI = {
         }
       }
     });
-    */
     block.addEventListener('dragstart', function(evt) {
       block.addClass('dragtarget');
-      //block.tips.fireEvent('hide');
+      block.tips.fireEvent('hide');
       evt.dataTransfer.effectAllowed = 'move';
       evt.dataTransfer.setData('application/json', JSON.stringify({
         name: name,

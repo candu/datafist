@@ -1,27 +1,26 @@
 // Type utility class
 
-var Type = {
-  fromValue: function(value) {
-    var type = typeOf(value);
-    switch (type) {
-      case 'object':
-        return value.type();
-      case 'number':
-        return NumberType;
-      case 'string':
-        return StringType;
-      default:
-        return null;
-    }
-  },
-  equal: function(t1, t2) {
-    if (t1 === null || t1 === undefined ||
-        t2 === null || t2 === undefined) {
-      return t1 === t2;
-    }
-    console.log(t1.toString(), t2.toString());
-    return t1.toString() === t2.toString();
+// TODO: instead of extending mootools' Type, define all this within
+// separate Fist.lang namespace
+Type.fromValue = function(value) {
+  var type = typeOf(value);
+  switch (type) {
+    case 'object':
+      return value.type();
+    case 'number':
+      return NumberType;
+    case 'string':
+      return StringType;
+    default:
+      return null;
   }
+};
+Type.equal = function(t1, t2) {
+  if (t1 === null || t1 === undefined ||
+      t2 === null || t2 === undefined) {
+    return t1 === t2;
+  }
+  return t1.toString() === t2.toString();
 };
 
 // primitive types
