@@ -10,42 +10,19 @@ var SVGUtils = {
 };
 
 var HitArea = new Class({
-  initialize: function(graph, blockGroup, node, type, id, variadic) {
+  initialize: function(graph, node, id) {
+    var blockGroup = node._g;   // TODO: add method on Node
     this.node = node;
-    this.type = type;
     this.id = id;
-    this.variadic = variadic || false;
 
-    this.pos = {
-      x: id * (HitArea.WIDTH + HitArea.PADDING)
-    };
-    switch (type) {
-      case HitArea.INPUT:
-        this.pos.y = -HitArea.HEIGHT;
-        break;
-      case HitArea.OUTPUT:
-        this.pos.y = node.dims.h;
-        break;
-    }
+    this.pos = this._getPosition();
 
-    var hitParts = ['hit', node.id, type, id];
     this._hit = blockGroup.append('svg:rect')
       .attr('class', 'hit output')
-      .attr('id', hitParts.join('_'))
       .attr('x', this.pos.x)
       .attr('y', this.pos.y)
       .attr('width', HitArea.WIDTH)
-      .attr('height', HitArea.HEIGHT)
-      .on('mouseover', function() {
-        this._hit.attr('class', 'hit output hover');
-      }.bind(this))
-      .on('mouseout', function() {
-        this._hit.attr('class', 'hit output');
-      }.bind(this));
-
-    if (this.type === HitArea.OUTPUT) {
-      this._hit.call(HitArea._edgeCreateBehavior(graph, this));
-    }
+      .attr('height', HitArea.HEIGHT);
   },
   getEdgePos: function() {
     return {
@@ -53,45 +30,91 @@ var HitArea = new Class({
       y: this.node.dims.y + this.pos.y + HitArea.HEIGHT / 2
     };
   },
-  isFull: function() {
-    return this.type === HitArea.INPUT &&
-           this.node.edgeIn(this.id) !== undefined;
-  },
   cleanup: function() {
     this._hit.remove();
   }
 });
-HitArea.INPUT = 'I';
-HitArea.OUTPUT = 'O';
 HitArea.WIDTH = 12;
 HitArea.HEIGHT = 5;
 HitArea.PADDING = 4;
-HitArea.fromElement = function(graph, elem) {
+
+var InputHitArea = new Class({
+  Extends: HitArea,
+  initialize: function(graph, node, id, param, variadic) {
+    this.parent(graph, node, id);
+    this.param = param;
+    this.variadic = variadic;
+
+    var nameColorHSL = d3.hsl(node.inputColors(param)),
+        typeColorHSL = nameColorHSL.brighter(0.7),
+        rowColorHSL = nameColorHSL.brighter(1.4);
+    typeColorHSL.s *= 0.7;
+    rowColorHSL.s *= 1.1;
+    this._hit
+      .attr('id', ['input', node.id, id].join('_'))
+      .style('stroke', typeColorHSL.toString())
+      .style('fill', rowColorHSL.toString())
+      .on('mouseover', function() {
+        this._hit
+          .style('stroke', nameColorHSL.toString())
+          .style('fill', typeColorHSL.toString())
+      }.bind(this))
+      .on('mouseout', function() {
+        this._hit
+          .style('stroke', typeColorHSL.toString())
+          .style('fill', rowColorHSL.toString())
+      }.bind(this));
+  },
+  _getPosition: function() {
+    return {
+      x: this.id * (HitArea.WIDTH + HitArea.PADDING),
+      y: -HitArea.HEIGHT
+    }
+  },
+  isFull: function() {
+    // TODO: this will not work
+    return this.node.edgeIn(this.id) !== undefined;
+  }
+});
+InputHitArea.fromElement = function(graph, elem) {
   var hitParts = elem.id.split('_');
-  if (hitParts.length !== 4) {
+  if (hitParts.length !== 3) {
     return undefined;
   }
-  var hit = hitParts[0],
+  var input = hitParts[0],
       nodeID = hitParts[1],
-      type = hitParts[2],
-      id = hitParts[3];
-  if (hit !== 'hit') {
+      id = hitParts[2];
+  if (input !== 'input') {
     return undefined;
   }
   var node = graph._nodes[nodeID];
   if (node === undefined) {
     return undefined;
   }
-  switch (type) {
-    case HitArea.INPUT:
-      return node.inputs[id];
-    case HitArea.OUTPUT:
-      return node.outputs[id];
-    default:
-      return undefined;
-  }
+  return node.inputs[id];
 };
-HitArea._edgeCreateBehavior = function(graph, output) {
+
+var OutputHitArea = new Class({
+  Extends: HitArea,
+  initialize: function(graph, node, id) {
+    this.parent(graph, node, id);
+    this._hit
+      .on('mouseover', function() {
+        this._hit.attr('class', 'hit output hover');
+      }.bind(this))
+      .on('mouseout', function() {
+        this._hit.attr('class', 'hit output');
+      }.bind(this))
+      .call(OutputHitArea._edgeCreateBehavior(graph, this));
+  },
+  _getPosition: function() {
+    return {
+      x: this.id * (HitArea.WIDTH + HitArea.PADDING),
+      y: this.node.dims.h
+    }
+  }
+});
+OutputHitArea._edgeCreateBehavior = function(graph, output) {
   return d3.behavior.drag()
     .on('dragstart', function() {
       d3.event.sourceEvent.stopPropagation();
@@ -109,7 +132,7 @@ HitArea._edgeCreateBehavior = function(graph, output) {
       graph._tempEdgeGroup
         .attr('transform', SVGUtils.translateToHide());
       var target = d3.event.sourceEvent.target,
-          input = HitArea.fromElement(graph, target);
+          input = InputHitArea.fromElement(graph, target);
       if (input === undefined || input.type !== HitArea.INPUT) {
         console.log('skipping, invalid elem target');
         return;
@@ -125,8 +148,6 @@ HitArea._edgeCreateBehavior = function(graph, output) {
     });
 };
 
-// TODO: verify that Object.values returns values in key-sorted order
-// across all browsers
 var Node = new Class({
   initialize: function(graph, nodeGroup, name, pos, id) {
     this.name = name;
@@ -168,79 +189,24 @@ var Node = new Class({
       .text(this.name);
 
     this.inputs = [];
+    this.inputColors = d3.scale.category10();
     if (this.type === 'function') {
-      var params = this._getFunctionParams();
-      params.each(function(param, i) {
-        this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, i, param.variadic));
+      Object.each(Fist.evaluateType(name).params, function(type, name) {
+        this.inputs.push(new InputHitArea(graph, this, this.inputs.length, name, !!type.variadic));
       }.bind(this));
     }
     this.outputs = [];
     if (this.type === 'function') {
-      var value = Fist.evaluateAtom(this.name),
-          fnType = SExp.parse(value.type());
-      if (fnType[2] !== 'view') {
-        this.outputs.push(new HitArea(graph, this._g, this, HitArea.OUTPUT, 0));
+      var type = Fist.evaluateType(this.name);
+      if (!Type.equal(type.returnType, ViewType)) {
+        this.outputs.push(new OutputHitArea(graph, this, 0));
       }
     } else {
-      this.outputs.push(new HitArea(graph, this._g, this, HitArea.OUTPUT, 0));
+      this.outputs.push(new OutputHitArea(graph, this, 0));
     }
   },
   addVariadicInput: function(graph) {
-    this.inputs.push(new HitArea(graph, this._g, this, HitArea.INPUT, this.inputs.length, true));
-  },
-  _getFunctionParams: function() {
-    var variadicity = function(type) {
-      if (SExp.isAtom(type)) {
-        switch (type) {
-          case 'channel?':
-          case 'time':
-          case 'timedelta':
-          case 'number':
-          case 'string':
-          case 'channel':
-          case 'view':
-            return false;
-          default:
-            throw new Error('unrecognized atomic type: ' + type);
-        }
-      }
-      switch (type[0]) {
-        case 'name':
-          var subType = type[1],
-              name = Fist.evaluateAtom(type[2]);
-          return {name: name, variadic: variadicity(subType)};
-        case '->':
-          var thenType = [];
-          for (var j = 1; j < type.length; j++) {
-            thenType.push(variadicity(type[j]));
-          }
-          return thenType;
-        case '|':
-          var isVariadic = false;
-          for (var j = 1; j < type.length; j++) {
-            if (variadicity(type[j])) {
-              isVariadic = true;
-              break;
-            }
-          }
-          return isVariadic;
-        case '?':
-          return variadicity(type[1]);
-        case '+':
-          return true;
-        case 'fn':
-          return false;
-        default:
-          throw new Error('unrecognized param type operator: ' + type[0]);
-      }
-    };
-    var value = Fist.evaluateAtom(this.name),
-        fnType = SExp.parse(value.type()),
-        params = variadicity(fnType[1]);
-    if (!(params instanceof Array)) {
-      params = [params];
-    }
-    return params;
+    this.inputs.push(new InputHitArea(graph, this, this.inputs.length, true));
   },
   move: function(dx, dy) {
     this.dims.x += dx;
@@ -385,7 +351,7 @@ Edge._dragBehavior = function(graph, edge) {
     .on('drag', drag)
     .on('dragend', function() {
       var target = d3.event.sourceEvent.target,
-          input = HitArea.fromElement(graph, target),
+          input = InputHitArea.fromElement(graph, target),
           output = edge.output;
       graph.deleteEdge(edge);
       if (input !== undefined && input.type === HitArea.INPUT) {
@@ -518,17 +484,23 @@ var ViewGraph = new Class({
     FistUI.runViewGraph();
   },
   _depthCode: function(node) {
-    /*
-    var S = node.allEdgesIn().map(function(edge) {
-      return edge.output.node;
-    });
-    if (S.length === 0) {
+    var edges = node.allEdgesIn();
+    if (edges.length === 0) {
       return node.name;
     }
-    return [node.name].append(S.map(this._depthSExp.bind(this)));
-    */
-    // TODO: fix this
-    return node.name;
+    var args = {};
+    edges.each(function(edge) {
+      var code = this._depthCode(edge.output.node);
+      if (edge.input.variadic) {
+        if (!args.hasOwnProperty(edge.input.param)) {
+          args[edge.input.param] = [];
+        }
+        args[edge.input.param].push(code);
+      } else {
+        args[edge.input.param] = code;
+      }
+    }.bind(this));
+    return {op: node.name, args: args};
   },
   toCodes: function() {
     var T = Object.values(this._nodes).filter(function(node) {
@@ -644,27 +616,28 @@ var FistUI = {
     options = options || {};
     var rebuild = options.rebuild || true;
     if (rebuild) {
-      this._fistCode = this._viewGraph.toFistCode();
+      this._fistCode = this._viewGraph.toCodes();
     }
-    console.log(this._fistCode);
-    if (this._fistCode === '') {
+    console.log(JSON.stringify(this._fistCode));
+    if (this._fistCode.length === 0) {
       this._status.OK('view graph is empty.');
       return;
     }
     try {
       this._status.working('type-checking view graph...');
-      var fistType = Fist.blockType(this._fistCode);
+      var code = this._fistCode[0],
+          fistType = Fist.evaluateType(code);
       if (fistType === null) {
         // TODO: identify *what* is invalid about it
         this._status.notOK('view graph is invalid!');
         return;
       }
-      if (fistType !== 'view') {
-        this._status.OK('view graph describes a ' + fistType + ', not a view.');
+      if (!Type.equal(fistType, ViewType)) {
+        this._status.OK('view graph describes a ' + fistType.toString() + ', not a view.');
         return;
       }
       this._status.working('rendering view...');
-      Fist.execute(this._fistCode);
+      Fist.evaluate(code);
       this._status.OK('rendered view graph successfully.');
     } catch (e) {
       console.log(e);

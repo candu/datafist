@@ -141,7 +141,7 @@ var LineView = {
         axisH = 20,
         axisW = 60,
         channels = args.channels,
-        sexps = args.__sexps.channels;
+        sexps = args.__code.channels;
 
     // extract data from channels
     var n = channels.length,
@@ -608,7 +608,7 @@ var CrossfilterView = {
         grid = this._determineGrid(w, h, n),
         charts = [];
     for (var i = 0; i < n; i++) {
-      var sexp = args.__sexps.channels[i];
+      var sexp = args.__code.channels[i];
       if (typeOf(data[0][i]) === 'string') {
         this._makeCategoricalBarChart(view, filter, data, grid, sexp, charts);
       } else {
@@ -751,9 +751,9 @@ var HistogramView = {
     var bucketing = args.bucket;
     if (bucketing === undefined) {
       if (args.groupBy === undefined) {
-        bucketing = _getBucketing(args.__sexps.channel);
+        bucketing = _getBucketing(args.__code.channel);
       } else {
-        bucketing = _getBucketing(args.__sexps.groupBy);
+        bucketing = _getBucketing(args.__code.groupBy);
       }
     }
     var reduce = args.reduce;
@@ -847,7 +847,7 @@ var HistogramView = {
       .attr('x', histW - 8)
       .attr('y', 8)
       .attr('text-anchor', 'end')
-      .text(_caption(args.__sexps.channel));
+      .text(_caption(args.__code.channel));
 
     // value-filtering hit area
     // TODO: merge this with time-filtering code from LineView
@@ -902,21 +902,21 @@ var HistogramView = {
             x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
             x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
         if (args.groupBy === undefined) {
-          var sexpX = _stripFilters(args.__sexps.channel, 'value-between');
+          var sexpX = _stripFilters(args.__code.channel, 'value-between');
           var filteredSExp = [
             'view-histogram',
             ['value-between', sexpX, _format(x[0]), _format(x[1])]
           ];
         } else {
-          var sexpX = _stripFilters(args.__sexps.groupBy, 'value-between');
+          var sexpX = _stripFilters(args.__code.groupBy, 'value-between');
           var filteredSExp = [
             'view-histogram',
-            args.__sexps.c,
+            args.__code.c,
             ['value-between', sexpX, _format(x[0]), _format(x[1])]
           ];
         }
         if (args.bucket !== undefined) {
-          filteredSExp.push(args.__sexps.bucket);
+          filteredSExp.push(args.__code.bucket);
         }
         $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
       }.bind(this))
@@ -976,9 +976,9 @@ var PlotView = {
           if (typeOf(d.A) === 'string') {
             delete d.A;
             args.color = args.area;
-            args.__sexps.color = args.__sexps.area;
+            args.__code.color = args.__code.area;
             args.area = undefined;
-            args.__sexps.area = undefined;
+            args.__code.area = undefined;
             hasColor = true;
             hasArea = false;
           }
@@ -1002,8 +1002,8 @@ var PlotView = {
     }
 
     // get bounds
-    var xfiltering = _getFiltering(args.__sexps.x, 'value-between'),
-        yfiltering = _getFiltering(args.__sexps.y, 'value-between'),
+    var xfiltering = _getFiltering(args.__code.x, 'value-between'),
+        yfiltering = _getFiltering(args.__code.y, 'value-between'),
         bounds = {};
 
     bounds.x = xfiltering || _getBound(data, 'x');
@@ -1111,13 +1111,13 @@ var PlotView = {
       .attr('x', plotW - 8)
       .attr('y', plotH - 8)
       .attr('text-anchor', 'end')
-      .text(_caption(args.__sexps.x));
+      .text(_caption(args.__code.x));
     g.append('svg:text')
       .attr('class', 'plot caption')
       .attr('x', 8)
       .attr('y', 8)
       .attr('dy', '.71em')
-      .text(_caption(args.__sexps.y));
+      .text(_caption(args.__code.y));
 
     // regression line
     this._drawRegressionLine(data, g, scales.x, scales.y, bounds.x);
@@ -1185,18 +1185,18 @@ var PlotView = {
             y1 = parseFloat(this._dragSelectionArea.attr('y')),
             y2 = y1 + parseFloat(this._dragSelectionArea.attr('height')),
             y = Interval.nice([+(scales.y.invert(y2)), +(scales.y.invert(y1))]),
-            sexpX = _stripFilters(args.__sexps.x, 'value-between'),
-            sexpY = _stripFilters(args.__sexps.y, 'value-between');
+            sexpX = _stripFilters(args.__code.x, 'value-between'),
+            sexpY = _stripFilters(args.__code.y, 'value-between');
         var filteredSExp = [
           'view-plot',
           ['value-between', sexpX, _format(x[0]), _format(x[1])],
           ['value-between', sexpY, _format(y[0]), _format(y[1])]
         ]
         if (hasArea) {
-          filteredSExp.push(args.__sexps.area);
+          filteredSExp.push(args.__code.area);
         }
         if (hasColor) {
-          filteredSExp.push(args.__sexps.color);
+          filteredSExp.push(args.__code.color);
         }
         $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
       }.bind(this))

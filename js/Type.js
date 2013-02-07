@@ -206,6 +206,7 @@ function MaybeType(subType) {
 
 function ListType(subType) {
   return {
+    variadic: true,
     toString: function() {
       return 'list(' + subType.toString() + ')';
     },

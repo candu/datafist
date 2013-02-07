@@ -93,13 +93,6 @@ var Fist = {
     }.bind(this));
     return op.call(this, args);
   },
-  execute: function(command) {
-    var code = JSON.parse(command);
-    if (code.length === 0) {
-      return null;
-    }
-    return this.evaluate(code[0]);
-  },
   registerSymbol: function(name, value, moduleName) {
     this._symbolTable[name] = value;
     if (FistUI.inited) {
@@ -167,18 +160,6 @@ var Fist = {
           return this.evaluateType(arg);
         }.bind(this));
     return this._applyTypes(opType, argTypes);
-  },
-  executeType: function(command) {
-    var code = JSON.parse(command);
-    if (code.length === 0) {
-      return null;
-    }
-    try {
-      return this.evaluateType(code[0]);
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
   },
   blockType: function(name) {
     var type = Type.fromValue(this.evaluateAtom(name));
