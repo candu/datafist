@@ -16,9 +16,8 @@ var HitArea = new Class({
     this.id = id;
 
     this.pos = this._getPosition();
-
     this._hit = blockGroup.append('svg:rect')
-      .attr('class', 'hit output')
+      .attr('class', 'hit')
       .attr('x', this.pos.x)
       .attr('y', this.pos.y)
       .attr('width', HitArea.WIDTH)
@@ -51,7 +50,7 @@ var InputHitArea = new Class({
     typeColorHSL.s *= 0.7;
     rowColorHSL.s *= 1.1;
     this._hit
-      .attr('id', ['input', node.id, id].join('_'))
+      .attr('id', ['input', this.node.id, this.id].join('_'))
       .style('stroke', typeColorHSL.toString())
       .style('fill', rowColorHSL.toString())
       .on('mouseover', function() {
@@ -73,6 +72,13 @@ var InputHitArea = new Class({
   },
   isFull: function() {
     return this.node.edgeIn(this.id) !== undefined;
+  },
+  update: function() {
+    this.pos = this._getPosition();
+    this._hit
+      .attr('id', ['input', this.node.id, this.id].join('_'))
+      .attr('x', this.pos.x)
+      .attr('y', this.pos.y);
   }
 });
 InputHitArea.fromElement = function(graph, elem) {
@@ -99,10 +105,10 @@ var OutputHitArea = new Class({
     this.parent(graph, node, id);
     this._hit
       .on('mouseover', function() {
-        this._hit.attr('class', 'hit output hover');
+        this._hit.attr('class', 'hit hover');
       }.bind(this))
       .on('mouseout', function() {
-        this._hit.attr('class', 'hit output');
+        this._hit.attr('class', 'hit');
       }.bind(this))
       .call(OutputHitArea._edgeCreateBehavior(graph, this));
   },
@@ -189,9 +195,11 @@ var Node = new Class({
 
     this.inputs = [];
     this.inputColors = d3.scale.category10();
+    this._inputCount = {};
     if (this.type === 'function') {
       Object.each(Fist.evaluateType(name).params, function(type, param) {
         this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, !!type.variadic));
+        this._inputCount[param] = 1;
       }.bind(this));
     }
     this.outputs = [];
@@ -208,9 +216,19 @@ var Node = new Class({
     var last = this.inputs.length - 1;
     for (; last >= 0 && this.inputs[last].param !== param; i--) {}
     if (last < 0) {
-      throw new Error('cannot add param ' + name + ' to node');
+      throw new Error('cannot add param ' + param + ' to node');
     }
-    this.inputs.push(new InputHitArea(graph, this, this.inputs.length, true));
+    var input = new InputHitArea(graph, this, last + 1, param, true);
+    this.inputs.splice(last + 1, 0, input);
+    this._inputCount[param]++;
+    for (var i = this.inputs.length - 1; i > last + 1; i--) {
+      this.inputs[i].id = i;
+      this.inputs[i].update();
+      if (this._edgesIn[i - 1] !== undefined) {
+        this._edgesIn[i] = this._edgesIn[i - 1];
+        this._edgesIn[i].update();
+      }
+    }
   },
   move: function(dx, dy) {
     this.dims.x += dx;
@@ -236,22 +254,22 @@ var Node = new Class({
   deleteEdge: function(edge) {
     if (edge.input.node === this) {
       delete this._edgesIn[edge.input.id];
-      if (edge.input.variadic) {
-        var n = this.inputs.length;
-        for (var i = edge.input.id + 1; i < n - 1; i++) {
-          var nextEdge = this._edgesIn[i];
-          if (nextEdge !== undefined) {
-            delete this._edgesIn[i];
-            this._edgesIn[i - 1] = nextEdge;
-            nextEdge.input = this.inputs[i - 1];
-            nextEdge.update();
-          }
-        }
-        if (n > 1 && this.inputs[n - 2].variadic) {
-          var input = this.inputs.pop();
-          input.cleanup();
+      if (!edge.input.variadic || this._inputCount[edge.input.param] === 1) {
+        return;
+      }
+      var inputs = this.inputs.splice(edge.input.id, 1);
+      inputs[0].cleanup();
+      this._inputCount[edge.input.param]--;
+      for (var i = edge.input.id; i < this.inputs.length; i++) {
+        this.inputs[i].id = i;
+        this.inputs[i].update();
+        if (this._edgesIn[i + 1] !== undefined) {
+          this._edgesIn[i] = this._edgesIn[i + 1];
+          this._edgesIn[i].update();
+          delete this._edgesIn[i + 1];
         }
       }
+      console.log(Object.keys(this._edgesIn), Object.keys(this.inputs));
     } else if (edge.output.node === this) {
       this._edgesOut[edge.output.id].erase(edge);
     }
