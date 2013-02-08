@@ -569,6 +569,7 @@ var ViewGraph = new Class({
     }.bind(this));
   },
   empty: function() {
+    this._emptyImpl();
     FistUI.runViewGraph();
   },
   _depthCode: function(node) {
@@ -788,8 +789,13 @@ var FistUI = {
       this._viewGraph.addNode(json.name, {x: x, y: y});
     }.bind(this), false);
 
-    this._repl = this._root.getElement('#repl');
     this._viewGraph = new ViewGraph(this._viewGraphSVG);
+
+    // set up view graph buttons
+    this._clearButton = this._root.getElement('#svg_graph_clear');
+    this._clearButton.addEventListener('click', function(evt) {
+      this._viewGraph.empty();
+    }.bind(this));
 
     this.inited = true;
   },
