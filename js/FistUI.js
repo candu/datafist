@@ -39,10 +39,10 @@ HitArea.PADDING = 4;
 
 var InputHitArea = new Class({
   Extends: HitArea,
-  initialize: function(graph, node, id, param, variadic) {
+  initialize: function(graph, node, id, param, type) {
     this.parent(graph, node, id);
     this.param = param;
-    this.variadic = variadic;
+    this.variadic = !!type.variadic;
 
     var nameColorHSL = d3.hsl(node.inputColors(param)),
         typeColorHSL = nameColorHSL.brighter(0.7),
@@ -64,6 +64,16 @@ var InputHitArea = new Class({
           .style('fill', rowColorHSL.toString())
       }.bind(this))
       .call(InputHitArea._edgeCreateBehavior(graph, this));
+
+    this._tips = new Tips($d3(this._hit), {
+      className: 'fistdocs',
+      title: function(element) {
+        return param;
+      },
+      text: function(element) {
+        return type.toString();
+      }
+    });
   },
   _getPosition: function() {
     return {
@@ -253,16 +263,16 @@ var Node = new Class({
     this.inputs = [];
     this.inputColors = d3.scale.category10();
     this._inputCount = {};
+    this._fullType = Fist.evaluateType(name);
     if (this.type === 'function') {
-      Object.each(Fist.evaluateType(name).params, function(type, param) {
-        this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, !!type.variadic));
+      Object.each(this._fullType.params, function(type, param) {
+        this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, type));
         this._inputCount[param] = 1;
       }.bind(this));
     }
     this.outputs = [];
     if (this.type === 'function') {
-      var type = Fist.evaluateType(this.name);
-      if (!Type.equal(type.returnType, ViewType)) {
+      if (!Type.equal(this._fullType.returnType, ViewType)) {
         this.outputs.push(new OutputHitArea(graph, this, 0));
       }
     } else {
@@ -275,7 +285,8 @@ var Node = new Class({
     if (last < 0) {
       throw new Error('cannot add param ' + param + ' to node');
     }
-    var input = new InputHitArea(graph, this, last + 1, param, true);
+    var paramType = this._fullType.params[param],
+        input = new InputHitArea(graph, this, last + 1, param, paramType);
     this.inputs.splice(last + 1, 0, input);
     this._inputCount[param]++;
     for (var i = this.inputs.length - 1; i > last + 1; i--) {
