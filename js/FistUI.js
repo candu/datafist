@@ -62,7 +62,8 @@ var InputHitArea = new Class({
         this._hit
           .style('stroke', typeColorHSL.toString())
           .style('fill', rowColorHSL.toString())
-      }.bind(this));
+      }.bind(this))
+      .call(InputHitArea._edgeCreateBehavior(graph, this));
   },
   _getPosition: function() {
     return {
@@ -81,6 +82,41 @@ var InputHitArea = new Class({
       .attr('y', this.pos.y);
   }
 });
+InputHitArea._edgeCreateBehavior = function(graph, input) {
+  return d3.behavior.drag()
+    .on('dragstart', function() {
+      d3.event.sourceEvent.stopPropagation();
+      var inputPos = input.getEdgePos();
+      graph._tempEdgeGroup
+        .attr('transform', SVGUtils.translate(inputPos));
+      graph._tempEdgeEnd.x = 0;
+      graph._tempEdgeEnd.y = 0;
+      graph._tempEdge
+        .attr('x1', graph._tempEdgeEnd.x)
+        .attr('y1', graph._tempEdgeEnd.y)
+        .attr('x2', 0)
+        .attr('y2', 0);
+    })
+    .on('dragend', function(d) {
+      d3.event.sourceEvent.stopPropagation();
+      graph._tempEdgeGroup
+        .attr('transform', SVGUtils.translateToHide());
+      var target = d3.event.sourceEvent.target,
+          output = OutputHitArea.fromElement(graph, target);
+      if (output === undefined) {
+        console.log('skipping, invalid elem target');
+        return;
+      }
+      graph.addEdge(output, input);
+    })
+    .on('drag', function(d) {
+      graph._tempEdgeEnd.x += d3.event.dx;
+      graph._tempEdgeEnd.y += d3.event.dy;
+      graph._tempEdge
+        .attr('x1', graph._tempEdgeEnd.x)
+        .attr('y1', graph._tempEdgeEnd.y);
+    });
+};
 InputHitArea.fromElement = function(graph, elem) {
   var hitParts = elem.id.split('_');
   if (hitParts.length !== 3) {
@@ -104,6 +140,7 @@ var OutputHitArea = new Class({
   initialize: function(graph, node, id) {
     this.parent(graph, node, id);
     this._hit
+      .attr('id', ['output', this.node.id, this.id].join('_'))
       .on('mouseover', function() {
         this._hit.attr('class', 'hit hover');
       }.bind(this))
@@ -129,6 +166,8 @@ OutputHitArea._edgeCreateBehavior = function(graph, output) {
       graph._tempEdgeEnd.x = 0;
       graph._tempEdgeEnd.y = 0;
       graph._tempEdge
+        .attr('x1', 0)
+        .attr('y1', 0)
         .attr('x2', graph._tempEdgeEnd.x)
         .attr('y2', graph._tempEdgeEnd.y);
     })
@@ -152,6 +191,24 @@ OutputHitArea._edgeCreateBehavior = function(graph, output) {
         .attr('y2', graph._tempEdgeEnd.y);
     });
 };
+OutputHitArea.fromElement = function(graph, elem) {
+  var hitParts = elem.id.split('_');
+  if (hitParts.length !== 3) {
+    return undefined;
+  }
+  var output = hitParts[0],
+      nodeID = hitParts[1],
+      id = hitParts[2];
+  if (output !== 'output') {
+    return undefined;
+  }
+  var node = graph._nodes[nodeID];
+  if (node === undefined) {
+    return undefined;
+  }
+  return node.outputs[id];
+};
+
 
 var Node = new Class({
   initialize: function(graph, nodeGroup, name, pos, id) {
@@ -395,9 +452,7 @@ var ViewGraph = new Class({
     this._tempEdgeEnd = {};
     this._tempEdge = this._tempEdgeGroup.append('svg:line')
       .attr('class', 'edge temp')
-      .attr('marker-end', 'url(#edge_end)')
-      .attr('x1', 0)
-      .attr('y1', 0);
+      .attr('marker-end', 'url(#edge_end)');
 
     this._tempTextGroup = svg.append('svg:g')
       .attr('transform', SVGUtils.translateToHide());
