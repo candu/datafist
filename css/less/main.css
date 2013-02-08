@@ -263,6 +263,12 @@ div.block.channel {
   border: 1px solid #99aaff;
   color: #3366ff;
 }
+div.block.number,
+div.block.string {
+  background-color: #cceeaa;
+  border: 1px solid #aaee99;
+  color: #66bb33;
+}
 div.block.dragtarget {
   opacity: 0.6;
 }

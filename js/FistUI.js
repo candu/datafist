@@ -603,7 +603,7 @@ var FistUI = {
         return;
       }
       if (!Type.equal(fistType, ViewType)) {
-        this._status.OK('view graph describes a ' + fistType.toString() + ', not a view.');
+        this._status.OK('view graph describes a ' + fistType.node() + ', not a view.');
         return;
       }
       this._status.working('rendering view...');

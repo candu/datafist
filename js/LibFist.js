@@ -318,6 +318,12 @@ var OpsMath = {
     )
 };
 
+var ConstsMath = {
+  __fullName: 'Math Constants',
+  e: Math.E,
+  pi: Math.PI
+};
+
 // TODO: allow these to operate directly on strings
 var OpsString = {
   __fullName: 'String Operations',
@@ -1176,6 +1182,7 @@ var LibFist = {
     View,
     OpsArith,
     OpsMath,
+    ConstsMath,
     OpsString,
     OpsLocation,
     OpsTime,
