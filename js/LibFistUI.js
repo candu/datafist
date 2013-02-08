@@ -4,29 +4,37 @@ function _numTicks(px) {
   return Math.max(3, Math.min(7, Math.floor(px / 100)));
 }
 
-function _caption(sexp) {
-  return SExp.unparse(sexp);
+function _caption(code) {
+  if (Fist.isAtom(code)) {
+    return code;
+  }
+  var argParts = [];
+  Object.each(code.args, function(arg, name) {
+    argParts.push(name + ': ' + _caption(arg));
+  });
+  return code.op + '(' + argParts.join(', ') + ')';
 }
 
-function _getBucketing(sexp) {
-  if (SExp.isAtom(sexp)) {
+function _getBucketing(code) {
+  if (Fist.isAtom(code)) {
     return undefined;
   }
-  switch (sexp[0]) {
+  switch (code.op) {
     case '//*':
-      return parseFloat(sexp[2]);
+      return Fist.evaluateAtom(code.args.b);
     case 'hour-of-day':
     case 'day-of-week':
     case 'month-of-year':
       return 1;
     default:
-      for (var i = 1; i < sexp.length; i++) {
-        var bucketing = _getBucketing(sexp[i]);
-        if (bucketing) {
-          return bucketing;
+      var bucket = undefined;
+      Object.each(code.args, function(arg) {
+        bucket = _getBucketing(arg);
+        if (bucket !== undefined) {
+          return false;
         }
-      }
-      return undefined;
+      });
+      return bucket;
   }
 }
 
@@ -43,19 +51,32 @@ function _format(x) {
   return g;
 }
 
-function _stripFilters(sexp, filterName) {
-  var cur = sexp;
-  while (SExp.isList(cur) && cur[0] === filterName) {
-    cur = cur[1];
+function _stripFilters(code, filterName) {
+  var cur = code;
+  while (Fist.isFunction(cur) && cur.op === filterName) {
+    cur = cur.args.c;
   }
   return cur;
 }
 
-function _getFiltering(sexp, filterName) {
-  if (sexp[0] === filterName) {
-    return {min: parseFloat(sexp[2]), max: parseFloat(sexp[3])};
+function _getFiltering(code, filterName) {
+  if (code.op !== filterName) {
+    return undefined;
   }
-  return undefined;
+  switch (filterName) {
+    case 'value-between':
+      return {
+        min: parseFloat(code.args.x1),
+        max: parseFloat(code.args.x2)
+      };
+    case 'time-between':
+      return {
+        min: parseFloat(code.args.since),
+        max: parseFloat(code.args.until)
+      };
+    default:
+      return undefined;
+  }
 }
 
 function _getBound(data, key) {
@@ -141,7 +162,7 @@ var LineView = {
         axisH = 20,
         axisW = 60,
         channels = args.channels,
-        sexps = args.__code.channels;
+        codes = args.__code.channels;
 
     // extract data from channels
     var n = channels.length,
@@ -150,7 +171,7 @@ var LineView = {
         xbounds = [];
     for (var i = 0; i < n; i++) {
       cds.push([]);
-      var filtering = _getFiltering(sexps[i], 'time-between');
+      var filtering = _getFiltering(codes[i], 'time-between');
       if (filtering !== undefined) {
         tbound.min = Math.min(filtering.min, tbound.min);
         tbound.max = Math.max(filtering.max, tbound.max);
@@ -271,7 +292,7 @@ var LineView = {
         .attr('y', 8)
         .attr('dy', '.71em')
         .attr('text-anchor', 'start')
-        .text(_caption(sexps[i]));
+        .text(_caption(codes[i]));
       this._xGuides.push(g.append('svg:line')
         .attr('class', 'channel guide')
         .attr('x1', 0)
@@ -280,43 +301,17 @@ var LineView = {
       );
     }
 
-    // time-filtering hit area
-    this._selectionStart = null;
-    var dragBehavior = d3.behavior.drag()
-      .on('dragstart', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x;
-        this._selectionStart = x;
-        this._dragSelectionArea
-          .attr('class', 'channel selection-area')
-          .attr('x', this._selectionStart)
-          .attr('y', 0)
-          .attr('width', 0)
-          .attr('height', channelH * n);
-      }.bind(this))
-      .on('drag', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x;
-        x = Math.max(0, Math.min(x, channelW));
-        this._dragSelectionArea
-          .attr('class', 'channel selection-area')
-          .attr('x', Math.min(x, this._selectionStart))
-          .attr('y', 0)
-          .attr('width', Math.abs(x - this._selectionStart))
-          .attr('height', channelH * n);
-      }.bind(this));
-
-    this._dragGroup = view.append('svg:g')
+    // interaction area
+    this._interactGroup = view.append('svg:g')
       .attr('transform', 'translate(' + axisW + ', 0)');
-    this._dragHitArea = this._dragGroup.append('svg:rect')
+    this._interactHitArea = this._interactGroup.append('svg:rect')
       .attr('class', 'channel hit-area')
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', channelW)
       .attr('height', channelH * n)
-      .call(dragBehavior)
       .on('mousemove', function() {
-        var mousePos = $d3(this._dragGroup).getPosition(),
+        var mousePos = $d3(this._interactGroup).getPosition(),
             tpx = d3.event.pageX - mousePos.x,
             t = ct.invert(tpx);
         this._tGuide
@@ -329,33 +324,19 @@ var LineView = {
             .attr('y1', y)
             .attr('y2', y);
         }.bind(this));
-      }.bind(this));
-
-    var dragSelectionBehavior = d3.behavior.drag()
-      .on('drag', function(d) {
-        var x = parseFloat(this._dragSelectionArea.attr('x')),
-            w = parseFloat(this._dragSelectionArea.attr('width'));
-        x += d3.event.dx;
-        x = Math.max(0, Math.min(x, channelW - w));
-        this._dragSelectionArea.attr('x', x);
-      }.bind(this));
-
-    this._dragSelectionArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'hidden')
-      .on('click', function(d) {
-        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
-            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            tRaw = [+(ct.invert(x1)), +(ct.invert(x2))],
-            t = Interval.nice(tRaw);
-        console.log(tRaw, t);
-        var filteredSexp = sexps.map(function(sexp) {
-          var sexpF = _stripFilters(sexp, 'time-between');
-          return ['time-between', sexpF, _format(t[0]), _format(t[1])];
-        }.bind(this));
-        filteredSexp.unshift('view-line');
-        $d3(view).fireEvent('sexpreplaced', [filteredSexp]);
       }.bind(this))
-      .call(dragSelectionBehavior);
+      .on('mouseout', function() {
+        this._tGuide.classed('hidden', true);
+        this._xGuides.each(function(xGuide) {
+          xGuide.classed('hidden', true);
+        });
+      }.bind(this))
+      .on('mouseover', function() {
+        this._tGuide.classed('hidden', false);
+        this._xGuides.each(function(xGuide) {
+          xGuide.classed('hidden', false);
+        });
+      }.bind(this));
   }
 };
 
@@ -387,7 +368,7 @@ var CrossfilterView = {
       offset: offset
     };
   },
-  _makeCategoricalBarChart: function(view, filter, data, grid, sexp, charts) {
+  _makeCategoricalBarChart: function(view, filter, data, grid, code, charts) {
     var i = charts.length,
         _dim = filter.dimension(function(d) { return d[i]; }),
         _group = _dim.group(),
@@ -463,7 +444,7 @@ var CrossfilterView = {
       .attr('y', 8)
       .attr('dy', '.71em')
       .attr('text-anchor', 'start')
-      .text(_caption(sexp));
+      .text(_caption(code));
 
     function draw() {
       _g.selectAll('.crossfilter.bar')
@@ -484,7 +465,7 @@ var CrossfilterView = {
       draw: draw
     });
   },
-  _makeNumericBarChart: function(view, filter, data, grid, sexp, charts) {
+  _makeNumericBarChart: function(view, filter, data, grid, code, charts) {
     var i = charts.length;
     var _bound = {
       min: d3.min(data, function(d) { return d[i]; }),
@@ -554,7 +535,7 @@ var CrossfilterView = {
       .attr('y', 8)
       .attr('dy', '.71em')
       .attr('text-anchor', 'start')
-      .text(_caption(sexp));
+      .text(_caption(code));
 
     function _barPath() {
       var path = [];
@@ -608,11 +589,11 @@ var CrossfilterView = {
         grid = this._determineGrid(w, h, n),
         charts = [];
     for (var i = 0; i < n; i++) {
-      var sexp = args.__code.channels[i];
+      var code = args.__code.channels[i];
       if (typeOf(data[0][i]) === 'string') {
-        this._makeCategoricalBarChart(view, filter, data, grid, sexp, charts);
+        this._makeCategoricalBarChart(view, filter, data, grid, code, charts);
       } else {
-        this._makeNumericBarChart(view, filter, data, grid, sexp, charts);
+        this._makeNumericBarChart(view, filter, data, grid, code, charts);
       }
       charts[i].draw();
     }
@@ -848,79 +829,6 @@ var HistogramView = {
       .attr('y', 8)
       .attr('text-anchor', 'end')
       .text(_caption(args.__code.channel));
-
-    // value-filtering hit area
-    // TODO: merge this with time-filtering code from LineView
-    this._selectionStart = null;
-    var dragBehavior = d3.behavior.drag()
-      .on('dragstart', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x;
-        this._selectionStart = x;
-        this._dragSelectionArea
-          .attr('class', 'histogram selection-area')
-          .attr('x', this._selectionStart)
-          .attr('y', 0)
-          .attr('width', 0)
-          .attr('height', histH);
-      }.bind(this))
-      .on('drag', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x;
-        x = Math.max(0, Math.min(x, histW));
-        this._dragSelectionArea
-          .attr('class', 'histogram selection-area')
-          .attr('x', Math.min(x, this._selectionStart))
-          .attr('y', 0)
-          .attr('width', Math.abs(x - this._selectionStart))
-          .attr('height', histH);
-      }.bind(this));
-
-    this._dragGroup = view.append('svg:g')
-      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
-    this._dragHitArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'histogram hit-area')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', histW)
-      .attr('height', histH)
-      .call(dragBehavior);
-
-    var dragSelectionBehavior = d3.behavior.drag()
-      .on('drag', function(d) {
-        var x = parseFloat(this._dragSelectionArea.attr('x')),
-            w = parseFloat(this._dragSelectionArea.attr('width'));
-        x += d3.event.dx;
-        x = Math.max(0, Math.min(x, histW - w));
-        this._dragSelectionArea.attr('x', x);
-      }.bind(this));
-
-    this._dragSelectionArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'hidden')
-      .on('click', function(d) {
-        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
-            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = Interval.nice([+(scaleX.invert(x1)), +(scaleX.invert(x2))]);
-        if (args.groupBy === undefined) {
-          var sexpX = _stripFilters(args.__code.channel, 'value-between');
-          var filteredSExp = [
-            'view-histogram',
-            ['value-between', sexpX, _format(x[0]), _format(x[1])]
-          ];
-        } else {
-          var sexpX = _stripFilters(args.__code.groupBy, 'value-between');
-          var filteredSExp = [
-            'view-histogram',
-            args.__code.c,
-            ['value-between', sexpX, _format(x[0]), _format(x[1])]
-          ];
-        }
-        if (args.bucket !== undefined) {
-          filteredSExp.push(args.__code.bucket);
-        }
-        $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
-      }.bind(this))
-      .call(dragSelectionBehavior);
   }
 };
 
@@ -1121,86 +1029,6 @@ var PlotView = {
 
     // regression line
     this._drawRegressionLine(data, g, scales.x, scales.y, bounds.x);
-
-    // region-filtering hit area
-    // TODO: merge this with time-filtering code from LineView
-    this._selectionStart = null;
-    var dragBehavior = d3.behavior.drag()
-      .on('dragstart', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x,
-            y = d3.event.sourceEvent.pageY - dragPos.y;
-        this._selectionStart = {x: x, y: y};
-        this._dragSelectionArea
-          .attr('class', 'plot selection-area')
-          .attr('x', this._selectionStart.x)
-          .attr('y', this._selectionStart.y)
-          .attr('width', 0)
-          .attr('height', 0);
-      }.bind(this))
-      .on('drag', function(d) {
-        var dragPos = $d3(this._dragGroup).getPosition(),
-            x = d3.event.sourceEvent.pageX - dragPos.x,
-            y = d3.event.sourceEvent.pageY - dragPos.y;
-        x = Math.max(0, Math.min(x, plotW));
-        y = Math.max(0, Math.min(y, plotH));
-        this._dragSelectionArea
-          .attr('class', 'plot selection-area')
-          .attr('x', Math.min(x, this._selectionStart.x))
-          .attr('y', Math.min(y, this._selectionStart.y))
-          .attr('width', Math.abs(x - this._selectionStart.x))
-          .attr('height', Math.abs(y - this._selectionStart.y));
-      }.bind(this));
-
-    this._dragGroup = view.append('svg:g')
-      .attr('transform', 'translate(' + axisW + ', ' + axisH + ')');
-    this._dragHitArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'plot hit-area')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', plotW)
-      .attr('height', plotH)
-      .call(dragBehavior);
-
-    var dragSelectionBehavior = d3.behavior.drag()
-      .on('drag', function(d) {
-        var x = parseFloat(this._dragSelectionArea.attr('x')),
-            y = parseFloat(this._dragSelectionArea.attr('y')),
-            w = parseFloat(this._dragSelectionArea.attr('width')),
-            h = parseFloat(this._dragSelectionArea.attr('height'));
-        x += d3.event.dx;
-        y += d3.event.dy;
-        x = Math.max(0, Math.min(x, plotW - w));
-        y = Math.max(0, Math.min(y, plotH - h));
-        this._dragSelectionArea.attr('x', x);
-        this._dragSelectionArea.attr('y', y);
-      }.bind(this));
-
-    this._dragSelectionArea = this._dragGroup.append('svg:rect')
-      .attr('class', 'hidden')
-      .on('click', function(d) {
-        var x1 = parseFloat(this._dragSelectionArea.attr('x')),
-            x2 = x1 + parseFloat(this._dragSelectionArea.attr('width')),
-            x = Interval.nice([+(scales.x.invert(x1)), +(scales.x.invert(x2))]),
-            y1 = parseFloat(this._dragSelectionArea.attr('y')),
-            y2 = y1 + parseFloat(this._dragSelectionArea.attr('height')),
-            y = Interval.nice([+(scales.y.invert(y2)), +(scales.y.invert(y1))]),
-            sexpX = _stripFilters(args.__code.x, 'value-between'),
-            sexpY = _stripFilters(args.__code.y, 'value-between');
-        var filteredSExp = [
-          'view-plot',
-          ['value-between', sexpX, _format(x[0]), _format(x[1])],
-          ['value-between', sexpY, _format(y[0]), _format(y[1])]
-        ]
-        if (hasArea) {
-          filteredSExp.push(args.__code.area);
-        }
-        if (hasColor) {
-          filteredSExp.push(args.__code.color);
-        }
-        $d3(view).fireEvent('sexpreplaced', [filteredSExp]);
-      }.bind(this))
-      .call(dragSelectionBehavior);
   }
 };
 

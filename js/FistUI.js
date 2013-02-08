@@ -421,7 +421,7 @@ var ViewGraph = new Class({
       .append('svg:path')
         .attr('d', 'M 0 0 L 10 5 L 0 10 z');
   },
-  // NOTE: the _*Impl() versions exist to allow, e.g., fromSExp() to issue
+  // NOTE: the _*Impl() versions exist to allow for issuing
   // a bunch of graph operations without constantly calling
   // FistUI.runViewGraph() :)
   _addNodeImpl: function(name, pos) {
@@ -508,7 +508,7 @@ var ViewGraph = new Class({
   _depthCode: function(node) {
     var edges = node.allEdgesIn();
     if (edges.length === 0) {
-      return this._atomCode(node.name);
+      return node.name;
     }
     var args = {};
     edges.each(function(edge) {
@@ -529,46 +529,6 @@ var ViewGraph = new Class({
       return node.allEdgesOut().length === 0;
     });
     return T.map(this._depthCode.bind(this));
-  },
-  _buildGrid: function(code, level, parent, input, grid) {
-    if (Fist.isAtom(code)) {
-      grid.push({name: code, level: level, parent: parent, input: input});
-      return;
-    }
-    /*
-    this._buildGrid(code.op, level, parent, input, grid);
-    var last = grid.length - 1;
-    for (var i = 1; i < sexp.length; i++) {
-      this._buildGrid(sexp[i], level + 1, last, i - 1, grid);
-    }
-    */
-    // TODO: fix this; it needs to connect to specific inputs based on which argument
-    // is being used
-  },
-  fromCode: function(code) {
-    var grid = [];
-    this._buildGrid(code, 0, null, null, grid);
-    var gridPadding = 20,
-        depth = d3.max(grid, function(item) { return item.level; }),
-        xs = {};
-    this._emptyImpl();
-    grid.each(function(item) {
-      item.id = this._nextNodeID;
-      var x = xs[item.level] || gridPadding,
-          y = (depth - item.level) * 40 + gridPadding + 0.5;
-      this._addNodeImpl(item.name, {x: x, y: y});
-      var node = this._nodes[item.id];
-      node.move(Math.floor(node.dims.w / 2), Math.floor(node.dims.h / 2));
-      xs[item.level] = x + (node.dims.w + gridPadding);
-      if (item.parent !== null && item.input !== null) {
-        var output = node.outputs[0],
-            parentItem = grid[item.parent],
-            parentNode = this._nodes[parentItem.id],
-            input = parentNode.inputs[item.input];
-        this._addEdgeImpl(output, input);
-      }
-    }.bind(this));
-    FistUI.runViewGraph();
   },
   isInViewer: function(elem) {
     var svgRoot = $d3(this._svg);
@@ -709,9 +669,6 @@ var FistUI = {
       .attr('id', 'view_execute')
       .attr('width', this._svgExecuteWrapper.getWidth() - 2)
       .attr('height', this._svgExecuteWrapper.getHeight() - 2);
-    $d3(this._viewExecuteSVG).addEvent('sexpreplaced', function(sexp) {
-      this._viewGraph.fromSExp(sexp);
-    }.bind(this));
 
     // set up interpreter
     this._svgGraphWrapper = this._root.getElement('#svg_graph_wrapper');
