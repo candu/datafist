@@ -233,14 +233,6 @@ a.nav {
 #svg_graph_wrapper line.edge.temp {
   stroke-opacity: 0.4;
 }
-#repl {
-  font-family: "Menlo", monospace;
-  background-color: #f7f7f7;
-  border: 1px solid #999999;
-  margin: 2px 4px 4px 2px;
-  padding: 4px;
-  height: 224px;
-}
 div.block {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -271,4 +263,20 @@ div.block.string {
 }
 div.block.dragtarget {
   opacity: 0.6;
+}
+#svg_graph_controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#svg_graph_controls .control {
+  display: inline-block;
+  background-color: #dddddd;
+  border: 1px solid #cccccc;
+  color: #888888;
+  width: 50px;
+  text-align: center;
+  padding: 2px;
+  margin: 2px 2px 2px -4px;
+  cursor: pointer;
 }

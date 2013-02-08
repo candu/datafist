@@ -163,9 +163,9 @@ a.nav {
 }
 
 @footer-height: 240px;
-@repl-border: 1px;
-@repl-margin: 4px;
-@repl-padding: 4px;
+@graph-border: 1px;
+@graph-margin: 4px;
+@graph-padding: 4px;
 
 @toolbox-width: 250px;
 @palette-border: 1px;
@@ -217,7 +217,7 @@ a.nav {
   border: 1px solid #999;
   background-color: #f7f7f7;
   position: relative;
-  height: (@footer-height - (2 * @repl-border + 1.5 * @repl-margin));
+  height: (@footer-height - (2 * @graph-border + 1.5 * @graph-margin));
   &.droptarget {
     border: 1px solid #6f3;
     background-color: #dfc;
@@ -275,15 +275,6 @@ a.nav {
   }
 }
 
-#repl {
-  font-family: "Menlo", monospace;
-  background-color: #f7f7f7;
-  border: @repl-border solid #999;
-  margin: (@repl-margin / 2) @repl-margin @repl-margin (@repl-margin / 2);
-  padding: @repl-padding;
-  height: (@footer-height - (2 * (@repl-border + @repl-padding) + 1.5 * @repl-margin));
-}
-
 div.block {
   .user-select(none);
   display: inline-block;
@@ -310,5 +301,22 @@ div.block {
   }
   &.dragtarget {
     opacity: 0.6;
+  }
+}
+
+#svg_graph_controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  & .control {
+    display: inline-block;
+    background-color: @grey-bg;
+    border: 1px solid @grey-border;
+    color: @grey-text;
+    width: 50px;
+    text-align: center;
+    padding: 2px;
+    margin: 2px 2px 2px -4px;
+    cursor: pointer;
   }
 }
