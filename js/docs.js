@@ -70,6 +70,9 @@ var Docs = {
     return name.replace(' ', '_').replace('-', '_').toLowerCase();
   },
   onSymbolImport: function(name, value, moduleName) {
+    if (!(value instanceof FistFunction)) {
+      return;
+    }
     var header = new Element('h3.symbol', {
       text: name,
       id: this._href(name)
