@@ -393,11 +393,11 @@ QUnit.test('evaluateAtom', function() {
   equal(Fist.evaluateAtom('3.25'), 3.25);
 
   // boolean
-  equal(Fist.evaluateAtom(true), true);
-  equal(Fist.evaluateAtom(false), false);
+  equal(Fist.evaluateAtom('true'), true);
+  equal(Fist.evaluateAtom('false'), false);
 
   // string
-  equal(Fist.evaluateAtom('foo'), 'foo');
+  equal(Fist.evaluateAtom('"foo"'), 'foo');
 
   // ops
   equal(Fist.evaluateAtom('+'), OpsArith.add);
@@ -1238,7 +1238,8 @@ QUnit.test('Fist', function() {
   TestUtils.typeEqual(Fist.evaluateType(42), NumberType);
   TestUtils.typeEqual(Fist.evaluateType(3.14), NumberType);
   TestUtils.typeEqual(Fist.evaluateType(6.18e-1), NumberType);
-  TestUtils.typeEqual(Fist.evaluateType('foo'), StringType);
+  TestUtils.typeEqual(Fist.evaluateType('"foo"'), StringType);
+  TestUtils.typeEqual(Fist.evaluateType('foo'), null);
 
   // arithmetic operations on numbers
   TestUtils.typeEqual(Fist.evaluateType({

@@ -508,7 +508,7 @@ var ViewGraph = new Class({
   _depthCode: function(node) {
     var edges = node.allEdgesIn();
     if (edges.length === 0) {
-      return node.name;
+      return this._atomCode(node.name);
     }
     var args = {};
     edges.each(function(edge) {
