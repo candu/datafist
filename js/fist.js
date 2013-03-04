@@ -2944,6 +2944,29 @@ var Status = new Class({
   }
 });
 
+var Resizer = new Class({
+  initialize: function(ui, elem) {
+    this._elem = d3.select(elem);
+    this._elem.data([ {
+      pos: 240
+    } ]).call(Resizer._dragBehavior(ui, this));
+  }
+});
+
+Resizer._dragBehavior = function(ui, resizer) {
+  return d3.behavior.drag().on("drag", function(d) {
+    d.pos -= d3.event.dy;
+    d.pos = Math.max(240, Math.min(d.pos, 480));
+    var mid = d.pos - 4;
+    resizer._elem.style("bottom", function(d) {
+      return mid + "px";
+    });
+    console.log(d);
+  }).on("dragend", function() {
+    console.log("dragend!");
+  });
+};
+
 var FistUI = {
   _viewTable: {},
   _fistCode: "",
@@ -3010,6 +3033,7 @@ var FistUI = {
       }
       this._dropOverlay.removeClass("droptarget");
       this._importDialog.show(evt.dataTransfer.files[0]);
+      d.bottom -= d3.event.dy;
     }.bind(this), false);
     this._dragBlock = null;
     this._status = new Status(this._root.getElement("#status_wrapper"));
@@ -3022,6 +3046,7 @@ var FistUI = {
     this._footer = this._root.getElement("#footer");
     this._svgExecuteWrapper = this._root.getElement("#svg_execute_wrapper");
     this._viewExecuteSVG = d3.select(this._svgExecuteWrapper).append("svg:svg").attr("id", "view_execute");
+    this._resizer = new Resizer(this, this._root.getElement("#resizer"));
     this._svgGraphWrapper = this._root.getElement("#svg_graph_wrapper");
     this._viewGraphSVG = d3.select(this._svgGraphWrapper).append("svg:svg").attr("id", "view_graph").on("dblclick", function(d) {
       var name = window.prompt("enter node name:");

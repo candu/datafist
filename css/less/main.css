@@ -46,6 +46,7 @@ body {
   width: 100%;
   height: 8px;
   cursor: ns-resize;
+  background-color: #f00;
 }
 #table {
   height: 100%;
