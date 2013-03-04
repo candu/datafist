@@ -261,7 +261,7 @@ var Node = new Class({
     this.inputs = [];
     this.inputColors = d3.scale.category10();
     this._inputCount = {};
-    this._fullType = Fist.evaluateType(name);
+    this._fullType = Fist.evaluateType({op: name});
     if (this.type === 'function') {
       Object.each(this._fullType.params, function(type, param) {
         this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, type));
@@ -570,14 +570,18 @@ var ViewGraph = new Class({
     this._emptyImpl();
     FistUI.runViewGraph();
   },
-  _depthCode: function(node) {
+  _toCodeDepth: function(node) {
+    var ret = {
+      pos: {x: node.dims.x, y: node.dims.y},
+      op: node.name
+    };
     var edges = node.allEdgesIn();
     if (edges.length === 0) {
-      return node.name;
+      return ret;
     }
     var args = {};
     edges.each(function(edge) {
-      var code = this._depthCode(edge.output.node);
+      var code = this._toCodeDepth(edge.output.node);
       if (edge.input.variadic) {
         if (!args.hasOwnProperty(edge.input.param)) {
           args[edge.input.param] = [];
@@ -587,13 +591,42 @@ var ViewGraph = new Class({
         args[edge.input.param] = code;
       }
     }.bind(this));
-    return {op: node.name, args: args};
+    ret.args = args;
+    return ret;
   },
   toCodes: function() {
     var T = Object.values(this._nodes).filter(function(node) {
       return node.allEdgesOut().length === 0;
     });
-    return T.map(this._depthCode.bind(this));
+    return T.map(this._toCodeDepth.bind(this));
+  },
+  _fromCodeDepth: function(code, toNode, toParam) {
+    var node = this._addNodeImpl(code.op, code.pos);
+    if (toNode !== undefined && toParam !== undefined) {
+      var output = node.outputs[0];
+      var input = undefined;
+      toNode.inputs.each(function(toInput) {
+        // NOTE: we don't short-circuit this, since variadic parameters
+        // should take the last available input.
+        if (toInput.param === toParam) {
+          input = toInput;
+        }
+      });
+      if (output !== undefined && input !== undefined) {
+        this._addEdgeImpl(output, input);
+      }
+    }
+    if (Fist.isAtom(code)) {
+      return;
+    }
+    Object.each(code.args, function(arg, name) {
+      this._fromCodeDepth(arg, node, name);
+    }.bind(this));
+  },
+  fromCodes: function(codes) {
+    this._emptyImpl();
+    codes.each(this._fromCodeDepth.bind(this));
+    FistUI.runViewGraph();
   },
   isInViewer: function(elem) {
     var svgRoot = $d3(this._svg);

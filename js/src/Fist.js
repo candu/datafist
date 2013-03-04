@@ -26,17 +26,17 @@ var Fist = {
     throw new Error('unrecognized atom: ' + atom);
   },
   isFunction: function(code) {
-    return code instanceof Object;
+    return code.args !== undefined;
   },
   isAtom: function(code) {
-    return !this.isFunction(code);
+    return code.args === undefined;
   },
   evaluate: function(code) {
     console.log(JSON.stringify(code));
+    var op = this.evaluateAtom(code.op);
     if (this.isAtom(code)) {
-      return this.evaluateAtom(code);
+      return op;
     }
-    var op = this.evaluate(code.op);
     if (!(op instanceof FistFunction)) {
       throw new Error('expected operation, got ' + typeOf(op));
     }
@@ -108,21 +108,21 @@ var Fist = {
     return opType.returnType.resolve(boundTypes);
   },
   evaluateType: function(code) {
-    if (this.isAtom(code)) {
-      try {
-        return Type.fromValue(this.evaluateAtom(code));
-      } catch (e) {
-        return null;
-      }
+    try {
+      var opType = Type.fromValue(this.evaluateAtom(code.op));
+    } catch (e) {
+      return null;
     }
-    var opType = this.evaluateType(code.op),
-        argTypes = Object.map(code.args, function(arg, name) {
-          console.log('arg: ', arg, name);
-          if (arg instanceof Array) {
-            return arg.map(this.evaluateType.bind(this));
-          }
-          return this.evaluateType(arg);
-        }.bind(this));
+    if (this.isAtom(code)) {
+      return opType;
+    }
+    var argTypes = Object.map(code.args, function(arg, name) {
+      console.log('arg: ', arg, name);
+      if (arg instanceof Array) {
+        return arg.map(this.evaluateType.bind(this));
+      }
+      return this.evaluateType(arg);
+    }.bind(this));
     return this._applyTypes(opType, argTypes);
   },
   blockType: function(name) {

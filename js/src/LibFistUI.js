@@ -3,14 +3,24 @@ function _numTicks(px) {
 }
 
 function _caption(code) {
+  var caption = code.op;
   if (Fist.isAtom(code)) {
-    return code;
+    return caption;
   }
   var argParts = [];
   Object.each(code.args, function(arg, name) {
-    argParts.push(name + ': ' + _caption(arg));
+    var argCaption;
+    if (arg instanceof Array) {
+      argCaption = '[' + arg.map(function(subArg) {
+        return _caption(subArg);
+      }).join(', ') + ']';
+    } else {
+      argCaption = _caption(arg);
+    }
+    argParts.push(name + ': ' + argCaption);
   });
-  return code.op + '(' + argParts.join(', ') + ')';
+  caption += '(' + argParts.join(', ') + ')';
+  return caption;
 }
 
 function _getBucketing(code) {

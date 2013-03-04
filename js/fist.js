@@ -1382,17 +1382,17 @@ var Fist = {
     throw new Error("unrecognized atom: " + atom);
   },
   isFunction: function(code) {
-    return code instanceof Object;
+    return code.args !== undefined;
   },
   isAtom: function(code) {
-    return !this.isFunction(code);
+    return code.args === undefined;
   },
   evaluate: function(code) {
     console.log(JSON.stringify(code));
+    var op = this.evaluateAtom(code.op);
     if (this.isAtom(code)) {
-      return this.evaluateAtom(code);
+      return op;
     }
-    var op = this.evaluate(code.op);
     if (!(op instanceof FistFunction)) {
       throw new Error("expected operation, got " + typeOf(op));
     }
@@ -1462,14 +1462,15 @@ var Fist = {
     return opType.returnType.resolve(boundTypes);
   },
   evaluateType: function(code) {
-    if (this.isAtom(code)) {
-      try {
-        return Type.fromValue(this.evaluateAtom(code));
-      } catch (e) {
-        return null;
-      }
+    try {
+      var opType = Type.fromValue(this.evaluateAtom(code.op));
+    } catch (e) {
+      return null;
     }
-    var opType = this.evaluateType(code.op), argTypes = Object.map(code.args, function(arg, name) {
+    if (this.isAtom(code)) {
+      return opType;
+    }
+    var argTypes = Object.map(code.args, function(arg, name) {
       console.log("arg: ", arg, name);
       if (arg instanceof Array) {
         return arg.map(this.evaluateType.bind(this));
@@ -2610,7 +2611,9 @@ var Node = new Class({
     this.inputs = [];
     this.inputColors = d3.scale.category10();
     this._inputCount = {};
-    this._fullType = Fist.evaluateType(name);
+    this._fullType = Fist.evaluateType({
+      op: name
+    });
     if (this.type === "function") {
       Object.each(this._fullType.params, function(type, param) {
         this.inputs.push(new InputHitArea(graph, this, this.inputs.length, param, type));
@@ -2873,14 +2876,21 @@ var ViewGraph = new Class({
     this._emptyImpl();
     FistUI.runViewGraph();
   },
-  _depthCode: function(node) {
+  _toCodeDepth: function(node) {
+    var ret = {
+      pos: {
+        x: node.dims.x,
+        y: node.dims.y
+      },
+      op: node.name
+    };
     var edges = node.allEdgesIn();
     if (edges.length === 0) {
-      return node.name;
+      return ret;
     }
     var args = {};
     edges.each(function(edge) {
-      var code = this._depthCode(edge.output.node);
+      var code = this._toCodeDepth(edge.output.node);
       if (edge.input.variadic) {
         if (!args.hasOwnProperty(edge.input.param)) {
           args[edge.input.param] = [];
@@ -2890,16 +2900,40 @@ var ViewGraph = new Class({
         args[edge.input.param] = code;
       }
     }.bind(this));
-    return {
-      op: node.name,
-      args: args
-    };
+    ret.args = args;
+    return ret;
   },
   toCodes: function() {
     var T = Object.values(this._nodes).filter(function(node) {
       return node.allEdgesOut().length === 0;
     });
-    return T.map(this._depthCode.bind(this));
+    return T.map(this._toCodeDepth.bind(this));
+  },
+  _fromCodeDepth: function(code, toNode, toParam) {
+    var node = this._addNodeImpl(code.op, code.pos);
+    if (toNode !== undefined && toParam !== undefined) {
+      var output = node.outputs[0];
+      var input = undefined;
+      toNode.inputs.each(function(toInput) {
+        if (toInput.param === toParam) {
+          input = toInput;
+        }
+      });
+      if (output !== undefined && input !== undefined) {
+        this._addEdgeImpl(output, input);
+      }
+    }
+    if (Fist.isAtom(code)) {
+      return;
+    }
+    Object.each(code.args, function(arg, name) {
+      this._fromCodeDepth(arg, node, name);
+    }.bind(this));
+  },
+  fromCodes: function(codes) {
+    this._emptyImpl();
+    codes.each(this._fromCodeDepth.bind(this));
+    FistUI.runViewGraph();
   },
   isInViewer: function(elem) {
     var svgRoot = $d3(this._svg);
@@ -3264,14 +3298,24 @@ function _numTicks(px) {
 }
 
 function _caption(code) {
+  var caption = code.op;
   if (Fist.isAtom(code)) {
-    return code;
+    return caption;
   }
   var argParts = [];
   Object.each(code.args, function(arg, name) {
-    argParts.push(name + ": " + _caption(arg));
+    var argCaption;
+    if (arg instanceof Array) {
+      argCaption = "[" + arg.map(function(subArg) {
+        return _caption(subArg);
+      }).join(", ") + "]";
+    } else {
+      argCaption = _caption(arg);
+    }
+    argParts.push(name + ": " + argCaption);
   });
-  return code.op + "(" + argParts.join(", ") + ")";
+  caption += "(" + argParts.join(", ") + ")";
+  return caption;
 }
 
 function _getBucketing(code) {
