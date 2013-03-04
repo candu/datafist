@@ -678,13 +678,20 @@ var FistUI = {
   _viewTable: {},
   _fistCode: '',
   inited: false,
+  _setSaveHref: function(code) {
+    var encodedCode = btoa(code);
+    console.log(encodedCode);
+    this._saveButton
+      .set('href', 'data:application/octet-stream;base64,' + encodedCode);
+  },
   runViewGraph: function(options) {
     options = options || {};
     var rebuild = options.rebuild || true;
     if (rebuild) {
       this._fistCode = this._viewGraph.toCodes();
+      this._setSaveHref(JSON.stringify(this._fistCode));
+      console.log(JSON.stringify(this._fistCode));
     }
-    console.log(JSON.stringify(this._fistCode));
     if (this._fistCode.length === 0) {
       this._status.OK('view graph is empty.');
       return;
@@ -829,6 +836,7 @@ var FistUI = {
     this._clearButton.addEventListener('click', function(evt) {
       this._viewGraph.empty();
     }.bind(this));
+    this._saveButton = this._root.getElement('#svg_graph_save');
 
     this.inited = true;
   },

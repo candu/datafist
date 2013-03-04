@@ -329,17 +329,19 @@ div.block {
   position: absolute;
   top: 0;
   right: 0;
-  & .control {
-    display: inline-block;
-    background-color: @grey-bg;
-    border: 1px solid @grey-border;
-    color: @grey-text;
-    width: 50px;
-    text-align: center;
-    padding: 2px;
-    margin: 2px 2px 2px -4px;
-    cursor: pointer;
+  & > #svg_graph_controls_fix {
     position: fixed;
     right: 20px;
+    & > .control {
+      display: inline-block;
+      background-color: @grey-bg;
+      border: 1px solid @grey-border;
+      color: @grey-text;
+      width: 50px;
+      text-align: center;
+      padding: 2px;
+      margin: 2px 2px 2px -4px;
+      cursor: pointer;
+    }
   }
 }

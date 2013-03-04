@@ -355,7 +355,11 @@ div.block.dragtarget {
   top: 0;
   right: 0;
 }
-#svg_graph_controls .control {
+#svg_graph_controls > #svg_graph_controls_fix {
+  position: fixed;
+  right: 20px;
+}
+#svg_graph_controls > #svg_graph_controls_fix > .control {
   display: inline-block;
   background-color: #dddddd;
   border: 1px solid #cccccc;
@@ -365,8 +369,6 @@ div.block.dragtarget {
   padding: 2px;
   margin: 2px 2px 2px -4px;
   cursor: pointer;
-  position: fixed;
-  right: 20px;
 }
 .modal-dialog {
   position: fixed;
