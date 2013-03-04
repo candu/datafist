@@ -500,8 +500,6 @@ function MaybeChannelType(dataType) {
 
 var AnyDataType = OrType(NumberType, StringType, LocationType);
 
-"use strict";
-
 var SExp = {
   _parseImpl: function(s, i) {
     function helper() {
@@ -1341,6 +1339,7 @@ var DataChannel = new Class({
 });
 
 var Fist = {
+  VERSION: "0.3.1",
   _symbolTable: {},
   evaluateAtom: function(atom) {
     atom = atom.toString();
@@ -1468,8 +1467,6 @@ var Fist = {
     return type && type.node();
   }
 };
-
-"use strict";
 
 var _unaryOp = function(a, op) {
   if (Type.fromValue(a) === NumberType) {
@@ -2399,8 +2396,6 @@ var LibFist = {
   }
 };
 
-"use strict";
-
 var SVGUtils = {
   translate: function(pos) {
     return "translate(" + pos.x + ", " + pos.y + ")";
@@ -3160,8 +3155,6 @@ var FistUI = {
     this._status.OK(msg);
   }
 };
-
-"use strict";
 
 function _numTicks(px) {
   return Math.max(3, Math.min(7, Math.floor(px / 100)));

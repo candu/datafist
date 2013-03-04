@@ -1,4 +1,5 @@
 var Fist = {
+  VERSION: '0.3.1',
   _symbolTable: {},
   evaluateAtom: function(atom) {
     atom = atom.toString();
