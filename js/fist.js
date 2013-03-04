@@ -249,20 +249,20 @@ Heap.prototype.check = function() {
 };
 
 function Region(ps) {
-  var _ps = Array.clone(ps), _n = _ps.length;
-  return {
-    contains: function(p) {
-      var j = _n - 1, c = false;
-      for (var i = 0; i < _n; i++) {
-        if (_ps[i][1] > p[1] ^ _ps[j][1] > p[1] && p[0] < (_ps[j][0] - _ps[i][0]) * (p[1] - _ps[i][1]) / (_ps[j][1] - _ps[i][1]) + _ps[i][0]) {
-          c = !c;
-        }
-        j = i;
-      }
-      return c;
-    }
-  };
+  this._ps = ps;
+  this._n = this._ps.length;
 }
+
+Region.prototype.contains = function(p) {
+  var j = this._n - 1, c = false;
+  for (var i = 0; i < this._n; i++) {
+    if (this._ps[i][1] > p[1] ^ this._ps[j][1] > p[1] && p[0] < (this._ps[j][0] - this._ps[i][0]) * (p[1] - this._ps[i][1]) / (this._ps[j][1] - this._ps[i][1]) + this._ps[i][0]) {
+      c = !c;
+    }
+    j = i;
+  }
+  return c;
+};
 
 Type.fromValue = function(value) {
   var type = typeOf(value);

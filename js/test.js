@@ -291,7 +291,7 @@ QUnit.test('Heap', function() {
 });
 
 QUnit.test('Region', function() {
-  var r = Region([[1, 1], [-1, 1], [-1, -1], [1, -1]]);
+  var r = new Region([[1, 1], [-1, 1], [-1, -1], [1, -1]]);
   ok(r.contains([0, 0]));
   var foundOutside = false;
   for (var i = 0; i < 1000; i++) {
