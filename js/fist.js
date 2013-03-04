@@ -3016,11 +3016,14 @@ var FistUI = {
     this._importDialog = new ImportDialog($("modal"), this._status);
     this._palette = this._root.getElement("#palette");
     this._viewer = this._root.getElement("#viewer");
+    this._table = this._root.getElement("#table");
+    this._header = this._root.getElement("#header");
     this._content = this._root.getElement("#content");
+    this._footer = this._root.getElement("#footer");
     this._svgExecuteWrapper = this._root.getElement("#svg_execute_wrapper");
-    this._viewExecuteSVG = d3.select(this._svgExecuteWrapper).append("svg:svg").attr("id", "view_execute").attr("width", this._svgExecuteWrapper.getWidth() - 2).attr("height", this._svgExecuteWrapper.getHeight() - 2);
+    this._viewExecuteSVG = d3.select(this._svgExecuteWrapper).append("svg:svg").attr("id", "view_execute");
     this._svgGraphWrapper = this._root.getElement("#svg_graph_wrapper");
-    this._viewGraphSVG = d3.select(this._svgGraphWrapper).append("svg:svg").attr("id", "view_graph").attr("width", this._svgGraphWrapper.getWidth() - 2).attr("height", this._svgGraphWrapper.getHeight() - 2).on("dblclick", function(d) {
+    this._viewGraphSVG = d3.select(this._svgGraphWrapper).append("svg:svg").attr("id", "view_graph").on("dblclick", function(d) {
       var name = window.prompt("enter node name:");
       if (name === null || name.length === 0) {
         return;
@@ -3155,9 +3158,14 @@ var FistUI = {
     this._viewTable[name] = view;
   },
   dynamicResize: function() {
-    var contentSize = this._content.getSize();
-    this._svgExecuteWrapper.setStyle("width", contentSize.x - 8).setStyle("height", contentSize.y - 8);
-    this._viewExecuteSVG.attr("width", this._svgExecuteWrapper.getWidth() - 2).attr("height", this._svgExecuteWrapper.getHeight() - 2);
+    var docSize = document.getSize();
+    console.log(docSize);
+    this._table.set("width", docSize.x);
+    this._header.setStyle("width", docSize.x);
+    this._content.setStyle("width", docSize.x).setStyle("height", docSize.y - 285);
+    this._svgExecuteWrapper.setStyle("width", docSize.x - 10).setStyle("height", docSize.y - 293);
+    this._viewExecuteSVG.attr("width", docSize.x - 10).attr("height", docSize.y - 293);
+    this._footer.setStyle("width", docSize.x);
     try {
       this.runViewGraph({
         rebuild: false

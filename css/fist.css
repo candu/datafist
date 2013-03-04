@@ -38,7 +38,7 @@ ul {
   background-color: #ddd;
   border-bottom: 1px solid #aaa;
 }
-#content {
+#docs > #main > #content {
   padding: 4px;
 }
 .params {
@@ -80,6 +80,7 @@ body {
   height: 100%;
   min-height: 480px;
   min-width: 720px;
+  overflow: hidden;
 }
 .hidden {
   display: none;

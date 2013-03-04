@@ -12,5 +12,5 @@ $(window).addEvent('domready', function() {
   window.clearTimeout(resizeTimer);
   resizeTimer = (function() {
     FistUI.dynamicResize();
-  }).delay(50);
+  }).delay(100);
 });
