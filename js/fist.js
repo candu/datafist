@@ -2957,7 +2957,9 @@ var Resizer = new Class({
 });
 
 Resizer._dragBehavior = function(ui, resizer) {
-  return d3.behavior.drag().on("dragstart", function() {}).on("drag", function(d) {
+  return d3.behavior.drag().on("dragstart", function() {
+    resizer._elem.classed("active", true);
+  }).on("drag", function(d) {
     d.pos -= d3.event.dy;
     d.pos = Math.max(240, Math.min(d.pos, 480));
     var mid = d.pos - 4;
@@ -2965,6 +2967,7 @@ Resizer._dragBehavior = function(ui, resizer) {
       return mid + "px";
     });
   }).on("dragend", function() {
+    resizer._elem.classed("active", false);
     ui.dynamicResize();
   });
 };
@@ -3035,7 +3038,6 @@ var FistUI = {
       }
       this._dropOverlay.removeClass("droptarget");
       this._importDialog.show(evt.dataTransfer.files[0]);
-      d.bottom -= d3.event.dy;
     }.bind(this), false);
     this._dragBlock = null;
     this._status = new Status(this._root.getElement("#status_wrapper"));

@@ -45,8 +45,14 @@ body {
   bottom: 236px;
   width: 100%;
   height: 8px;
+  border: 0;
   cursor: ns-resize;
-  background-color: #f00;
+}
+#resizer.active {
+  background-color: #dddddd;
+  height: 6px;
+  border: 1px solid #cccccc;
+  opacity: 0.6;
 }
 #table {
   height: 100%;
