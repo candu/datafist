@@ -234,6 +234,7 @@ a.nav {
   background-color: #f7f7f7;
   position: relative;
   height: (@footer-height - (2 * @graph-border + 1.5 * @graph-margin));
+  overflow-y: auto;
   &.droptarget {
     border: 1px solid #6f3;
     background-color: #dfc;
@@ -291,6 +292,10 @@ a.nav {
   }
 }
 
+#view_graph {
+  height: 800px;
+}
+
 div.block {
   .user-select(none);
   display: inline-block;
@@ -334,5 +339,7 @@ div.block {
     padding: 2px;
     margin: 2px 2px 2px -4px;
     cursor: pointer;
+    position: fixed;
+    right: 20px;
   }
 }

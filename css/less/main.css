@@ -191,6 +191,7 @@ a.nav {
   background-color: #f7f7f7;
   position: relative;
   height: 232px;
+  overflow-y: auto;
 }
 #svg_graph_wrapper.droptarget {
   border: 1px solid #6f3;
@@ -248,6 +249,9 @@ a.nav {
 #svg_graph_wrapper line.edge.temp {
   stroke-opacity: 0.4;
 }
+#view_graph {
+  height: 800px;
+}
 div.block {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -294,4 +298,6 @@ div.block.dragtarget {
   padding: 2px;
   margin: 2px 2px 2px -4px;
   cursor: pointer;
+  position: fixed;
+  right: 20px;
 }
