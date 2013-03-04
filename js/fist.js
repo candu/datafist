@@ -1342,7 +1342,7 @@ var DataChannel = new Class({
     return this._index[t];
   },
   iter: function() {
-    return Iterator(this._data.map(function(a) {
+    return new Iterator(this._data.map(function(a) {
       return a.t;
     }));
   },
@@ -1507,7 +1507,7 @@ var _filterOp = function(a, p) {
       return p(t) ? a.at(t) : 0;
     },
     iter: function() {
-      return FilterIterator(a.iter(), p);
+      return new FilterIterator(a.iter(), p);
     },
     type: function() {
       return ChannelType(NumberType);
@@ -1550,7 +1550,7 @@ var _binaryOp = function(a, b, op) {
       return op(a.at(t), b.at(t));
     },
     iter: function() {
-      return UnionIterator([ a.iter(), b.iter() ]);
+      return new UnionIterator([ a.iter(), b.iter() ]);
     },
     type: function() {
       return ChannelType(NumberType);
@@ -1583,7 +1583,7 @@ var OpsArith = {
         return total;
       },
       iter: function() {
-        return UnionIterator(channels.map(function(c) {
+        return new UnionIterator(channels.map(function(c) {
           return c.iter();
         }));
       },
@@ -1616,7 +1616,7 @@ var OpsArith = {
         return total;
       },
       iter: function() {
-        return UnionIterator(channels.map(function(c) {
+        return new UnionIterator(channels.map(function(c) {
           return c.iter();
         }));
       }
@@ -2122,7 +2122,7 @@ var OpsJoin = {
           return j.iter();
         });
         iters.unshift(args.c.iter());
-        return IntersectionIterator(iters);
+        return new IntersectionIterator(iters);
       }
     };
   }).type(FunctionType({
