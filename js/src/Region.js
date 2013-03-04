@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * A Region is the area inside a closed (possibly non-simple!) curve.
  * In datafist, Regions are used to define two-dimensional filters based

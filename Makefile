@@ -14,17 +14,32 @@ css/less/%.css: less/%.less
 js: js/fist.js
 
 js/fist.js: \
+  js/src/start.js \
+  js/src/StopIteration.js \
   js/src/Iterator.js \
   js/src/Heap.js \
   js/src/Region.js \
   js/src/Type.js \
   js/src/SExp.js \
   js/src/Utils.js \
-  js/src/DataImporter.js \
+  js/src/AutoNice.js \
+  js/src/Random.js \
+  js/src/Interval.js \
+  js/src/Time.js \
+  js/src/TimeDelta.js \
+  js/src/Stats.js \
+  js/src/Reduce.js \
+  js/src/DataImportError.js \
+  js/src/RowLoader.js \
+  js/src/ChannelExtractor.js \
+  js/src/ImportDialog.js \
+  js/src/FistFunction.js \
+  js/src/DataChannel.js \
   js/src/Fist.js \
   js/src/LibFist.js \
   js/src/FistUI.js \
-  js/src/LibFistUI.js
+  js/src/LibFistUI.js \
+  js/src/end.js
 	cat $(filter %.js,$^) > $@.tmp
 	$(JS_UGLIFY) $@.tmp -b indent-level=2 -o $@
 	rm $@.tmp

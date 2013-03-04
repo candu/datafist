@@ -1,5 +1,3 @@
-'use strict';
-
 function _numTicks(px) {
   return Math.max(3, Math.min(7, Math.floor(px / 100)));
 }

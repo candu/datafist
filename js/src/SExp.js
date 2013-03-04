@@ -1,5 +1,3 @@
-'use strict';
-
 var SExp = {
   _parseImpl: function(s, i) {
     function helper() {

@@ -154,8 +154,6 @@ function IntersectionIterator(iters) {
   };
 }
 
-"use strict";
-
 function Heap(xs, cmp) {
   cmp = cmp || function(a, b) {
     return a - b;
@@ -233,8 +231,6 @@ function Heap(xs, cmp) {
     }
   };
 }
-
-"use strict";
 
 function Region(ps) {
   var _ps = Array.clone(ps), _n = _ps.length;
@@ -598,8 +594,6 @@ var SExp = {
   }
 };
 
-"use strict";
-
 Object.isEmpty = function(obj) {
   for (var i in obj) {
     return false;
@@ -846,8 +840,6 @@ var Reduce = {
     return fn;
   }
 };
-
-"use strict";
 
 var DataImportError = new Class({
   Extends: Error,
@@ -1286,8 +1278,6 @@ var ImportDialog = new Class({
     this._step0(file);
   }
 });
-
-"use strict";
 
 var FistFunction = new Class({
   initialize: function(fn) {

@@ -1,5 +1,3 @@
-'use strict';
-
 var SVGUtils = {
   translate: function(pos) {
     return 'translate(' + pos.x + ', ' + pos.y + ')';

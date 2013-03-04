@@ -1,12 +1,3 @@
-'use strict';
-
-var StopIteration = new Class({
-  Extends: Error,
-  toString: function() {
-    return 'StopIteration';
-  }
-});
-
 function Iterator(xs) {
   var _pos = 0;
   function _test() {

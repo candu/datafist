@@ -1,5 +1,3 @@
-'use strict';
-
 // TODO: deal with non-numeric channels in these higher-order functions
 
 var _unaryOp = function(a, op) {

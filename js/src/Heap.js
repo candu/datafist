@@ -1,5 +1,3 @@
-'use strict';
-
 function Heap(xs, cmp) {
   cmp = cmp || function(a, b) { return a - b; };
   var _size = xs.length;
