@@ -254,12 +254,12 @@ QUnit.test('IntersectionIterator', function() {
 
 QUnit.test('Heap', function() {
   // empty
-  var q = Heap([]);
+  var q = new Heap();
   equal(q.empty(), true);
 
   // heapsort
   var xs = [3, 5, 6, 1, 4, 7, 2],
-      q = Heap(xs),
+      q = new Heap(xs),
       i = 0;
   while (!q.empty()) {
     equal(q.pop(), ++i);
@@ -272,7 +272,7 @@ QUnit.test('Heap', function() {
   for (var i = 0; i < N; i++) {
     xs.push(Math.random());
   }
-  var q = Heap(xs),
+  var q = new Heap(xs),
       last = -Infinity;
   for (var i = 0; i < N; i++) {
     var cur = q.pop();
@@ -282,7 +282,7 @@ QUnit.test('Heap', function() {
 
   // push
   var xs = [],
-      q = Heap(xs),
+      q = new Heap(xs),
       N = 10;
   for (var i = 0; i < N; i++) {
     q.push(Math.random());

@@ -75,7 +75,7 @@ function MergeIterator(iters) {
     }
     return false;
   });
-  var _q = Heap(iters, function(a, b) {
+  var _q = new Heap(iters, function(a, b) {
     return a.peek() - b.peek();
   });
   var _curIter = null;

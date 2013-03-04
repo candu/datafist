@@ -74,7 +74,7 @@ function MergeIterator(iters) {
     }
     return false;
   });
-  var _q = Heap(iters, function(a, b) {
+  var _q = new Heap(iters, function(a, b) {
     return a.peek() - b.peek();
   });
   var _curIter = null;
@@ -155,82 +155,89 @@ function IntersectionIterator(iters) {
 }
 
 function Heap(xs, cmp) {
-  cmp = cmp || function(a, b) {
+  this._xs = xs || [];
+  this._cmp = cmp || function(a, b) {
     return a - b;
   };
-  var _size = xs.length;
-  function _swap(i, j) {
-    var tmp = xs[i];
-    xs[i] = xs[j];
-    xs[j] = tmp;
+  this._size = this._xs.length;
+  for (var i = Math.floor(this._size / 2) - 1; i >= 0; i--) {
+    this._sift(i);
   }
-  function _left(i) {
-    return 2 * i + 1;
-  }
-  function _right(i) {
-    return 2 * i + 2;
-  }
-  function _parent(i) {
-    return Math.floor((i - 1) / 2);
-  }
-  function _leaf(i) {
-    return i >= Math.ceil((_size - 1) / 2);
-  }
-  function _sift(i) {
-    while (!_leaf(i)) {
-      var L = _left(i), R = _right(i), m = L;
-      if (R < _size && cmp(xs[R], xs[L]) < 0) {
-        m = R;
-      }
-      if (cmp(xs[i], xs[m]) <= 0) {
-        break;
-      }
-      _swap(i, m);
-      i = m;
-    }
-  }
-  function pop() {
-    _swap(0, _size - 1);
-    if (--_size > 0) {
-      _sift(0);
-    }
-    return xs[_size];
-  }
-  function push(x) {
-    var i = _size++;
-    xs[i] = x;
-    while (i > 0) {
-      var P = _parent(i);
-      if (cmp(xs[P], xs[i]) < 0) {
-        break;
-      }
-      _swap(i, P);
-      i = P;
-    }
-  }
-  for (var i = Math.floor(_size / 2) - 1; i >= 0; i--) {
-    _sift(i);
-  }
-  return {
-    pop: pop,
-    push: push,
-    empty: function() {
-      return _size == 0;
-    },
-    check: function() {
-      for (var i = 0; !_leaf(i); i++) {
-        var L = _left(i), R = _right(i);
-        if (cmp(xs[i], xs[L]) >= 0) {
-          return false;
-        }
-        if (R < _size && cmp(xs[i], xs[R]) >= 0) {
-          return false;
-        }
-      }
-      return true;
-    }
-  };
 }
+
+Heap.prototype._swap = function(i, j) {
+  var tmp = this._xs[i];
+  this._xs[i] = this._xs[j];
+  this._xs[j] = tmp;
+};
+
+Heap.prototype._left = function(i) {
+  return 2 * i + 1;
+};
+
+Heap.prototype._right = function(i) {
+  return 2 * i + 2;
+};
+
+Heap.prototype._parent = function(i) {
+  return Math.floor((i - 1) / 2);
+};
+
+Heap.prototype._leaf = function(i) {
+  return i >= Math.ceil((this._size - 1) / 2);
+};
+
+Heap.prototype._sift = function(i) {
+  while (!this._leaf(i)) {
+    var L = this._left(i), R = this._right(i), m = L;
+    if (R < this._size && this._cmp(this._xs[R], this._xs[L]) < 0) {
+      m = R;
+    }
+    if (this._cmp(this._xs[i], this._xs[m]) <= 0) {
+      break;
+    }
+    this._swap(i, m);
+    i = m;
+  }
+};
+
+Heap.prototype.pop = function() {
+  this._swap(0, this._size - 1);
+  if (--this._size > 0) {
+    this._sift(0);
+  }
+  return this._xs[this._size];
+};
+
+Heap.prototype.push = function(x) {
+  var i = this._size++;
+  this._xs[i] = x;
+  while (i > 0) {
+    var P = this._parent(i);
+    if (this._cmp(this._xs[P], this._xs[i]) < 0) {
+      break;
+    }
+    this._swap(i, P);
+    i = P;
+  }
+};
+
+Heap.prototype.empty = function() {
+  return this._size == 0;
+};
+
+Heap.prototype.check = function() {
+  for (var i = 0; !this._leaf(i); i++) {
+    var L = this._left(i), R = this._right(i);
+    if (this._cmp(this._xs[i], this._xs[L]) >= 0) {
+      return false;
+    }
+    if (R < this._size && this._cmp(this._xs[i], this._xs[R]) >= 0) {
+      return false;
+    }
+  }
+  return true;
+};
 
 function Region(ps) {
   var _ps = Array.clone(ps), _n = _ps.length;
