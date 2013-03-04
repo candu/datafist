@@ -576,6 +576,7 @@ var ViewGraph = new Class({
         x: node.dims.x + node.dims.w / 2,
         y: node.dims.y + node.dims.h / 2
       },
+      id: node.id,
       op: node.name
     };
     var edges = node.allEdgesIn();
@@ -603,8 +604,11 @@ var ViewGraph = new Class({
     });
     return T.map(this._toCodeDepth.bind(this));
   },
-  _fromCodeDepth: function(code, toNode, toParam) {
-    var node = this._addNodeImpl(code.op, code.pos);
+  _fromCodeDepth: function(nodeMap, code, toNode, toParam) {
+    if (nodeMap[code.id] === undefined) {
+      nodeMap[code.id] = this._addNodeImpl(code.op, code.pos);
+    }
+    var node = nodeMap[code.id];
     if (toNode !== undefined && toParam !== undefined) {
       var output = node.outputs[0];
       var input = undefined;
@@ -625,17 +629,20 @@ var ViewGraph = new Class({
     Object.each(code.args, function(arg, name) {
       if (arg instanceof Array) {
         arg.each(function(subArg) {
-          this._fromCodeDepth(subArg, node, name);
+          this._fromCodeDepth(nodeMap, subArg, node, name);
         }.bind(this));
       } else {
-        this._fromCodeDepth(arg, node, name);
+        this._fromCodeDepth(nodeMap, arg, node, name);
       }
     }.bind(this));
   },
   fromCodes: function(codes) {
     this._emptyImpl();
+    // NOTE: nodeMap is used to make sure we don't re-render nodes with
+    // multiple edges out.
+    var nodeMap = {};
     codes.each(function(code) {
-      this._fromCodeDepth(code);
+      this._fromCodeDepth(nodeMap, code);
     }.bind(this));
     FistUI.runViewGraph();
   },
