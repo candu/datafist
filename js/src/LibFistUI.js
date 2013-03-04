@@ -564,7 +564,7 @@ var CrossfilterView = {
       throw new Error('crossfilter only supports up to 32 dimensions!');
     }
 
-    var it = IntersectionIterator(args.channels.map(function(c) {
+    var it = new IntersectionIterator(args.channels.map(function(c) {
       return c.iter();
     }));
     var data = [];
@@ -603,7 +603,7 @@ var HistogramView = {
     var it = c.iter(),
         data = [];
     if (groupBy !== undefined) {
-      it = IntersectionIterator([it, groupBy.iter()]);
+      it = new IntersectionIterator([it, groupBy.iter()]);
     }
     while (true) {
       try {
@@ -788,7 +788,7 @@ var PlotView = {
     if (hasColor) {
       iters.push(args.color.iter());
     }
-    var it = IntersectionIterator(iters);
+    var it = new IntersectionIterator(iters);
 
     while (true) {
       try {

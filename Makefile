@@ -3,8 +3,13 @@ LESS_FLAGS = --verbose
 JS_UGLIFY = uglifyjs
 
 all: \
-  less \
+  css \
   js
+
+css: css/fist.css
+
+css/fist.css: less
+	cat css/less/*.css > css/fist.css
 
 less: css/less/main.css css/less/modal.css css/less/tooltip.css css/less/view.css css/less/docs.css css/less/test.css
 

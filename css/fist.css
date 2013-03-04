@@ -1,0 +1,547 @@
+h1,
+h2,
+h3 {
+  font-weight: 400;
+  color: #333;
+  margin: 0;
+}
+h1 {
+  font-size: 32px;
+  background-color: #bbb;
+  border-bottom: 1px solid #999;
+  padding: 4px;
+}
+h2 {
+  font-size: 26px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+h2.module {
+  color: #36f;
+}
+h3 {
+  font-size: 20px;
+}
+h3.symbol {
+  background-color: #d7d7d7;
+  padding: 4px;
+  color: #555;
+}
+ul {
+  margin-top: 0;
+}
+#main {
+  background-color: #f7f7f7;
+}
+#top {
+  padding: 4px;
+  background-color: #ddd;
+  border-bottom: 1px solid #aaa;
+}
+#content {
+  padding: 4px;
+}
+.params {
+  font-size: 14px;
+}
+.param-row {
+  padding: 4px;
+}
+.param-name {
+  font-weight: 500;
+  display: inline-block;
+  width: 100px;
+}
+.param-ref {
+  font-weight: 500;
+}
+.param-type {
+  display: inline-block;
+  font-style: italic;
+}
+.desc {
+  font-size: 16px;
+  color: #444;
+  padding-bottom: 20px;
+  line-height: 1.3;
+}
+/*---------------------------------------------------
+    LESS Elements 0.7
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
+html,
+body {
+  font-family: 'Ubuntu', sans-serif;
+  color: #222;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  min-height: 480px;
+  min-width: 720px;
+}
+.hidden {
+  display: none;
+}
+#container {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+#drop_overlay {
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+#drop_overlay.droptarget {
+  background-color: #dfc;
+  z-index: 99998;
+  opacity: 0.6;
+  pointer-events: auto;
+}
+#table {
+  height: 100%;
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+tr,
+td {
+  vertical-align: top;
+  padding: 0;
+  margin: 0;
+}
+#header {
+  height: 45px;
+}
+#banner {
+  background-color: #bbb;
+  padding: 4px;
+}
+#title {
+  position: relative;
+  top: 3px;
+  left: 3px;
+  font-size: 32px;
+  color: #333;
+  display: inline-block;
+  padding-right: 7px;
+}
+#links {
+  position: relative;
+  top: -4px;
+  left: 1px;
+  display: inline-block;
+  width: 116px;
+}
+a.nav {
+  text-decoration: none;
+  background-color: #aaccee;
+  color: #3366ff;
+  border: 1px solid #99aaff;
+  padding: 2px;
+  font-size: 90%;
+}
+#status {
+  background-color: #bbb;
+}
+#status_wrapper {
+  margin: 4px 4px 0 0;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  height: 39px;
+  font-size: 90%;
+}
+#status_wrapper.working {
+  background-color: #ffee77;
+  border: 1px solid #ddcc44;
+  color: #996633;
+}
+#status_wrapper.ok {
+  background-color: #cceeaa;
+  border: 1px solid #aaee99;
+  color: #66bb33;
+}
+#status_wrapper.not-ok {
+  background-color: #ffcc99;
+  border: 1px solid #ffaa77;
+  color: #ff3300;
+}
+#message {
+  display: inline-block;
+  padding: 2px;
+  height: 33px;
+}
+#import {
+  float: right;
+  text-align: right;
+  padding: 4px;
+}
+#import > #filename {
+  font-size: 80%;
+  padding-bottom: 2px;
+}
+#import > #progress {
+  width: 150px;
+}
+#viewer {
+  background-color: #bbb;
+}
+#svg_execute_wrapper {
+  margin: 4px 4px 2px 4px;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  position: relative;
+}
+#footer {
+  height: 240px;
+}
+#toolbox {
+  width: 250px;
+  background-color: #bbb;
+}
+#palette {
+  border: 1px solid #999999;
+  margin: 2px 2px 4px 4px;
+  background-color: #f7f7f7;
+  width: 242px;
+  height: 232px;
+  overflow-y: auto;
+}
+#palette.droptarget {
+  border: 1px solid #6f3;
+  background-color: #dfc;
+}
+#palette .module-group {
+  cursor: pointer;
+  margin: 4px;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+#palette .module-group .module-name {
+  padding: 4px;
+  font-size: 90%;
+  background: #d7d7d7;
+}
+#palette .module-group .module-contents {
+  border-top: 1px solid #ccc;
+  padding: 4px;
+}
+#interpreter {
+  background-color: #bbb;
+}
+#svg_graph_wrapper {
+  margin: 2px 4px 4px 2px;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  position: relative;
+  height: 232px;
+}
+#svg_graph_wrapper.droptarget {
+  border: 1px solid #6f3;
+  background-color: #dfc;
+}
+#svg_graph_wrapper g.block {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+#svg_graph_wrapper g.block rect.hit {
+  fill: #ddd;
+  stroke: #999;
+}
+#svg_graph_wrapper g.block rect.hit.hover {
+  fill: #aaa;
+  stroke: #777;
+}
+#svg_graph_wrapper rect.block.function {
+  fill: #ffee77;
+  stroke: #ddcc44;
+}
+#svg_graph_wrapper rect.block.channel {
+  fill: #aaccee;
+  stroke: #99aaff;
+}
+#svg_graph_wrapper rect.block.number,
+#svg_graph_wrapper rect.block.string {
+  fill: #cceeaa;
+  stroke: #aaee99;
+}
+#svg_graph_wrapper rect.block.null {
+  fill: #ffcc99;
+  stroke: #ffaa77;
+}
+#svg_graph_wrapper text.block.function {
+  fill: #996633;
+}
+#svg_graph_wrapper text.block.channel {
+  fill: #3366ff;
+}
+#svg_graph_wrapper text.block.number,
+#svg_graph_wrapper text.block.string {
+  fill: #66bb33;
+}
+#svg_graph_wrapper text.block.null {
+  fill: #ff3300;
+}
+#svg_graph_wrapper line.edge {
+  stroke: #aaa;
+  stroke-width: 3px;
+}
+#svg_graph_wrapper line.edge.temp {
+  stroke-opacity: 0.4;
+}
+div.block {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  display: inline-block;
+  cursor: move;
+  min-width: 50px;
+  text-align: center;
+  padding: 2px;
+  margin: 2px;
+}
+div.block.function {
+  background-color: #ffee77;
+  border: 1px solid #ddcc44;
+  color: #996633;
+}
+div.block.channel {
+  background-color: #aaccee;
+  border: 1px solid #99aaff;
+  color: #3366ff;
+}
+div.block.number,
+div.block.string {
+  background-color: #cceeaa;
+  border: 1px solid #aaee99;
+  color: #66bb33;
+}
+div.block.dragtarget {
+  opacity: 0.6;
+}
+#svg_graph_controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#svg_graph_controls .control {
+  display: inline-block;
+  background-color: #dddddd;
+  border: 1px solid #cccccc;
+  color: #888888;
+  width: 50px;
+  text-align: center;
+  padding: 2px;
+  margin: 2px 2px 2px -4px;
+  cursor: pointer;
+}
+.modal-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 99999;
+  -webkit-transition: opacity 100ms ease-in;
+  -moz-transition: opacity 100ms ease-in;
+  transition: opacity 100ms ease-in;
+  opacity: 0;
+  pointer-events: none;
+}
+.modal-dialog.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-dialog > div {
+  width: 600px;
+  color: #333;
+  position: relative;
+  margin: 10% auto;
+  background: #eee;
+  overflow-y: auto;
+}
+.modal-dialog > div > .modal-title {
+  padding: 4px;
+  background-color: #bbb;
+  font-size: 140%;
+}
+.modal-dialog > div > .modal-content {
+  padding: 4px;
+  background-color: #eee;
+}
+.modal-dialog > div > .modal-content > .step > .help {
+  padding-bottom: 4px;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper {
+  width: 100%;
+  overflow: auto;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table {
+  white-space: nowrap;
+  height: 200px;
+  overflow: auto;
+  font-family: "Menlo", monospace;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 80%;
+  background-color: #ccc;
+  padding: 2px;
+  overflow: hidden;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.odd {
+  background-color: #ddd;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.selected {
+  background-color: #6b3;
+  color: #cea;
+}
+.modal-dialog > div > .modal-content > .step > .table-wrapper > .table > .data-row > .data-cell.unselectable {
+  background-color: #f30;
+  color: #fc9;
+}
+.modal-dialog > div > .modal-buttons {
+  padding: 0 4px 4px 4px;
+}
+.modal-dialog > div > .modal-buttons > input[type=button] {
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  font-size: 80%;
+  background: #666;
+  color: #eee;
+}
+.modal-dialog > div > .modal-buttons > input[type=button]:hover {
+  background: #6b3;
+  color: #cea;
+}
+.modal-dialog > div > .modal-buttons > input[type=button].disabled {
+  cursor: auto;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.modal-dialog > div > .modal-buttons > #cancel {
+  float: right;
+}
+.modal-dialog > div > .modal-buttons > #cancel:hover {
+  background: #f30;
+  color: #fc9;
+}
+#qunit-tests,
+#qunit-header,
+#qunit-banner,
+#qunit-testrunner-toolbar,
+#qunit-userAgent,
+#qunit-testresult {
+  font-family: 'Ubuntu', sans-serif;
+  text-shadow: none;
+}
+/*---------------------------------------------------
+    LESS Elements 0.7
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
+.fistdocs > .tip {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  max-width: 200px;
+  background: #666;
+  font-size: 90%;
+}
+.fistdocs > .tip > .tip-title {
+  padding: 4px;
+  background-color: #333;
+  color: #9fd4ff;
+}
+.fistdocs > .tip > .tip-text {
+  padding: 4px;
+  font-size: 90%;
+  color: #fff;
+}
+path.channel {
+  fill: none;
+  stroke-width: 1.5px;
+  opacity: 0.8;
+}
+line.channel-separator {
+  stroke-width: 1px;
+  stroke: #aaa;
+}
+line.guide {
+  stroke-width: 1.5px;
+  stroke: #999;
+  opacity: 0.3;
+}
+text.caption {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 90%;
+  color: #444;
+  opacity: 0.5;
+}
+g.axis {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 80%;
+}
+g.axis line.range {
+  stroke-width: 1px;
+  stroke: #aaa;
+}
+g.axis path {
+  fill: none;
+  stroke: none;
+  stroke-width: 1.5px;
+}
+g.axis g.projection line {
+  stroke: #000;
+  stroke-width: 1px;
+}
+g.axis.crossfilter.category {
+  opacity: 0.6;
+}
+rect.hit-area {
+  fill: #000;
+  stroke: none;
+  opacity: 0;
+}
+rect.selection-area {
+  fill: #333;
+  stroke: none;
+  opacity: 0.3;
+  cursor: pointer;
+}
+line.regression {
+  stroke: #f33;
+  stroke-width: 1.5px;
+}
+path.crossfilter.bar {
+  stroke-width: 0;
+}
+path.crossfilter.bar.category {
+  cursor: pointer;
+  opacity: 0.7;
+}
+path.crossfilter.bar.category.selected {
+  opacity: 1.0;
+}
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
