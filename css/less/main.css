@@ -1,0 +1,282 @@
+/*---------------------------------------------------
+    LESS Elements 0.7
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
+html,
+body {
+  font-family: 'Ubuntu', sans-serif;
+  color: #222;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  min-height: 480px;
+  min-width: 720px;
+}
+.hidden {
+  display: none;
+}
+#container {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+#drop_overlay {
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+#drop_overlay.droptarget {
+  background-color: #dfc;
+  z-index: 99998;
+  opacity: 0.6;
+  pointer-events: auto;
+}
+#table {
+  height: 100%;
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+tr,
+td {
+  vertical-align: top;
+  padding: 0;
+  margin: 0;
+}
+#header {
+  height: 45px;
+}
+#banner {
+  background-color: #bbb;
+  padding: 4px;
+}
+#title {
+  position: relative;
+  top: 3px;
+  left: 3px;
+  font-size: 32px;
+  color: #333;
+  display: inline-block;
+  padding-right: 7px;
+}
+#links {
+  position: relative;
+  top: -4px;
+  left: 1px;
+  display: inline-block;
+  width: 116px;
+}
+a.nav {
+  text-decoration: none;
+  background-color: #aaccee;
+  color: #3366ff;
+  border: 1px solid #99aaff;
+  padding: 2px;
+  font-size: 90%;
+}
+#status {
+  background-color: #bbb;
+}
+#status_wrapper {
+  margin: 4px 4px 0 0;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  height: 39px;
+  font-size: 90%;
+}
+#status_wrapper.working {
+  background-color: #ffee77;
+  border: 1px solid #ddcc44;
+  color: #996633;
+}
+#status_wrapper.ok {
+  background-color: #cceeaa;
+  border: 1px solid #aaee99;
+  color: #66bb33;
+}
+#status_wrapper.not-ok {
+  background-color: #ffcc99;
+  border: 1px solid #ffaa77;
+  color: #ff3300;
+}
+#message {
+  display: inline-block;
+  padding: 2px;
+  height: 33px;
+}
+#import {
+  float: right;
+  text-align: right;
+  padding: 4px;
+}
+#import > #filename {
+  font-size: 80%;
+  padding-bottom: 2px;
+}
+#import > #progress {
+  width: 150px;
+}
+#viewer {
+  background-color: #bbb;
+}
+#svg_execute_wrapper {
+  margin: 4px 4px 2px 4px;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  position: relative;
+}
+#footer {
+  height: 240px;
+}
+#toolbox {
+  width: 250px;
+  background-color: #bbb;
+}
+#palette {
+  border: 1px solid #999999;
+  margin: 2px 2px 4px 4px;
+  background-color: #f7f7f7;
+  width: 242px;
+  height: 232px;
+  overflow-y: auto;
+}
+#palette.droptarget {
+  border: 1px solid #6f3;
+  background-color: #dfc;
+}
+#palette .module-group {
+  cursor: pointer;
+  margin: 4px;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+#palette .module-group .module-name {
+  padding: 4px;
+  font-size: 90%;
+  background: #d7d7d7;
+}
+#palette .module-group .module-contents {
+  border-top: 1px solid #ccc;
+  padding: 4px;
+}
+#interpreter {
+  background-color: #bbb;
+}
+#svg_graph_wrapper {
+  margin: 2px 4px 4px 2px;
+  border: 1px solid #999;
+  background-color: #f7f7f7;
+  position: relative;
+  height: 232px;
+}
+#svg_graph_wrapper.droptarget {
+  border: 1px solid #6f3;
+  background-color: #dfc;
+}
+#svg_graph_wrapper g.block {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+#svg_graph_wrapper g.block rect.hit {
+  fill: #ddd;
+  stroke: #999;
+}
+#svg_graph_wrapper g.block rect.hit.hover {
+  fill: #aaa;
+  stroke: #777;
+}
+#svg_graph_wrapper rect.block.function {
+  fill: #ffee77;
+  stroke: #ddcc44;
+}
+#svg_graph_wrapper rect.block.channel {
+  fill: #aaccee;
+  stroke: #99aaff;
+}
+#svg_graph_wrapper rect.block.number,
+#svg_graph_wrapper rect.block.string {
+  fill: #cceeaa;
+  stroke: #aaee99;
+}
+#svg_graph_wrapper rect.block.null {
+  fill: #ffcc99;
+  stroke: #ffaa77;
+}
+#svg_graph_wrapper text.block.function {
+  fill: #996633;
+}
+#svg_graph_wrapper text.block.channel {
+  fill: #3366ff;
+}
+#svg_graph_wrapper text.block.number,
+#svg_graph_wrapper text.block.string {
+  fill: #66bb33;
+}
+#svg_graph_wrapper text.block.null {
+  fill: #ff3300;
+}
+#svg_graph_wrapper line.edge {
+  stroke: #aaa;
+  stroke-width: 3px;
+}
+#svg_graph_wrapper line.edge.temp {
+  stroke-opacity: 0.4;
+}
+div.block {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  display: inline-block;
+  cursor: move;
+  min-width: 50px;
+  text-align: center;
+  padding: 2px;
+  margin: 2px;
+}
+div.block.function {
+  background-color: #ffee77;
+  border: 1px solid #ddcc44;
+  color: #996633;
+}
+div.block.channel {
+  background-color: #aaccee;
+  border: 1px solid #99aaff;
+  color: #3366ff;
+}
+div.block.number,
+div.block.string {
+  background-color: #cceeaa;
+  border: 1px solid #aaee99;
+  color: #66bb33;
+}
+div.block.dragtarget {
+  opacity: 0.6;
+}
+#svg_graph_controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#svg_graph_controls .control {
+  display: inline-block;
+  background-color: #dddddd;
+  border: 1px solid #cccccc;
+  color: #888888;
+  width: 50px;
+  text-align: center;
+  padding: 2px;
+  margin: 2px 2px 2px -4px;
+  cursor: pointer;
+}

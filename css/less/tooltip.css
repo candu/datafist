@@ -1,0 +1,25 @@
+/*---------------------------------------------------
+    LESS Elements 0.7
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
+.fistdocs > .tip {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  max-width: 200px;
+  background: #666;
+  font-size: 90%;
+}
+.fistdocs > .tip > .tip-title {
+  padding: 4px;
+  background-color: #333;
+  color: #9fd4ff;
+}
+.fistdocs > .tip > .tip-text {
+  padding: 4px;
+  font-size: 90%;
+  color: #fff;
+}

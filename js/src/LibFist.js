@@ -1105,7 +1105,6 @@ var View = {
   __exports: [
     ['viewLine', 'view-line'],
     ['viewCrossfilter', 'view-crossfilter'],
-    ['viewMap', 'view-map'],
     ['viewHistogram', 'view-histogram'],
     ['viewPlot', 'view-plot']
   ],
@@ -1129,17 +1128,6 @@ var View = {
       'show the filtered distribution across dimensions. Numeric data ' +
       'allows for range filtering, whereas categorical data is filtered ' +
       'by exact match against one or more categories.'
-    ),
-  viewMap: new FistFunction(function(args) {
-    FistUI.onViewInvoked('map', args);
-  }).type(FunctionType({
-      channels: ListType(ChannelType(LocationType))
-    }, ViewType))
-    .describe(
-      'Displays each pair of channels as (lat, lng) points on a ' +
-      'Mercator projection. If datafist is running in server mode and a ' +
-      'valid Google Maps JavaScript API v3 key is provided, this will also ' +
-      'fetch and display map tiles behind the data.'
     ),
   viewHistogram: new FistFunction(function(args) {
     FistUI.onViewInvoked('histogram', args);
