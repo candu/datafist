@@ -105,19 +105,19 @@ QUnit.test('Iterator', function() {
   var it;
 
   // empty
-  it = Iterator([]);
+  it = new Iterator();
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // next
-  it = Iterator([3, 2, 1]);
+  it = new Iterator([3, 2, 1]);
   equal(it.next(), 3);
   equal(it.next(), 2);
   equal(it.next(), 1);
   throws(function() { return it.next(); }, StopIteration);
 
   // peek
-  it = Iterator([3, 2, 1]);
+  it = new Iterator([3, 2, 1]);
   it.next();
   equal(it.peek(), 2);
   it.next();
@@ -127,7 +127,7 @@ QUnit.test('Iterator', function() {
 QUnit.test('FilterIterator', function() {
   function filterCheck(a, p) {
     var expected = a.filter(p),
-        it = FilterIterator(Iterator(a), p);
+        it = new FilterIterator(new Iterator(a), p);
     for (var i = 0; i < expected.length; i++) {
       equal(it.peek(), expected[i]);
       equal(it.next(), expected[i]);
@@ -152,19 +152,19 @@ QUnit.test('MergeIterator', function() {
   var it;
 
   // empty
-  it = MergeIterator([]);
+  it = new MergeIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = MergeIterator([Iterator([])]);
+  it = new MergeIterator([new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  it = MergeIterator([Iterator([]), Iterator([]), Iterator([])]);
+  it = new MergeIterator([new Iterator(), new Iterator(), new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
   // 1-way merge
   var a = [6, 17, 73];
-  it = MergeIterator([Iterator(a)]);
+  it = new MergeIterator([new Iterator(a)]);
   for (var i = 0; i < a.length; i++) {
     equal(it.next(), a[i]);
   }
@@ -174,7 +174,7 @@ QUnit.test('MergeIterator', function() {
   var a = [1, 5, 8];
   var b = [2, 3, 9];
   var c = [4, 6, 7];
-  it = MergeIterator([Iterator(a), Iterator(b), Iterator(c)]);
+  it = new MergeIterator([new Iterator(a), new Iterator(b), new Iterator(c)]);
   for (var i = 1; i <= 9; i++) {
     equal(it.next(), i);
   }
@@ -184,7 +184,7 @@ QUnit.test('MergeIterator', function() {
   var a = [2, 3, 5, 7];
   var b = [1, 2, 3, 5, 8];
   var expected = [1, 2, 2, 3, 3, 5, 5, 7, 8];
-  it = MergeIterator([Iterator(a), Iterator(b)]);
+  it = new MergeIterator([new Iterator(a), new Iterator(b)]);
   for (var i = 0; i < expected.length; i++) {
     equal(it.next(), expected[i]);
   }
@@ -196,9 +196,9 @@ QUnit.test('MergeIterator', function() {
       c = [3, 8],
       d = [4, 7],
       e = [5, 6],
-      it1 = MergeIterator([Iterator(a), Iterator(c), Iterator(e)]),
-      it2 = MergeIterator([Iterator(b), Iterator(d)]),
-      it = MergeIterator([it1, it2]);
+      it1 = new MergeIterator([new Iterator(a), new Iterator(c), new Iterator(e)]),
+      it2 = new MergeIterator([new Iterator(b), new Iterator(d)]),
+      it = new MergeIterator([it1, it2]);
   for (var i = 1; i <= 10; i++) {
     equal(it.next(), i);
   }
@@ -208,13 +208,13 @@ QUnit.test('MergeIterator', function() {
 
 QUnit.test('UnionIterator', function() {
   // empty
-  var it = UnionIterator([]);
+  var it = new UnionIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  var it = UnionIterator([Iterator([])]);
+  var it = new UnionIterator([new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  var it = UnionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  var it = new UnionIterator([new Iterator(), new Iterator(), new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
@@ -222,7 +222,7 @@ QUnit.test('UnionIterator', function() {
   var a = [2, 3, 5, 7];
   var b = [1, 2, 3, 5, 8];
   var expected = [1, 2, 3, 5, 7, 8];
-  it = UnionIterator([Iterator(a), Iterator(b)]);
+  it = new UnionIterator([new Iterator(a), new Iterator(b)]);
   for (var i = 0; i < expected.length; i++) {
     equal(it.next(), expected[i]);
   }
@@ -231,13 +231,13 @@ QUnit.test('UnionIterator', function() {
 
 QUnit.test('IntersectionIterator', function() {
   // empty
-  var it = IntersectionIterator([]);
+  var it = new IntersectionIterator([]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  var it = IntersectionIterator([Iterator([])]);
+  var it = new IntersectionIterator([new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
-  var it = IntersectionIterator([Iterator([]), Iterator([]), Iterator([])]);
+  var it = new IntersectionIterator([new Iterator(), new Iterator(), new Iterator()]);
   throws(function() { return it.peek(); }, StopIteration);
   throws(function() { return it.next(); }, StopIteration);
 
@@ -245,7 +245,7 @@ QUnit.test('IntersectionIterator', function() {
   var a = [2, 3, 5, 7];
   var b = [1, 2, 3, 5, 8];
   var expected = [2, 3, 5];
-  it = IntersectionIterator([Iterator(a), Iterator(b)]);
+  it = new IntersectionIterator([new Iterator(a), new Iterator(b)]);
   for (var i = 0; i < expected.length; i++) {
     equal(it.next(), expected[i]);
   }
