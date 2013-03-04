@@ -620,12 +620,20 @@ var ViewGraph = new Class({
       return;
     }
     Object.each(code.args, function(arg, name) {
-      this._fromCodeDepth(arg, node, name);
+      if (arg instanceof Array) {
+        arg.each(function(subArg) {
+          this._fromCodeDepth(subArg, node, name);
+        }.bind(this));
+      } else {
+        this._fromCodeDepth(arg, node, name);
+      }
     }.bind(this));
   },
   fromCodes: function(codes) {
     this._emptyImpl();
-    codes.each(this._fromCodeDepth.bind(this));
+    codes.each(function(code) {
+      this._fromCodeDepth(code);
+    }.bind(this));
     FistUI.runViewGraph();
   },
   isInViewer: function(elem) {
@@ -729,8 +737,9 @@ var FistUI = {
         return;
       }
       try {
-        var code = JSON.parse(evt.target.result);
+        var codes = JSON.parse(evt.target.result);
         this._status.OK('loaded fist code from ' + file.name);
+        this._viewGraph.fromCodes(codes);
       } catch (err) {
         if (!(err instanceof SyntaxError)) {
           throw err;
