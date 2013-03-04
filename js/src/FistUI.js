@@ -780,9 +780,10 @@ var FistUI = {
         if (name === null || name.length === 0) {
           return;
         }
-        var svgPosition = $d3(this._viewGraph._svg).getPosition(),
-            x = d3.event.pageX - svgPosition.x,
-            y = d3.event.pageY - svgPosition.y;
+        var svgPosition = this._svgGraphWrapper.getPosition(),
+            svgScroll = this._svgGraphWrapper.getScroll(),
+            x = d3.event.pageX - svgPosition.x + svgScroll.x,
+            y = d3.event.pageY - svgPosition.y + svgScroll.y;
         this._viewGraph.addNode(name, {x: x, y: y});
       }.bind(this));
     this._svgGraphWrapper.addEventListener('dragenter', function(evt) {
@@ -815,8 +816,9 @@ var FistUI = {
       }
       var json = JSON.parse(evt.dataTransfer.getData('application/json'));
       var svgPosition = this._svgGraphWrapper.getPosition(),
-          x = evt.pageX - svgPosition.x,
-          y = evt.pageY - svgPosition.y;
+          svgScroll = this._svgGraphWrapper.getScroll(),
+          x = evt.pageX - svgPosition.x + svgScroll.x,
+          y = evt.pageY - svgPosition.y + svgScroll.y;
       this._viewGraph.addNode(json.name, {x: x, y: y});
     }.bind(this), false);
 
