@@ -649,20 +649,25 @@ var Resizer = new Class({
     this._elem
       .data([{pos: 240}])
       .call(Resizer._dragBehavior(ui, this));
+  },
+  getPosition: function() {
+    return this._elem.datum().pos;
   }
 });
 Resizer._dragBehavior = function(ui, resizer) {
   return d3.behavior.drag()
+    .on('dragstart', function() {
+
+    })
     .on('drag', function(d) {
       d.pos -= d3.event.dy;
       d.pos = Math.max(240, Math.min(d.pos, 480));
       var mid = d.pos - 4;
       resizer._elem
         .style('bottom', function(d) { return mid + 'px'; });
-      console.log(d);
     })
     .on('dragend', function() {
-      console.log('dragend!');
+      ui.dynamicResize();
     });
 };
 
@@ -910,7 +915,10 @@ var FistUI = {
     this._viewTable[name] = view;
   },
   dynamicResize: function() {
-    var docSize = document.getSize();
+    var docSize = document.getSize(),
+        headerHeight = this._header.getHeight(),
+        footerHeight = this._resizer.getPosition(),
+        totalHeight = headerHeight + footerHeight;
     console.log(docSize);
     this._table
       .set('width', docSize.x);
@@ -918,15 +926,20 @@ var FistUI = {
       .setStyle('width', docSize.x);
     this._content
       .setStyle('width', docSize.x)
-      .setStyle('height', docSize.y - 285);
+      .setStyle('height', docSize.y - totalHeight);
     this._svgExecuteWrapper
       .setStyle('width', docSize.x - 10)
-      .setStyle('height', docSize.y - 293);
+      .setStyle('height', docSize.y - (totalHeight + 8));
     this._viewExecuteSVG
       .attr('width', docSize.x - 10)
-      .attr('height', docSize.y - 293);
+      .attr('height', docSize.y - (totalHeight + 8));
     this._footer
-      .setStyle('width', docSize.x);
+      .setStyle('width', docSize.x)
+      .setStyle('height', footerHeight);
+    this._palette
+      .setStyle('height', footerHeight - 8);
+    this._svgGraphWrapper
+      .setStyle('height', footerHeight - 8);
     try {
       this.runViewGraph({rebuild: false});
     } catch (e) {
