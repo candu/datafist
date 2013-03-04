@@ -6,10 +6,19 @@ all: \
   css \
   js
 
-css: css/fist.css
+css: \
+  css/fist.css \
+  css/fistdocs.css \
+  css/fisttest.css
 
 css/fist.css: less
-	cat css/less/*.css > css/fist.css
+	cat css/less/main.css css/less/modal.css css/less/tooltip.css css/less/view.css > css/fist.css
+
+css/fistdocs.css: less
+	cp css/less/docs.css css/fistdocs.css
+
+css/fisttest.css: less
+	cp css/less/test.css css/fisttest.css
 
 less: css/less/main.css css/less/modal.css css/less/tooltip.css css/less/view.css css/less/docs.css css/less/test.css
 
