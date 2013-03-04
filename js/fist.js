@@ -1479,8 +1479,12 @@ var Fist = {
     return this._applyTypes(opType, argTypes);
   },
   blockType: function(name) {
-    var type = Type.fromValue(this.evaluateAtom(name));
-    return type && type.node();
+    try {
+      var type = Type.fromValue(this.evaluateAtom(name));
+      return type && type.node();
+    } catch (e) {
+      return null;
+    }
   }
 };
 
