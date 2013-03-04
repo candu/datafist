@@ -360,15 +360,19 @@ div.block.dragtarget {
   right: 20px;
 }
 #svg_graph_controls > #svg_graph_controls_fix > .control {
+  font-size: 80%;
   display: inline-block;
   background-color: #dddddd;
   border: 1px solid #cccccc;
   color: #888888;
-  width: 50px;
+  width: 40px;
   text-align: center;
   padding: 2px;
   margin: 2px 2px 2px -4px;
   cursor: pointer;
+}
+#svg_graph_controls > #svg_graph_controls_fix > a {
+  text-decoration: none;
 }
 .modal-dialog {
   position: fixed;

@@ -2985,6 +2985,29 @@ var FistUI = {
     console.log(encodedCode);
     this._saveButton.set("href", "data:application/octet-stream;base64," + encodedCode);
   },
+  _loadFromFile: function(file) {
+    if (file.size > 1024 * 1024) {
+      this._status.notOK("file too large!");
+      return;
+    }
+    var reader = new FileReader();
+    reader.onloadend = function(evt) {
+      if (evt.target.readyState !== FileReader.DONE) {
+        this._status.notOK("failed to load file!");
+        return;
+      }
+      try {
+        var code = JSON.parse(evt.target.result);
+        this._status.OK("loaded fist code from " + file.name);
+      } catch (err) {
+        if (!(err instanceof SyntaxError)) {
+          throw err;
+        }
+        this._status.notOK("invalid fist code!");
+      }
+    }.bind(this);
+    reader.readAsText(file);
+  },
   runViewGraph: function(options) {
     options = options || {};
     var rebuild = options.rebuild || true;
@@ -3114,6 +3137,20 @@ var FistUI = {
       this._viewGraph.empty();
     }.bind(this));
     this._saveButton = this._root.getElement("#svg_graph_save");
+    this._loadButton = this._root.getElement("#svg_graph_load");
+    this._loadButton.addEventListener("click", function(evt) {
+      var evt = document.createEvent("Event");
+      evt.initEvent("click", true, true);
+      this._loadInput.dispatchEvent(evt);
+    }.bind(this));
+    this._loadInput = this._root.getElement("#svg_graph_load_input");
+    this._loadInput.addEventListener("change", function(evt) {
+      if (evt.target.files.length === 0) {
+        this._status.notOK("load cancelled.");
+        return;
+      }
+      this._loadFromFile(evt.target.files[0]);
+    }.bind(this));
     this.inited = true;
   },
   onSymbolImport: function(name, value, moduleName) {
