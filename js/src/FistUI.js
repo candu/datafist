@@ -572,7 +572,10 @@ var ViewGraph = new Class({
   },
   _toCodeDepth: function(node) {
     var ret = {
-      pos: {x: node.dims.x, y: node.dims.y},
+      pos: {
+        x: node.dims.x + node.dims.w / 2,
+        y: node.dims.y + node.dims.h / 2
+      },
       op: node.name
     };
     var edges = node.allEdgesIn();
@@ -965,6 +968,9 @@ var FistUI = {
         'div.module-group[name=' + moduleName + ']'
       );
       moduleGroup.getElement('div.module-contents').adopt(block);
+    }
+    if (moduleName === undefined) {
+      this._viewGraph.fromCodes(this._viewGraph.toCodes());
     }
   },
   onModuleImport: function(moduleName) {
