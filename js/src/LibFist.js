@@ -142,6 +142,9 @@ var OpsArith = {
       },
       iter: function() {
         return new UnionIterator(channels.map(function(c) { return c.iter(); }));
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     };
   }).type(FunctionType({
@@ -384,6 +387,9 @@ var OpsLocation = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     };
   }).type(FunctionType({
@@ -422,6 +428,9 @@ var OpsTime = {
             return _iter.peek() + _dt;
           }
         };
+      },
+      type: function() {
+        return Type.fromValue(args.c);
       }
     };
   }).type(FunctionType({
@@ -478,6 +487,9 @@ var OpsTime = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     }
   }).type(FunctionType({
@@ -493,6 +505,9 @@ var OpsTime = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     }
   }).type(FunctionType({
@@ -509,6 +524,9 @@ var OpsTime = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     }
   }).type(FunctionType({
@@ -525,6 +543,9 @@ var OpsTime = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     }
   }).type(FunctionType({
@@ -771,6 +792,9 @@ var OpsJoin = {
         var iters = args.joins.map(function(j) { return j.iter(); });
         iters.unshift(args.c.iter());
         return new IntersectionIterator(iters);
+      },
+      type: function() {
+        return Type.fromValue(args.c);
       }
     }
   }).type(FunctionType({
@@ -1088,6 +1112,9 @@ var GensChannel = {
       },
       iter: function() {
         return args.c.iter();
+      },
+      type: function() {
+        return ChannelType(NumberType);
       }
     }
   }).type(FunctionType({
