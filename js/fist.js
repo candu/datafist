@@ -1076,9 +1076,20 @@ var ImportDialog = new Class({
       limit: Ls[maxi][0] + 10
     };
   },
+  _getSepLast: function(partialFileData) {
+    var sep = "\n", last = partialFileData.lastIndexOf(sep);
+    if (last === -1) {
+      sep = "\r";
+      last = partialFileData.lastIndexOf(sep);
+    }
+    return {
+      sep: sep,
+      last: last
+    };
+  },
   _step1: function(partialFileData) {
     this._step(1);
-    var last = partialFileData.lastIndexOf("\n"), lineData = partialFileData.substring(0, last), picked = this._pickLines(lineData), lines = lineData.split("\n"), stepRoot = this._root.getElement("#step1"), table = stepRoot.getElement(".table");
+    var sepLast = this._getSepLast(partialFileData), lineData = partialFileData.substring(0, sepLast.last), picked = this._pickLines(lineData), lines = lineData.split(sepLast.sep), stepRoot = this._root.getElement("#step1"), table = stepRoot.getElement(".table");
     this._lines = lines;
     this._picked = picked;
     var buildLine = function(i, selected) {
