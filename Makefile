@@ -55,7 +55,7 @@ js/fist.js: \
   js/src/LibFistUI.js \
   js/src/end.js
 	cat $(filter %.js,$^) > $@.tmp
-	$(JS_UGLIFY) $@.tmp -b indent-level=2 -o $@
+	$(JS_UGLIFY) $@.tmp -b -o $@
 	rm $@.tmp
 
 clean:

@@ -658,10 +658,9 @@ var ViewGraph = new Class({
   },
   nodeDimensions: function(name, pos) {
     this._tempText.text(name);
-    var size = $d3(this._tempText).getSize();
-    size.x = Math.max(50, size.x);
-    var w = size.x + 2 * Node.PADDING,
-        h = size.y + 2 * Node.PADDING;
+    var bbox = $d3(this._tempText).getBBox();
+    var w = Math.max(50, bbox.width) + 2 * Node.PADDING,
+        h = bbox.height + 2 * Node.PADDING;
     return {
       x: Math.floor(pos.x - w / 2) + 0.5,
       y: Math.floor(pos.y - h / 2) + 0.5,
@@ -1037,6 +1036,9 @@ var FistUI = {
     this._viewExecuteSVG
       .attr('width', docSize.x - 10)
       .attr('height', docSize.y - (totalHeight + 8));
+    this._viewGraphSVG
+      .attr('width', docSize.x - 273)
+      .attr('height', 800);
     this._footer
       .setStyle('width', docSize.x)
       .setStyle('height', footerHeight);
